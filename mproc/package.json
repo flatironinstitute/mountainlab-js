@@ -1,0 +1,25 @@
+{
+  "name": "mproc",
+  "version": "0.0.1",
+  "description": "Manage MountainLab processing libraries and ML processes on the local machine",
+  "engines": {
+    "node": ">8.0.0"
+  },
+  "main": "mproc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flatironinstitute/mountainlab-js"
+  },
+  "keywords": [
+    "MountainLab"
+  ],
+  "author": "Jeremy Magland",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {
+    "commander": "latest"
+  }
+}
