@@ -16,5 +16,14 @@ program
   	require(__dirname+'/list_processors.js').list_processors(cmd);
   });
 
+program
+  .command('spec <processor-name>')
+  .description('Show the spec for a specific processor.')
+  .option('--package [package-name]', 'Specify ML processor package by name')
+  .option('--package_uri [package-uri]', 'Specify ML processor package by URI')
+  .action(function (processor_name, cmd) {
+  	require(__dirname+'/spec.js').spec(processor_name,cmd);
+  });
+
 program.parse(process.argv);
 
