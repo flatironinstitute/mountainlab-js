@@ -13,6 +13,6 @@ function list_processors(opts) {
 			list.push(pname);
 		}
 	}
-	console.log(list.join('\n'));
+	console.log (list.join('\n'));
 }
 

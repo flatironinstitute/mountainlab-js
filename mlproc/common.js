@@ -1,16 +1,15 @@
 exports.find_candidate_mp_files=find_candidate_mp_files;
 exports.get_spec_from_mp_file=get_spec_from_mp_file;
 exports.get_processor_specs=get_processor_specs;
+exports.ends_with=ends_with;
+exports.foreach_async=foreach_async;
+exports.mkdir_if_needed=mkdir_if_needed;
+exports.stat_file=stat_file;
+exports.parse_json=parse_json;
+exports.read_json_file=read_json_file;
+exports.read_dir_safe=read_dir_safe;
 
-/*
-test
-var list=find_candidate_mp_files({});
-console.log(list.join('\n'));
-for (var i in list) {
-	var spec=get_spec_from_mp_file(list[i]);
-	console.log(spec.processors.length);
-}
-*/
+var sha1 = require('node-sha1');
 
 function get_processor_specs(opts) {
 	var mp_file_names=find_candidate_mp_files(opts);
@@ -52,7 +51,7 @@ function find_candidate_mp_files_in_directory(path) {
 	for (var ii in files) {
 		var file=files[ii];
 		var fname=path+'/'+file;
-		var stat0=stat_safe(fname);
+		var stat0=stat_file(fname);
 		if (stat0) {
 			if (stat0.isFile()) {
 				if (ends_with(fname,'.mp')) {
@@ -88,18 +87,6 @@ function get_mp_search_paths(opts) {
 	return list;
 }
 
-/*
-function read_json_file(fname) {
-	try {
-		var txt=require('fs').readFileSync(fname,'utf8')
-		return parse_json(txt);
-	}
-	catch(err) {
-		return null;
-	}
-}
-*/
-
 function parse_json(str) {
 	try {
 		return JSON.parse(str);
@@ -128,7 +115,7 @@ function read_dir_safe(path) {
 	}
 }
 
-function stat_safe(fname) {
+function stat_file(fname) {
 	try {
 		return require('fs').statSync(fname);
 	}
@@ -138,17 +125,40 @@ function stat_safe(fname) {
 }
 
 function is_executable(fname) {
-	var stat0=stat_safe(fname);
+	var stat0=stat_file(fname);
 	var mask=1; //use 1 for executable, 2 for write, 4 for read
 	return !!(mask & parseInt ((stat0.mode & parseInt ("777", 8)).toString (8)[0]));
 }
 
-var checkPermission = function (file, mask, cb){
-    fs.stat (file, function (error, stats){
-        if (error){
-            cb (error, false);
-        }else{
-            cb (null, !!(mask & parseInt ((stats.mode & parseInt ("777", 8)).toString (8)[0])));
-        }
-    });
-};
+function foreach_async(list,step,callback) {
+	var ii=0;
+	next_step();
+	function next_step() {
+		if (ii>=list.length) {
+			callback();
+			return;
+		}
+		step(ii,list[ii],function() {
+			ii++;
+			next_step();
+		});
+	}
+}
+
+function mkdir_if_needed(path) {
+  try {
+    require('fs').mkdirSync(path);
+  }
+  catch(err) {
+  }
+}
+
+function read_json_file(fname) {
+	try {
+		var txt=require('fs').readFileSync(fname,'utf8')
+		return parse_json(txt);
+	}
+	catch(err) {
+		return null;
+	}
+}
