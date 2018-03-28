@@ -1,12 +1,13 @@
 {
-  "name": "mlproc",
+  "name": "mountainlab-js",
   "version": "0.0.1",
-  "description": "Manage MountainLab processing libraries and ML processes on the local machine",
+  "description": "MountainLab data analysis environment",
   "engines": {
     "node": ">8.0.0"
   },
-  "main": "mlproc.js",
+  "main": "",
   "scripts": {
+    "postinstall": "(cd mlproc && npm install && cd ..); (cd lari && npm install && cd ..); (cd system-packages/kbucket_upload && npm install && cd ../..)",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,12 +19,6 @@
   ],
   "author": "Jeremy Magland",
   "license": "Apache-2.0",
-  "dependencies": {
-    "node-sha1": "latest",
-    "mongodb": "latest",
-    "dotenv": "latest"
-  },
-  "devDependencies": {
-    "commander": "latest"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

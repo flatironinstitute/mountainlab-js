@@ -16,6 +16,8 @@ function cmd_run_process(processor_name,opts,callback) {
 			callback(`Processor not found: ${processor_name}`);
 			return;
 		}
+		spec0.outputs=spec0.outputs||[];
+		spec0.outputs.push({name:'console_out',optional:true});
 		run_process_2(processor_name,opts,spec0,callback);
 	});
 }
@@ -196,6 +198,9 @@ function do_run_process(spec0,inputs,outputs,parameters,callback) {
 	console.log ('[ Running ... ] '+cmd);
 	var P=new SystemProcess();
 	P.setCommand(cmd);
+	if ('console_out' in outputs) {
+		P.setConsoleOutFile(outputs['console_out']);
+	}
 	P.onFinished(function() {
 		callback(P.error());
 	});
@@ -211,10 +216,13 @@ function filter_exe_command(cmd,inputs,outputs,parameters) {
 	for (var key in parameters)
 		iop[key]=parameters[key];
 	var arguments=[];
+	var console_out_file='';
 	for (var key in iop) {
 		var val=iop[key];
-		if (typeof(val)=='string') {
-			arguments.push(`--${key}=${val}`);
+		if (typeof(val)!='object') {
+			if (key!='console_out') {
+				arguments.push(`--${key}=${val}`);
+			}
 			cmd=cmd.split('$'+key+'$').join(val);
 		}
 		else {
@@ -230,7 +238,7 @@ function filter_exe_command(cmd,inputs,outputs,parameters) {
 function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 	var ikeys=Object.keys(inputs);
 	common.foreach_async(ikeys,function(ii,key,cb) {
-		if (typeof(inputs[key])=='string') {
+		if (typeof(inputs[key])!='object') {
 			var fname=inputs[key];
 			fname=require('path').resolve(process.cwd(),fname);
 			inputs[key]=fname;
@@ -239,7 +247,7 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 				return;
 			}
 			if (common.ends_with(fname,'.prv')) {
-				prv_utils.prv_locate(fname,function(err,fname2) {
+				prv_utils.prv_locate(fname,{},function(err,fname2) {
 					if (err) {
 						console.error(err);
 					}
@@ -272,7 +280,7 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 function check_outputs_and_substitute_prvs(outputs,process_signature,callback) {
 	var pending_output_prvs=[];
 	var okeys=Object.keys(outputs);
-	var tmp_dir=common.get_tmp_dir();
+	var tmp_dir=common.temporary_directory();
 	common.foreach_async(okeys,function(ii,key,cb) {
 		var fname=outputs[key];
 		fname=require('path').resolve(process.cwd(),fname);
@@ -400,7 +408,7 @@ function get_checksums_for_files(inputs,opts,callback) {
 	var keys=Object.keys(inputs);
 	common.foreach_async(keys,function(ii,key,cb) {
 		var val=inputs[key];
-		if (typeof(val)=='string') {
+		if (typeof(val)!='object') {
 			prv_utils.compute_file_sha1(val,function(err,sha1) {
 				if (err) {
 					callback(err);
@@ -478,7 +486,7 @@ function parse_iop(str,iop_name) {
 				ret[key0]=val0;
 			}
 			else {
-				if (typeof(ret[key0])=='string') {
+				if (typeof(ret[key0])!='object') {
 					ret[key0]=[ret[key0],val0];
 				}
 				else {

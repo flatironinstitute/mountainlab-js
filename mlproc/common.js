@@ -9,10 +9,14 @@ exports.stat_file=stat_file;
 exports.parse_json=parse_json;
 exports.read_json_file=read_json_file;
 exports.write_json_file=write_json_file;
+exports.read_text_file=read_text_file;
 exports.write_text_file=write_text_file;
 exports.read_dir_safe=read_dir_safe;
-exports.get_tmp_dir=get_tmp_dir;
+exports.temporary_directory=temporary_directory;
 exports.make_random_id=make_random_id;
+exports.prv_search_directories=prv_search_directories;
+exports.package_search_directories=package_search_directories;
+exports.config_file_path=config_file_path;
 
 var sha1 = require('node-sha1');
 var db_utils=require(__dirname+'/db_utils.js');
@@ -69,7 +73,7 @@ function get_processor_spec(processor_name,opts,callback) {
 
 function find_candidate_mp_files(opts,callback) {
 	var list=[];
-	var paths=get_mp_search_paths(opts);
+	var paths=package_search_directories(opts);
 	foreach_async(paths,function(ii,path0,cb) {
 		find_candidate_mp_files_in_directory(path0,function(err,list0) {
 			if (err) {
@@ -153,9 +157,16 @@ function get_spec_from_mp_file(fname,callback) {
 	}
 }
 
-function get_mp_search_paths(opts) {
+function package_search_directories(opts) {
 	var list=[];
-	list.push(process.env.HOME+'/.mountainlab/packages');
+	var ml_packages_path=process.env.ML_PACKAGE_SEARCH_DIRECTORY||(process.env.HOME+'/.mountainlab/packages');
+	list.push(ml_packages_path);
+	list.push(require('path').resolve(__dirname,'../system-packages'));
+	var ml_additional_packages_paths=(process.env.ML_ADDITONAL_PACKAGE_SEARCH_DIRECTORIES||'').split(':');
+	for (var i in ml_additional_packages_paths) {
+		if (ml_additional_packages_paths[i])
+			list.push(ml_additional_packages_paths[i]);
+	}
 	return list;
 }
 
@@ -194,6 +205,23 @@ function stat_file(fname) {
 	catch(err) {
 		return null;
 	}
+}
+
+function prv_search_directories() {
+	var ret=[];
+	ret.push(process.cwd());
+	ret.push(temporary_directory());
+	var ml_additional_prv_search_directories=(process.env.ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES||'').split(':');
+	for (var i in ml_additional_prv_search_directories) {
+		if (ml_additional_prv_search_directories[i]) {
+			ret.push(ml_additional_prv_search_directories[i]);
+		}
+	}
+	return ret;
+}
+
+function config_file_path() {
+	return process.env.ML_CONFIG_FILE||(process.env.HOME+'/.mountainlab/mountainlab.env');
 }
 
 function is_executable(fname) {
@@ -235,6 +263,16 @@ function read_json_file(fname) {
 	}
 }
 
+function read_text_file(fname) {
+	try {
+		var txt=require('fs').readFileSync(fname,'utf8')
+		return txt;
+	}
+	catch(err) {
+		return null;
+	}
+}
+
 function write_json_file(fname,obj) {
 	try {
 		require('fs').writeFileSync(fname,JSON.stringify(obj));
@@ -255,10 +293,10 @@ function write_text_file(fname,txt) {
 	}
 }
 
-function get_tmp_dir() {
-	var tmp_dir=process.env.HOME+'/.mountainlab/tmp';
-	mkdir_if_needed(tmp_dir);
-	return tmp_dir;
+function temporary_directory() {
+	var ml_temporary_directory=process.env.ML_TEMPORARY_DIRECTORY||('/tmp/mountainlab-tmp');
+	mkdir_if_needed(ml_temporary_directory);
+	return ml_temporary_directory;
 }
 
 function make_random_id(len) {

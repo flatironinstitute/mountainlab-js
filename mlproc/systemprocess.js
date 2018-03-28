@@ -6,13 +6,14 @@ var common=require(__dirname+'/common.js');
 var all_running_processes={};
 function stop_all() {
 	for (var id in all_running_processes) {
-		console.log('Terminating process...');
+		console.log ('Terminating process...');
 		all_running_processes[id].kill();
 	}
 }
 
 function SystemProcess() {
 	this.setCommand=function(cmd) {m_command=cmd;};
+	this.setConsoleOutFile=function(fname) {m_console_out_fname=fname;};
 	this.start=function() {start();};
 	this.onFinished=function(handler) {m_finished_handlers.push(handler);};
 	this.error=function() {return m_error;};
@@ -22,6 +23,9 @@ function SystemProcess() {
 	var m_process=null;
 	var m_error='';
 	var m_id=common.make_random_id(10);
+	var m_console_out_fname='';
+	var m_stdout_txt='';
+	var m_stderr_txt='';
 
 	function start() {
 		var list=m_command.split(' ');
@@ -37,9 +41,11 @@ function SystemProcess() {
 		}
 		m_process=P;
 		P.stdout.on('data',function(chunk) {
+			m_stdout_txt+=chunk.toString('utf8');
 			console.log (chunk.toString('utf8'));
 		});
 		P.stderr.on('data',function(chunk) {
+			m_stderr_txt+=chunk.toString('utf8');
 			console.log (chunk.toString('utf8'));
 		});
 		P.on('close',function(code) {
@@ -59,6 +65,9 @@ function SystemProcess() {
 	}
 
 	function report_finished(err) {
+		if (m_console_out_fname) {
+			common.write_text_file(m_console_out_fname,m_stdout_txt);
+		}
 		call_finished_handlers();
 	}
 

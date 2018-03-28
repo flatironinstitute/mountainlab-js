@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 
+var common=require(__dirname+'/common.js');
+
+// Set environment variables from mountainlab.env
+// Note: existing environment variables will NOT be overriden
+var ml_config_file=common.config_file_path();
+require('dotenv').config({path:ml_config_file});
+
 var program = require('commander');
 
 var package_json = require('./package.json');
@@ -61,8 +68,11 @@ program
   });
 
 program
-  .command('prv-locate <prv-file-name>')
+  .command('prv-locate [prv-file-name]')
   .description('Locate a file corresponding to a prv record.')
+  .option('--sha1 [sha1]','If prv file is not provided, specify the sha1.')
+  .option('--size [size]','If prv file is not provided, specify the size.')
+  .option('--fcs [fcs]','If prv file is not provided, specify the fcs.')
   .action(function (prv_file_name, cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_locate(prv_file_name,cmd,function(err) {
       if (err) {
@@ -80,6 +90,19 @@ program
   .option('--sha1', 'Do not write output file. Instead write the sha1 hash to the console.')
   .action(function (input_fname, output_prv_fname, cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_create(input_fname,output_prv_fname,cmd,function(err) {
+      if (err) {
+        console.error(err);
+        process.exit(-1);
+      }
+      process.exit(0);
+    });
+  });
+
+program
+  .command('config')
+  .description('Display configuration information')
+  .action(function (cmd) {
+    require(__dirname+'/display_config.js').cmd_config(cmd,function(err) {
       if (err) {
         console.error(err);
         process.exit(-1);
@@ -106,9 +129,8 @@ function preprocess_run_process_argv(argv) {
   while (i<argv.length) {
     var arg0=argv[i];
     var do_combine=false;
-    if ((arg0=='--inputs')||(arg0=='-i')||(arg0=='--outputs')||(arg0=='-o')||(arg0=='parameters')||(arg0=='-p'))
+    if ((arg0=='--inputs')||(arg0=='-i')||(arg0=='--outputs')||(arg0=='-o')||(arg0=='--parameters')||(arg0=='-p'))
       do_combine=true;
-    ret.push(arg0);
     i++;
     if (do_combine) {
       var args0=[];
@@ -116,7 +138,13 @@ function preprocess_run_process_argv(argv) {
         args0.push(argv[i]);
         i++;
       }
-      ret.push(args0.join('[---]'));
+      if (args0.length>0) {
+        ret.push(arg0);
+        ret.push(args0.join('[---]'));
+      }
+    }
+    else {
+      ret.push(arg0);
     }
   }
   return ret;

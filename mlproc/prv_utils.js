@@ -9,7 +9,7 @@ var db_utils=require(__dirname+'/db_utils.js');
 var sha1=require('node-sha1');
 
 function cmd_prv_locate(prv_fname,opts,callback) {
-	prv_locate(prv_fname,function(err,path) {
+	prv_locate(prv_fname,opts,function(err,path) {
 		if (err) {
 			console.error(err);
 			callback(err);
@@ -71,13 +71,24 @@ function cmd_prv_create(fname,prv_fname_out,opts,callback) {
 	});
 }
 
-function prv_locate(prv_fname,callback) {
-	var obj=common.read_json_file(prv_fname);
-	if (!obj) {
-		callback('Cannot read json file: '+prv_fname);
-		return;
+function prv_locate(prv_fname,opts,callback) {
+	var obj=null;
+	if (prv_fname) {
+		obj=common.read_json_file(prv_fname);
+		if (!obj) {
+			callback('Cannot read json file: '+prv_fname);
+			return;
+		}
 	}
-	var prv_search_paths=get_prv_search_paths();
+	else {
+		obj={
+			original_checksum:opts.sha1,
+			original_size:opts.size,
+			original_fcs:opts.fcs,
+			prv_version:'0.11'
+		}
+	}
+	var prv_search_paths=common.prv_search_directories();
 
 	var sha1=obj.original_checksum||'';
 	var fcs=obj.original_fcs||'';
@@ -263,13 +274,6 @@ function file_matches_fcs_section(path,fcs_section) {
 		console.warn('Unexpected head section: '+fcs_section);
 		return false;
 	}
-}
-
-function get_prv_search_paths() {
-	var ret=[];
-	ret.push(process.cwd());
-	ret.push(process.env.HOME+'/.mountainlab/tmp');
-	return ret;
 }
 
 function read_part_of_file(path, start, num_bytes) {
