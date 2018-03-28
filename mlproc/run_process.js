@@ -1,4 +1,4 @@
-exports.run_process=run_process;
+exports.cmd_run_process=cmd_run_process;
 
 var common=require(__dirname+'/common.js');
 var prv_utils=require(__dirname+'/prv_utils.js');
@@ -6,12 +6,21 @@ var db_utils=require(__dirname+'/db_utils.js');
 var SystemProcess=new require(__dirname+'/systemprocess.js').SystemProcess;
 var sha1=require('node-sha1');
 
-function run_process(processor_name,opts,callback) {
-	var spec0=get_processor_spec(processor_name,opts);
-	if (!spec0) {
-		console.log (`Processor not found: ${processor_name}`);
-		return false;
-	}
+function cmd_run_process(processor_name,opts,callback) {
+	common.get_processor_spec(processor_name,opts,function(err,spec0) {
+		if (err) {
+			callback(err);
+			return;
+		}
+		if (!spec0) {
+			callback(`Processor not found: ${processor_name}`);
+			return;
+		}
+		run_process_2(processor_name,opts,spec0,callback);
+	});
+}
+
+function run_process_2(processor_name,opts,spec0,callback) {
 	var inputs,outputs,parameters;
 	try {
 		inputs=parse_iop(opts.inputs||'','input');
@@ -28,26 +37,16 @@ function run_process(processor_name,opts,callback) {
 	}
 
 	var process_signature='';
+	var pending_output_prvs=[];
 	var mode=opts.mode||'run';
+	var already_completed=false;
 
 	var steps=[];
 
 	// Check inputs and substitute prvs
 	steps.push(function(cb) {
-		console.log ('Checking inputs and substituting prvs...');
+		console.log ('[ Checking inputs and substituting prvs ... ]');
 		check_inputs_and_substitute_prvs(inputs,'',function(err) {
-			if (err) {
-				callback(err);
-				return;
-			}
-			cb();
-		});
-	});
-
-	// Check outputs
-	steps.push(function(cb) {
-		console.log ('Checking outputs...');
-		check_outputs(outputs,function(err) {
 			if (err) {
 				callback(err);
 				return;
@@ -62,7 +61,7 @@ function run_process(processor_name,opts,callback) {
 			cb();
 			return;
 		}
-		console.log ('Computing process signature...');
+		console.log ('[ Computing process signature ... ]');
 		compute_process_signature(spec0,inputs,parameters,function(err,sig) {
 			if (err) {
 				callback(err);
@@ -73,22 +72,34 @@ function run_process(processor_name,opts,callback) {
 		})
 	});
 
+	// Check outputs
+	steps.push(function(cb) {
+		console.log ('[ Checking outputs... ]');
+		check_outputs_and_substitute_prvs(outputs,process_signature,function(err,tmp) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			pending_output_prvs=tmp.pending_output_prvs;
+			cb();
+		});
+	});
+
 	// Check process cache
 	steps.push(function(cb) {
 		if (mode=='exec') {
 			cb();
 			return;
 		}
-		console.log ('Checking process cache...');
+		console.log ('[ Checking process cache ... ]');
 		find_in_process_cache(process_signature,outputs,function(err,doc0) {
 			if (err) {
 				callback(err);
 				return;
 			}
 			if (doc0) {
-				console.log ('Process already completed.');
-				callback(null);
-				return;
+				console.log ('[ Process already completed. ]');
+				already_completed=true;
 			}
 			cb();
 		});
@@ -96,11 +107,15 @@ function run_process(processor_name,opts,callback) {
 
 	// Wait for ready run
 	steps.push(function(cb) {
+		if (already_completed) {
+			cb();
+			return;
+		}
 		if ((mode=='exec')||(mode=='run')) {
 			cb();
 			return;
 		}
-		console.log ('Waiting for ready to run...');
+		console.log ('[ Waiting for ready to run... ]');
 		wait_for_ready_run(spec0,inputs,outputs,parameters,function(err) {
 			if (err) {
 				callback(err);
@@ -112,22 +127,48 @@ function run_process(processor_name,opts,callback) {
 
 	// Run the process
 	steps.push(function(cb) {
-		console.log ('Initializing process...');
+		if (already_completed) {
+			cb();
+			return;
+		}
+		console.log ('[ Initializing process ... ]');
 		do_run_process(spec0,inputs,outputs,parameters,function(err) {
 			if (err) {
 				callback(err);
+				return;
 			}
+			cb();
+		});
+	});
+
+	// Handle pending output prvs
+	steps.push(function(cb) {
+		common.foreach_async(pending_output_prvs,function(ii,X,cb2) {
+			console.log (`[ Creating output prv for ${X.name} ... ]`);
+			prv_utils.prv_create(X.output_fname,function(err,obj) {
+				if (err) {
+					callback(err);
+					return;
+				}
+				common.write_json_file(X.prv_fname,obj);
+				cb2();
+			});
+		},function() {
 			cb();
 		});
 	});
 
 	// Save to process cache
 	steps.push(function(cb) {
+		if (already_completed) {
+			cb();
+			return;
+		}
 		if (mode=='exec') {
 			cb();
 			return;
 		}
-		console.log ('Saving to process cache...');
+		console.log ('[ Saving to process cache ... ]');
 		save_to_process_cache(process_signature,spec0,inputs,outputs,parameters,function(err) {
 			if (err) {
 				callback(err);
@@ -139,7 +180,7 @@ function run_process(processor_name,opts,callback) {
 	common.foreach_async(steps,function(ii,step,cb) {
 		step(cb);
 	},function() {
-		console.log ('Process completed.')
+		console.log ('[ Done. ]')
 		callback(null);
 	});
 }
@@ -152,7 +193,7 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 
 function do_run_process(spec0,inputs,outputs,parameters,callback) {
 	var cmd=filter_exe_command(spec0.exe_command,inputs,outputs,parameters);
-	console.log ('Running::: '+cmd);
+	console.log ('[ Running ... ] '+cmd);
 	var P=new SystemProcess();
 	P.setCommand(cmd);
 	P.onFinished(function() {
@@ -192,6 +233,7 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 		if (typeof(inputs[key])=='string') {
 			var fname=inputs[key];
 			fname=require('path').resolve(process.cwd(),fname);
+			inputs[key]=fname;
 			if (!require('fs').existsSync(fname)) {
 				callback(`Input file (${(prefix||'')+key}) does not exist: ${fname}`);
 				return;
@@ -227,15 +269,25 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 	});
 }
 
-function check_outputs(outputs,callback) {
+function check_outputs_and_substitute_prvs(outputs,process_signature,callback) {
+	var pending_output_prvs=[];
 	var okeys=Object.keys(outputs);
+	var tmp_dir=common.get_tmp_dir();
 	common.foreach_async(okeys,function(ii,key,cb) {
 		var fname=outputs[key];
-		var fname2=require('path').resolve(process.cwd(),fname);
-		outputs[key]=fname2;
-		cb();
+		fname=require('path').resolve(process.cwd(),fname);
+		outputs[key]=fname;
+		if (common.ends_with(fname,'.prv')) {
+			var fname2=tmp_dir+`/output_${process_signature}_${key}`;
+			pending_output_prvs.push({name:key,prv_fname:fname,output_fname:fname2});
+			outputs[key]=fname2;
+			cb();
+		}
+		else {
+			cb();	
+		}
 	},function() {
-		callback(null);
+		callback(null,{pending_output_prvs:pending_output_prvs});
 	});
 }
 
@@ -269,20 +321,25 @@ function compute_process_signature_object_inputs(inputs,callback) {
 }
 
 function find_in_process_cache(process_signature,outputs,callback) {
-	CC=db_utils.open_collection('process_cache');
-	var docs=CC.find({process_signature:process_signature});
-	if (docs.length==0) {
-		callback(null,null);
-		return;
-	}
-	check_outputs_consistent_with_process_cache(outputs,docs[0],function(err,consistent) {
-		if (consistent) {
-			callback(null,docs[0]);
+	db_utils.findDocuments('process_cache',{process_signature:process_signature},function(err,docs) {
+		if (err) {
+			callback(err);
+			return;
 		}
-		else {
+		if (docs.length==0) {
 			callback(null,null);
+			return;
 		}
-	})
+		check_outputs_consistent_with_process_cache(outputs,docs[0],function(err,consistent) {
+			if (consistent) {
+				callback(null,docs[0]);
+			}
+			else {
+				callback(null,null);
+			}
+		});
+	});
+	
 }
 
 function check_outputs_consistent_with_process_cache(outputs,doc0,callback) {
@@ -307,29 +364,35 @@ function check_outputs_consistent_with_process_cache(outputs,doc0,callback) {
 }
 
 function save_to_process_cache(process_signature,spec0,inputs,outputs,parameters,callback) {
-	var CC=db_utils.open_collection('process_cache');
-	CC.remove({process_signature:process_signature});
-	get_checksums_for_files(inputs,{mode:'process_cache'},function(err,inputs_with_checksums) {
+	db_utils.removeDocuments('process_cache',{process_signature:process_signature},function(err) {
 		if (err) {
 			callback(err);
 			return;
 		}
-		get_checksums_for_files(outputs,{mode:'process_cache'},function(err,outputs_with_checksums) {
+		get_checksums_for_files(inputs,{mode:'process_cache'},function(err,inputs_with_checksums) {
 			if (err) {
 				callback(err);
 				return;
 			}
-			var doc0={
-				process_signature:process_signature,
-				spec:spec0,
-				inputs:inputs_with_checksums,
-				outputs:outputs_with_checksums,
-				parameters:parameters
-			};
-			CC.save(doc0);
-			callback(null);
+			get_checksums_for_files(outputs,{mode:'process_cache'},function(err,outputs_with_checksums) {
+				if (err) {
+					callback(err);
+					return;
+				}
+				var doc0={
+					process_signature:process_signature,
+					spec:spec0,
+					inputs:inputs_with_checksums,
+					outputs:outputs_with_checksums,
+					parameters:parameters
+				};
+				db_utils.saveDocument('process_cache',doc0,function(err) {
+					callback(err);
+				});
+			});
 		});
 	});
+	
 }
 
 function get_checksums_for_files(inputs,opts,callback) {
@@ -427,14 +490,3 @@ function parse_iop(str,iop_name) {
 	return ret;
 }
 
-function get_processor_spec(processor_name,opts) {
-	var processor_specs=common.get_processor_specs(opts);
-	for (var i in processor_specs) {
-		var spec0=processor_specs[i];
-		var pname=spec0.name||'';
-		if (pname==processor_name) {
-			return spec0;
-		}
-	}
-	return null;
-}

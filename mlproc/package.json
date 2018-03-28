@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "node-sha1": "latest",
-    "diskdb": "latest"
+    "mongodb": "latest"
   },
   "devDependencies": {
     "commander": "latest"
