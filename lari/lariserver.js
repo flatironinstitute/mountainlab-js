@@ -82,6 +82,7 @@ if (process.env.LARI_LISTEN_PORT=='*') {
 if ((!process.env.LARI_LISTEN_PORT)&&(!process.env.LARI_HUB_URL)) {
 	console.error('You must set at least one of the following environment variables: LARI_LISTEN_PORT, LARI_HUB_URL');
 	console.error('You can do this in the mountainlab configuration file.');
+	console.error('Use LARI_LISTEN_PORT=* to use the default port.');
 	process.exit(-1);
 }
 
