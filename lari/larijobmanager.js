@@ -48,6 +48,7 @@ function LariProcessorJob() {
 	var m_process_object=null;
 	//var m_output_file_stats={};
 	var m_latest_console_output='';
+	var m_job_id=common.make_random_id(10); //internal for now (just for naming the temporary files)
 
 	function start(processor_name,processor_version,inputs,outputs,parameters,resources,opts,callback) {
 		/*
@@ -60,6 +61,8 @@ function LariProcessorJob() {
 		var exe='ml-queue-process';
 		var args=[];
 		args.push(processor_name);
+
+		// Handle inputs
 		args.push('--inputs');
 		for (var key in inputs) {
 			var val=inputs[key];
@@ -71,13 +74,15 @@ function LariProcessorJob() {
 				callback(`Missing original_checksum field in input (${key})`);
 				return;	
 			}
-			var tmp_fname='lari_input_'+common.make_random_id(10)+'_'+key+'.prv';
+			var tmp_fname=tmp_dir+'/lari_input_'+m_job_id+'_'+key+'.prv';
 			args.push(key+':'+tmp_fname);
 			if (!lari_write_text_file(tmp_fname,JSON.stringify(val,null,4))) {
 				callback(`Problem writing text file for input (${key}): ${tmp_fname}`);
 				return;
 			}
 		}
+
+		// Handle parameters
 		args.push('--parameters');
 		for (var key in parameters) {
 			var val=parameters[key];
@@ -90,16 +95,22 @@ function LariProcessorJob() {
 				}
 			}
 		}
+
+		// Handle outputs
 		args.push('--outputs');
 		var tmp_output_files={};
 		for (var key in outputs) {
 			if (outputs[key]) {
-				var tmp_fname='lari_output_'+common.make_random_id(10)+'_'+key+'.prv';
+				var tmp_fname=tmp_dir+'/lari_output_'+m_job_id+'_'+key+'.prv';
 				args.push(key+':'+tmp_fname);
 				tmp_output_files[key]=tmp_fname;
 			}
 		}
+
+		// Start housekeeping
 		setTimeout(housekeeping,1000);
+
+		// Start process
 		console.log ('Running: '+exe+' '+args.join(' '));
 		m_process_object=execute_and_read_output(exe,args,{on_stdout:on_stdout,on_stderr:on_stderr},function(err,stdout,stderr,exit_code) {
 			if (err) {
@@ -176,18 +187,6 @@ function LariProcessorJob() {
 		else {
 			setTimeout(housekeeping,1000);
 		}
-	}
-	function make_tmp_json_file(data_directory) {
-		return data_directory+'/tmp.'+make_random_id(10)+'.json';
-	}
-	function make_random_id(len) {
-	    var text = "";
-	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-	    for( var i=0; i < len; i++ )
-	        text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-	    return text;
 	}
 	/*
 	function compute_output_file_stats(outputs) {

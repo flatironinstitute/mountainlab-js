@@ -42,6 +42,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 	var pending_output_prvs=[];
 	var mode=opts.mode||'run';
 	var already_completed=false;
+	var tempdir_path='';
 
 	var steps=[];
 
@@ -50,7 +51,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		console.log ('[ Checking inputs and substituting prvs ... ]');
 		check_inputs_and_substitute_prvs(inputs,'',function(err) {
 			if (err) {
-				callback(err);
+				finalize(err);
 				return;
 			}
 			cb();
@@ -66,7 +67,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		console.log ('[ Computing process signature ... ]');
 		compute_process_signature(spec0,inputs,parameters,function(err,sig) {
 			if (err) {
-				callback(err);
+				finalize(err);
 				return;
 			}
 			process_signature=sig;
@@ -79,7 +80,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		console.log ('[ Checking outputs... ]');
 		check_outputs_and_substitute_prvs(outputs,process_signature,function(err,tmp) {
 			if (err) {
-				callback(err);
+				finalize(err);
 				return;
 			}
 			pending_output_prvs=tmp.pending_output_prvs;
@@ -96,7 +97,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		console.log ('[ Checking process cache ... ]');
 		find_in_process_cache(process_signature,outputs,function(err,doc0) {
 			if (err) {
-				callback(err);
+				finalize(err);
 				return;
 			}
 			if (doc0) {
@@ -117,15 +118,29 @@ function run_process_2(processor_name,opts,spec0,callback) {
 			cb();
 			return;
 		}
-		console.log ('[ Waiting for ready to run... ]');
+		console.log ('[ Waiting for ready to run ... ]');
 		wait_for_ready_run(spec0,inputs,outputs,parameters,function(err) {
 			if (err) {
-				callback(err);
+				finalize(err);
 				return;
 			}
 			cb();
 		})
 	});
+
+	// Create temporary directory
+	steps.push(function(cb) {
+		if (already_completed) {
+			cb();
+			return;
+		}
+		console.log ('[ Creating temporary directory ... ]');
+		var tmp_dir=common.temporary_directory();
+		tempdir_path=tmp_dir+'/tempdir_'+process_signature.slice(0,10)+'_'+common.make_random_id(6);
+		common.mkdir_if_needed(tempdir_path);
+		cb();
+	});
+	
 
 	// Run the process
 	steps.push(function(cb) {
@@ -134,9 +149,9 @@ function run_process_2(processor_name,opts,spec0,callback) {
 			return;
 		}
 		console.log ('[ Initializing process ... ]');
-		do_run_process(spec0,inputs,outputs,parameters,function(err) {
+		do_run_process(spec0,inputs,outputs,parameters,{tempdir_path:tempdir_path},function(err) {
 			if (err) {
-				callback(err);
+				finalize(err);
 				return;
 			}
 			cb();
@@ -149,7 +164,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 			console.log (`[ Creating output prv for ${X.name} ... ]`);
 			prv_utils.prv_create(X.output_fname,function(err,obj) {
 				if (err) {
-					callback(err);
+					finalize(err);
 					return;
 				}
 				common.write_json_file(X.prv_fname,obj);
@@ -173,7 +188,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		console.log ('[ Saving to process cache ... ]');
 		save_to_process_cache(process_signature,spec0,inputs,outputs,parameters,function(err) {
 			if (err) {
-				callback(err);
+				finalize(err);
 			}
 			cb();
 		});
@@ -182,7 +197,70 @@ function run_process_2(processor_name,opts,spec0,callback) {
 	common.foreach_async(steps,function(ii,step,cb) {
 		step(cb);
 	},function() {
-		console.log ('[ Done. ]')
+		finalize(null);
+	});
+
+	function finalize(err00) {
+		remove_temporary_directory(tempdir_path,function(err) {
+			if (err) {
+				console.warn('Error removing temporary directory: '+tempdir_path);
+			}
+			if (!err00) {
+				console.log ('[ Done. ]')
+			}
+			callback(err00);
+		});
+	}
+}
+
+function remove_temporary_directory(tempdir_path,callback) {
+	if (!tempdir_path) {
+		callback(null);
+		return;
+	}
+	console.log ('[ Removing temporary directory ... ]')
+	if (!common.starts_with(tempdir_path,common.temporary_directory()+'/')) {
+		//for safety
+		callback('Invalid (unsafe) path for temporary directory: '+tempdir_path);
+		return;
+	}
+	var files=common.read_dir_safe(tempdir_path);
+	common.foreach_async(files,function(ii,file,cb) {
+		var fname=tempdir_path+'/'+file;
+		var stat0=stat_file(fname);
+		if (stat0) {
+			if (stat0.isFile()) {
+				try {
+					require('fs').unlinkSync(fname);
+				}
+				catch(err) {
+					callback('Unable to remove file from temporary directory: '+fname);
+					return;
+				}
+				cb();
+			}
+			else if (stat0.isDirectory()) {
+				remove_temporary_directory(fname,function(err0) {
+					if (err0) {
+						callback(err0);
+						return;
+					}
+					cb();
+				});
+			}
+			else {
+				callback('File is not a file or directory: '+fname);
+				return;
+			}
+		}
+	},function() {
+		try {
+			require('fs').rmdir(tempdir_path);
+		}
+		catch(err) {
+			callback('Unable to remove directory: '+tempdir_path);
+			return;
+		}
 		callback(null);
 	});
 }
@@ -193,8 +271,8 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 	callback(null);
 }
 
-function do_run_process(spec0,inputs,outputs,parameters,callback) {
-	var cmd=filter_exe_command(spec0.exe_command,inputs,outputs,parameters);
+function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
+	var cmd=filter_exe_command(spec0.exe_command,inputs,outputs,info,parameters);
 	console.log ('[ Running ... ] '+cmd);
 	var P=new SystemProcess();
 	P.setCommand(cmd);
@@ -207,7 +285,7 @@ function do_run_process(spec0,inputs,outputs,parameters,callback) {
 	P.start();
 }
 
-function filter_exe_command(cmd,inputs,outputs,parameters) {
+function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 	var iop={};
 	for (var key in inputs)
 		iop[key]=inputs[key];
@@ -230,6 +308,10 @@ function filter_exe_command(cmd,inputs,outputs,parameters) {
 				arguments.push(`--${key}=${val[i]}`);
 			}
 		}
+	}
+	{
+		arguments.push(`--_tempdir=${info.tempdir_path}`);
+		cmd=cmd.split('$(tempdir)').join(info.tempdir_path);
 	}
 	cmd=cmd.split('$(arguments)').join(arguments.join(' '));
 	return cmd;

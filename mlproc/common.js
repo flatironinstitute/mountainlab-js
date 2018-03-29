@@ -2,6 +2,7 @@ exports.find_candidate_mp_files=find_candidate_mp_files;
 exports.get_spec_from_mp_file=get_spec_from_mp_file;
 exports.get_processor_specs=get_processor_specs;
 exports.get_processor_spec=get_processor_spec;
+exports.starts_with=starts_with;
 exports.ends_with=ends_with;
 exports.foreach_async=foreach_async;
 exports.mkdir_if_needed=mkdir_if_needed;
@@ -183,6 +184,10 @@ function run_program_and_read_output(cmd) {
 	var r = require('child_process').execSync(cmd);
 	var str=r.toString();
 	return str;
+}
+
+function starts_with(str,str2) {
+	return (String(str).slice(0,str2.length)==str2);
 }
 
 function ends_with(str,str2) {
