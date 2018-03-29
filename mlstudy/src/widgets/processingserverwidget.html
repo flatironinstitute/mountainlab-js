@@ -1,10 +1,27 @@
 <span>
-    <div class="ProcessingServerWidget ml-hlayout">
+    <div class="ProcessingServerWidget ml-vlayout">
+        <div class="ml-vlayout-item" style="flex:0 0 40px">
+          <span style="font-weight:bold">Connect to:</span>&nbsp;&nbsp;
+          <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label class="btn btn-primary connect_to" id="central_hub">
+              <input type="radio" name="connect_to"> Central hub
+            </label>
+            <label class="btn btn-primary connect_to" id="local_machine">
+              <input type="radio" name="connect_to"> Local machine
+            </label>
+            <label class="btn btn-primary connect_to" id="custom_url">
+              <input type="radio" name="connect_to"> Custom URL
+            </label>
+          </div>
+        </div>
+        <div class="ml-vlayout-item" style="flex:0 0 20px"></div>
+        <div class="ml-vlayout-item" style="flex:1">
+          <div class="ml-hlayout">
             <div class="ml-hlayout-item" style="flex:0 0 250px">
                     <div class="ml-item-content">
-                            <button type=button class=btn id=refresh_list>Refresh</button>
                             <span id=table_holder>
                             </span>
+                            <button type=button class=btn id=refresh_list>Refresh</button>
                     </div>
             </div>
             <div class="ml-hlayout-item" style="flex:0 0 40px"></div>
@@ -17,22 +34,27 @@
                         <th>Status<br></th><td id="info"></td>
                       </tr>
                       <tr>
-                        <th>Total (RAM) Memory<br></th><td id="stat-mem-total"></td>
+                        <th>Num. registered processors<br></th><td class=stat id="num_processors"></td>
                       </tr>
                       <tr>
-                        <th>Free (RAM) Memory<br></th><td id="stat-mem"></td>
+                        <th>Total (RAM) Memory<br></th><td class=stat id="stat-mem-total"></td>
                       </tr>
                       <tr>
-                        <th>Free (RAM) Memory %<br></th><td id="stat-mem-p"></td>
+                        <th>Free (RAM) Memory<br></th><td class=stat id="stat-mem"></td>
                       </tr>
                       <tr>
-                        <th>CPU Usage (1 min average)<br></th><td id="stat-cpu1"></td>
+                        <th>Free (RAM) Memory %<br></th><td class=stat class=stat id="stat-mem-p"></td>
                       </tr>
                       <tr>
-                        <th>CPU Usage (15 min average)</th><td id="stat-cpu15"></td>
+                        <th>CPU Usage (1 min average)<br></th><td class=stat id="stat-cpu1"></td>
+                      </tr>
+                      <tr>
+                        <th>CPU Usage (15 min average)</th><td class=stat id="stat-cpu15"></td>
                       </tr>
                     </table>
             </div>
+          </div>
+        </div>
     </div>
 </span>
 

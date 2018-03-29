@@ -7,6 +7,7 @@ function LariClient() {
 	this.setLariServerUrl=function(url) {m_lari_server_url=url;};
 	this.setContainerId=function(id) {m_container_id=id; that.clearSpecCache();};
 	this.getSpec=function(query,opts,callback) {getSpec(query,opts,callback);};
+	this.getProcessorNames=function(query,opts,callback) {getProcessorNames(query,opts,callback);};
 	this.queueProcess=function(query,opts,callback) {queueProcess(query,opts,callback);};
 	this.probeProcess=function(job_id,opts,callback) {probeProcess(job_id,opts,callback);};
 	this.cancelProcess=function(job_id,opts,callback) {cancelProcess(job_id,opts,callback);};
@@ -21,6 +22,7 @@ function LariClient() {
 	var m_lari_server_url='';
 	var m_container_id='';
 	var m_spec_cache={};
+	var m_processor_names_cache={};
 	var m_direct_lari_call=null;
 
 	function getSpec(query,opts,callback) {
@@ -40,6 +42,25 @@ function LariClient() {
 			}
 			m_spec_cache[spec_code]=resp.spec;
 			callback(null,resp.spec);
+		});
+	}
+	function getProcessorNames(query,opts,callback) {
+		var processor_names_code=get_processor_names_code(query);
+		if (processor_names_code in m_processor_names_cache) {
+			callback(null,m_processor_names_cache[processor_names_code]);
+			return;
+		}
+		api_call('list-processors',query,opts,function(err,resp) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			if (!resp.success) {
+				callback(resp.error);
+				return;
+			}
+			m_processor_names_cache[processor_names_code]=resp.processors;
+			callback(null,resp.processors);
 		});
 	}
 	function queueProcess(query,opts,callback) {
@@ -149,6 +170,10 @@ function getStats(opts,callback) {
 	}
 
 	function get_spec_code(query) {
-		return query.processor_name+':'+(query.package_uri||'');
+		return m_container_id+':'+query.processor_name+':'+(query.package_uri||'');
+	}
+
+	function get_processor_names_code(query) {
+		return m_container_id+':'+(query.package_uri||'');
 	}
 }

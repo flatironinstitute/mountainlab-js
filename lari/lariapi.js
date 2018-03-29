@@ -172,6 +172,17 @@ function handle_api_3(cmd,query,closer,callback) {
 			}
 		});
 	}
+	else if (cmd=='list-processors') {
+		// The client wants a list of available processors
+		list_processors(query,closer,function(err,resp) {
+			if (err) {
+				callback({success:false,error:err});
+			}
+			else {
+				callback(resp);
+			}
+		});
+	}
 	else if (cmd=='queue-process') {
 		// The client wants to queue a process
 		queue_process(query,closer,function(err,resp) {
@@ -282,6 +293,39 @@ function handle_api_3(cmd,query,closer,callback) {
 		});
 		closer.on('close',function() {
 			console.log ('Canceling spec process.');
+			pp.stdout.pause();
+			pp.kill('SIGTERM');
+		});
+	}
+	function list_processors(query,closer,callback) {
+		var exe='ml-list-processors';
+		var args=[];
+		if (query.package_uri) {
+			args.push('--_package_uri='+query.package_uri);
+		}
+		var opts={closer:closer};
+		console.log ('RUNNING: '+exe+' '+args.join(' '));
+		var pp=execute_and_read_output(exe,args,opts,function(err,stdout,stderr) {
+			if (err) {
+				console.error('Error in ml-list-processors: '+err);
+				callback(err);
+				return;
+			}
+			console.log ('Output of process: ['+stdout.length+' bytes]');
+			if (!stdout) {
+				callback('No stdout received for ml-list-processors');
+				return;
+			}
+			var list=stdout.split('\n');
+			var list2=[];
+			for (var i in list) {
+				if (list[i])
+					list2.push(list[i]);
+			}
+			callback(null,{success:true,processors:list2});
+		});
+		closer.on('close',function() {
+			console.log ('Canceling ml-list-processors process.');
 			pp.stdout.pause();
 			pp.kill('SIGTERM');
 		});

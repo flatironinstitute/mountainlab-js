@@ -1,3 +1,5 @@
 node_modules
 *.mda
 *.mda.prv
+bundle.js
+bundle.js.map

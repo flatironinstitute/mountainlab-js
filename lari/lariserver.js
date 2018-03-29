@@ -41,10 +41,16 @@ require('dotenv').config({path:ml_config_file});
 const os = require('os');
 
 // alex m.: is this a temporary solution?
+/*
 if (process.env.LARI_CONTAINER_ID) {
 	if (process.env.LARI_CONTAINER_ID == "stream-auto") {
 		process.env.LARI_CONTAINER_ID = os.hostname();
 	}
+}
+*/
+
+if (!process.env.LARI_CONTAINER_ID) {
+	process.env.LARI_CONTAINER_ID = os.hostname();
 }
 
 // Not used at the moment
@@ -105,6 +111,10 @@ if (process.env.LARI_LISTEN_PORT) {
 			// Request the spec for a processor
 			handle_api('spec',req,resp);
 		}
+		else if (path=='/api/list-processors') {
+			// Retrieve a list of processors available on this processing server
+			handle_api('list-processors',req,resp);
+		}
 		else if (path=='/api/queue-process') {
 			// Start (or queue) a process
 			handle_api('queue-process',req,resp);
@@ -151,8 +161,8 @@ if (process.env.LARI_LISTEN_PORT) {
 
 	// Start listening
 	app.listen(app.get('port'), '0.0.0.0', function() {
-	  console.log ('lari is running on port', app.get('port'));
-      console.log ('from 0.0.0.0');
+	  console.log (`lari is running on port ${app.get('port')} from 0.0.0.0`);
+	  console.log (`Using LARI_CONTAINER_ID = ${process.env.LARI_CONTAINER_ID}`)
 	});
     
 
@@ -227,6 +237,8 @@ if (process.env.LARI_HUB_URL) {
 		});
 	});
 	container_client.start();
+
+	console.log (`Connecting to Lari hub: ${process.env.LARI_HUB_URL}`);
 }
 
 function ContainerClient() {
