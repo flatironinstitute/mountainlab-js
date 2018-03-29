@@ -1,4 +1,6 @@
 exports.cmd_run_process=cmd_run_process;
+exports.cleanup=cleanup; //in case process terminated prematurely
+var tempdir_for_cleanup='';
 
 var common=require(__dirname+'/common.js');
 var prv_utils=require(__dirname+'/prv_utils.js');
@@ -137,6 +139,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		console.log ('[ Creating temporary directory ... ]');
 		var tmp_dir=common.temporary_directory();
 		tempdir_path=tmp_dir+'/tempdir_'+process_signature.slice(0,10)+'_'+common.make_random_id(6);
+		tempdir_for_cleanup=tempdir_path; //in case process is terminated prematurely
 		common.mkdir_if_needed(tempdir_path);
 		cb();
 	});
@@ -210,6 +213,18 @@ function run_process_2(processor_name,opts,spec0,callback) {
 			}
 			callback(err00);
 		});
+	}
+}
+
+function cleanup(callback) {
+	//only called if process is terminated prematurely
+	if (tempdir_for_cleanup) {
+		remove_temporary_directory(tempdir_for_cleanup,function() {
+			callback();
+		});
+	}
+	else {
+		callback();
 	}
 }
 
