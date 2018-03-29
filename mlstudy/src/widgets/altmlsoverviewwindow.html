@@ -1,0 +1,161 @@
+<span>
+	<div class="AltMLSOverviewWindow ml-vlayout">
+		<div class="header_container ml-vlayout-item" style="flex:0 0 70px;overflow: visible">
+			<header class="navbar navbar-expand navbar-dark bd-navbar" style="background-color:#627DB7">
+			  <a class="navbar-brand" id=home_button href="#">MLStudy</a>
+			  <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+				  <li class="nav-item dropdown">
+				    <a class="nav-item nav-link dropdown-toggle mr-md-2" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				      Sign in
+				    </a>
+
+				    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+				      <a class="dropdown-item action_sign_in" href="#">
+				      	Sign in...
+				      </a>
+				      <div class="dropdown-divider"></div>
+				      <a class="dropdown-item action_sign_out" href="#">
+				      	Sign out
+				      </a>
+				    </div>
+				  </li>
+			  </ul>
+			</header>
+		</div>
+
+		<div class="ml-vlayout-item" style="flex:1">
+			<div class="overview-window-content ml-hlayout">
+			    <div class="bd-sidebar ml-hlayout-item" style="flex:0 0 200px">
+			        	<nav class="" id="bd-docs-nav" style="">
+			        		<div class="bd-toc-item active">
+			        			<a class="bd-toc-link" href="#">
+				              		Studies
+				            	</a>
+				            	<ul class="nav bd-sidenav">
+				            		<li data-content-id="study_list" data-study-list-mode="public_studies" class="active bd-sidenav-active">
+						            	<a href="#">Public studies</a>
+						            </li>
+						            <li data-content-id="study_list" data-study-list-mode="my_studies">
+						            	<a href="#">My studies</a>
+						            </li>
+						            <li data-content-id="study_list" data-study-list-mode="studies_shared_with_me">
+						            	<a href="#">Shared with me</a>
+						            </li>
+						        </ul>
+			        		</div>
+
+			        		<span id=workspace_stuff style="visibility: hidden">
+			        		<div class="bd-toc-item active">
+			        			<a class="bd-toc-link" href="#">
+				              		Workspaces
+				            	</a>
+				            	<ul class="nav bd-sidenav">
+				            		<li data-content-id="study_list" data-study-list-mode="public_workspaces">
+						            	<a href="#">Public workspaces</a>
+						            </li>
+						            <li data-content-id="study_list" data-study-list-mode="my_workspaces">
+						            	<a href="#">My workspaces</a>
+						            </li>
+						            <li data-content-id="study_list" data-study-list-mode="workspaces_shared_with_me">
+						            	<a href="#">Shared with me</a>
+						            </li>
+						        </ul>
+			        		</div>
+			        		</span>
+
+			        		<div class="bd-toc-item active">
+			        			<a class="bd-toc-link" href="#">
+				              		Configuration
+				            	</a>
+				            	<ul class="nav bd-sidenav">
+				            		<li data-content-id="processing_server">
+						            	<a href="#">Processing server</a>
+						            </li>
+						            <li data-content-id="advanced_configuration">
+						            	<a href="#">Advanced</a>
+						            </li>
+						        </ul>
+			        		</div>
+			        		
+			        	</nav>
+				</div>
+				<div id=content class="ml-hlayout-item" style="flex:1;">
+					<div class="tab-content" id="myTabContent" style="height:100%">
+					  <div class="tab-pane fade show active" id="study_list" role="tabpanel" aria-labelledby="home-tab" style="height:100%"></div>
+
+					  <div class="tab-pane fade" id="processing_server" role="tabpanel" aria-labelledby="home-tab" style="height:100%"></div>
+
+					  <div class="tab-pane fade" id="advanced_configuration" role="tabpanel" aria-labelledby="home-tab" style="height:100%"></div>
+					</div>
+						
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="StudyListWidget ml-item-content">
+		<span id=alert></span>
+		<h2 id=heading></h2>
+		<div class="" style="display:flex;flex-flow:row;">
+			<ul class="nav navbar-nav" style="">
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">&#9776;<span class="caret"></span></a>
+					<ul class="dropdown-menu" style="padding:15px">
+						<li><a href="#" id=add_label>Add label...</a></li>
+						<li><a href="#" id=remove_label>Remove label...</a></li>
+						<li role="separator" class="divider"></li>
+						<li><a href="#" id=share_with>Share with...</a></li>
+						<li><a href="#" id=unshare_with>Unshare with...</a></li>
+						<li role="separator" class="divider"></li>
+						<li><nobr><a href="#" id=delete_selected_studies>Delete selected studies...</a></nobr></li>
+					</ul>
+				</li>
+			</ul>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<button type=button class=btn id=create_new_study>Create new study</button>
+			&nbsp;
+			<button type=button class=btn id=upload_study>Upload study</button>
+			&nbsp;
+			<button type=button class=btn id=create_new_workspace>Create new workspace</button>
+			&nbsp;
+			<button type=button class=btn id=upload_workspace>Upload workspace</button>
+		</div>
+	</div>
+
+	<div class="AdvancedConfigurationWidget">
+		<p>
+			<button type=button class=btn id=update_configuration>Update configuration</button>
+		</p>
+
+		<form>
+			<div class="form-group">
+				<label for="lari_url">lari url</label>
+	    		<input type="url" class="form-control" id="lari_url">
+	  		</div>
+	  		<div class="form-group">
+				<label for="kbucket_url">kbucket url</label>
+	    		<input type="url" class="form-control" id="kbucket_url">
+	  		</div>
+	  		<div class="form-group">
+				<label for="kbucketauth_url">kbucketauth url</label>
+	    		<input type="url" class="form-control" id="kbucketauth_url">
+	  		</div>
+	  		<div class="form-group">
+				<label for="docstor_url">docstor url</label>
+	    		<input type="url" class="form-control" id="docstor_url">
+	  		</div>
+	  		<div class="form-group">
+				<label for="tidbits_url">tidbits url</label>
+	    		<input type="url" class="form-control" id="tidbits_url">
+	  		</div>  		
+	    </form>
+
+	    <hr />
+
+	    <p>
+			Advanced: <button type=button class=btn id=generate_kbucket_upload_token>Generate kbucket upload token</button>
+		</p>
+		
+	</div>
+</span>

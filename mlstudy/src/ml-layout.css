@@ -1,0 +1,107 @@
+/*
+It is important that on layout items (ml-hlayout-item, ml-vlayout-item)
+you set the css property flex either as "0 0 [fixed]px", "0 0 [fixed]%" 
+or "1 1 0" (expanding). In more complicated cases you can use other flex
+options, but it is important that the fixed sized items are specified as
+above, and NOT using width and height properties.
+
+All the ancestor divs to layout items MUST have the height property set
+to 100%. And this must also extend to body and even to html!
+
+Example usage:
+
+<div class="ml-vlayout">
+  <div class="ml-vlayout-item" style="flex:0 0 20%; background:lightblue">
+    Header
+  </div>
+  <div class="ml-vlayout-item" style="flex:1">
+    <div class="ml-hlayout">
+      <div class="ml-hlayout-item" style="flex:0 0 30%; background:lightgreen">
+        <div class="ml-item-content content1">
+          Left (fill this with a lot of text, and there will be a vertical scrollbar)
+        </div>
+      </div>
+      <div class="ml-hlayout-item" style="flex:1">
+        <div class="ml-vlayout">
+          <div class="ml-vlayout-item" style="flex:0 0 50%;border:solid 1px black">
+            Top content
+          </div>
+          <div class="ml-vlayout-item" style="flex:0 0 50%;background:pink">
+            Bottom content
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ml-vlayout-item" style="flex:0 0 30px; background:lightblue">
+    <div class=ml-hlayout>
+      <div class="ml-vlayout-item" style="flex:1">Footer 1</div>
+      <div class="ml-vlayout-item" style="flex:2">Footer 2</div>
+      <div class="ml-vlayout-item" style="flex:1">Footer 3</div>
+      <div class="ml-vlayout-item" style="flex:2">Footer 4</div>
+      <div class="ml-vlayout-item" style="flex:1">Footer 5</div>
+      <div class="ml-vlayout-item" style="flex:2">Footer 6</div>
+    </div>
+  </div>
+</div>
+
+https://jsfiddle.net/xnoyfr0e/14/
+
+*/
+
+html, body {
+  height:100%;
+  margin:0px;
+  padding:5px;
+}
+
+/* 
+Use the following classes on div elements. See above for
+setting the flex property on layout (child) items.
+*/
+
+/* A horizontal (row) container */
+.ml-hlayout {
+  width:100%;
+  height:100%;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-flow: row;
+}
+
+/* A vertical (column) container */
+.ml-vlayout {
+  width:100%;
+  height:100%;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-flow: column;
+}
+
+/* An item in a horizontal layout (see above) */
+.ml-hlayout-item {
+  position:relative;
+  overflow:hidden;
+  width:100%;
+  height:100%;
+}
+
+/* An item in a vertical layout (see above) */
+.ml-vlayout-item {
+  position:relative;
+  overflow:hidden;
+  width:100%;
+  height:100%;
+}
+
+/* Optionally use this inside a layout item to scroll contents */
+.ml-item-content {
+  position:absolute;
+  left:0px;
+  right:0px;
+  top:0px;
+  bottom:0px;
+  overflow:auto;
+}

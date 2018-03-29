@@ -1,0 +1,38 @@
+<span>
+    <div class="ProcessingServerWidget ml-hlayout">
+            <div class="ml-hlayout-item" style="flex:0 0 250px">
+                    <div class="ml-item-content">
+                            <button type=button class=btn id=refresh_list>Refresh</button>
+                            <span id=table_holder>
+                            </span>
+                    </div>
+            </div>
+            <div class="ml-hlayout-item" style="flex:0 0 40px"></div>
+            <div class="ml-hlayout-item" style="flex:1">
+                    <p id=info2></p>
+                    <h2>Processing server: <span id=processing_server_name></span></h2>
+                    
+                    <table id=stats class=table style="max-width: 450px">
+                      <tr>
+                        <th>Status<br></th><td id="info"></td>
+                      </tr>
+                      <tr>
+                        <th>Total (RAM) Memory<br></th><td id="stat-mem-total"></td>
+                      </tr>
+                      <tr>
+                        <th>Free (RAM) Memory<br></th><td id="stat-mem"></td>
+                      </tr>
+                      <tr>
+                        <th>Free (RAM) Memory %<br></th><td id="stat-mem-p"></td>
+                      </tr>
+                      <tr>
+                        <th>CPU Usage (1 min average)<br></th><td id="stat-cpu1"></td>
+                      </tr>
+                      <tr>
+                        <th>CPU Usage (15 min average)</th><td id="stat-cpu15"></td>
+                      </tr>
+                    </table>
+            </div>
+    </div>
+</span>
+

@@ -1,0 +1,7 @@
+.mltablewidget-selected {
+	background-color: rgb(250,250,240);
+}
+
+.mltablewidget-current {
+	background-color: lightyellow !important;
+}

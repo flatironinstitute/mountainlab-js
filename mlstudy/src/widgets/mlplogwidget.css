@@ -1,0 +1,16 @@
+.MLPLogWidget {
+  background-color: black;
+  border: solid 3px #gray;
+  color: #CCECEA;
+  font-family: Courier;
+  font-size: 10px;
+}
+
+.MLPLogWidget .bold {
+	font-weight: bold;
+	color: lightyellow;
+}
+
+.MLPLogWidget .error {
+	color:pink;
+}
