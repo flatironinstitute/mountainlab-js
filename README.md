@@ -90,9 +90,11 @@ ml-run-process pyms.synthesize_random_waveforms --outputs waveforms_out:waveform
 ml-run-process pyms.synthesize_random_firings --outputs firings_out:firings.mda.prv --parameters duration:60
 pyms.synthesize_timeseries --inputs firings:firings.mda.prv waveforms:waveforms.mda.prv --outputs timeseries_out:raw_synth.mda.prv --parameters duration:60
 ```
+
 All files will be stored in a temporary locations, which can be retrieved using the `prv-locate` command as follows:
 ```
 > ml-prv-locate raw_synth.mda.prv 
 /tmp/mountainlab-tmp/output_184a04c2877517f8996fd992b6f923bee8c6bbd2_timeseries_out
 ```
 
+In place of `ml-run-process`, you can substitute `ml-exec-process` to bypass the process caching system, or `ml-queue-process` to have MountainLab wait for resources to be available before execution.
