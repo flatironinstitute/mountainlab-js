@@ -163,7 +163,7 @@ function package_search_directories(opts) {
 	var ml_packages_path=process.env.ML_PACKAGE_SEARCH_DIRECTORY||(process.env.HOME+'/.mountainlab/packages');
 	list.push(ml_packages_path);
 	list.push(require('path').resolve(__dirname,'../system-packages'));
-	var ml_additional_packages_paths=(process.env.ML_ADDITONAL_PACKAGE_SEARCH_DIRECTORIES||'').split(':');
+	var ml_additional_packages_paths=(process.env.ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES||'').split(':');
 	for (var i in ml_additional_packages_paths) {
 		if (ml_additional_packages_paths[i])
 			list.push(ml_additional_packages_paths[i]);
