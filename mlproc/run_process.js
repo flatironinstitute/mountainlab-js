@@ -242,7 +242,7 @@ function remove_temporary_directory(tempdir_path,callback) {
 	var files=common.read_dir_safe(tempdir_path);
 	common.foreach_async(files,function(ii,file,cb) {
 		var fname=tempdir_path+'/'+file;
-		var stat0=stat_file(fname);
+		var stat0=common.stat_file(fname);
 		if (stat0) {
 			if (stat0.isFile()) {
 				try {
@@ -309,12 +309,14 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 	for (var key in parameters)
 		iop[key]=parameters[key];
 	var arguments=[];
+	var argfile_lines=[];
 	var console_out_file='';
 	for (var key in iop) {
 		var val=iop[key];
 		if (typeof(val)!='object') {
 			if (key!='console_out') {
 				arguments.push(`--${key}=${val}`);
+				argfile_lines.push(`${key}=${val}`);
 			}
 			cmd=cmd.split('$'+key+'$').join(val);
 		}
@@ -329,6 +331,15 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 		cmd=cmd.split('$(tempdir)').join(info.tempdir_path);
 	}
 	cmd=cmd.split('$(arguments)').join(arguments.join(' '));
+
+	if (cmd.indexOf('$(argfile)')>0) {
+		var argfile_fname=info.tempdir_path+'/argfile.txt';
+		if (!common.write_text_file(argfile_fname,argfile_lines.join('\n'))) {
+			console.warn('Unable to write argfile: '+argfile_fname); //but we don't have ability to return an error. :(
+		}
+		cmd=cmd.split('$(argfile)').join(argfile_fname);
+	}
+
 	return cmd;
 }
 
@@ -452,7 +463,7 @@ function check_outputs_consistent_with_process_cache(outputs,doc0,callback) {
 		var fname=outputs[key];
 		var stat0=common.stat_file(fname);
 		if (!stat0) {
-			callback('Unable to stat file: '+fname);
+			callback(`Unable to stat output file (${key}): ${fname}`);
 			return;
 		}
 		var output0=doc0.outputs[key]||{};
@@ -506,17 +517,17 @@ function get_checksums_for_files(inputs,opts,callback) {
 	common.foreach_async(keys,function(ii,key,cb) {
 		var val=inputs[key];
 		if (typeof(val)!='object') {
+			var stat0=common.stat_file(val);
+			if (!stat0) {
+				callback(`Unable to stat file (${key}): ${val}`);
+				return;
+			}
 			prv_utils.compute_file_sha1(val,function(err,sha1) {
 				if (err) {
 					callback(err);
 					return;
 				}
 				if (opts.mode=='process_cache') {
-					var stat0=common.stat_file(val);
-					if (!stat0) {
-						callback('Unable to stat file: '+val);
-						return;
-					}
 					ret[key]={path:val,sha1:sha1,mtime:stat0.mtime.toISOString(),ctime:stat0.ctime.toISOString(),size:stat0.size,ino:stat0.ino};
 				}
 				else if (opts.mode=='process_signature') {

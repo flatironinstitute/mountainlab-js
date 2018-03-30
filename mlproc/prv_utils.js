@@ -132,7 +132,7 @@ function prv_locate(prv_fname,opts,callback) {
 function prv_create(fname,callback) {
 	var stat0=common.stat_file(fname);
 	if (!stat0) {
-		callback('Unable to stat file: '+fname);
+		callback('Unable to stat file in prv_create: '+fname);
 		return;
 	}
 	compute_file_sha1(fname,function(err,sha1) {
@@ -212,7 +212,7 @@ sumit.find_doc_by_path=function(path,callback) {
 sumit.compute_file_sha1=function(path,callback) {
 	var stat0=common.stat_file(path);
 	if (!stat0) {
-		callback('Unable to stat file.','');
+		callback('Unable to stat file: '+path,'');
 		return;
 	}
 	sumit.find_doc_by_path(path,function(err,doc0) {
