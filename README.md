@@ -64,7 +64,13 @@ The following commands are available from any terminal. Use the `--help` flag on
 
 ## Installing processor packages
 
-By default, only a few system processors are registered. Those can be found in mountainlab-js/system-packages. To install additional processor packages, clone package repositories into the ~/.mountainlab/packages directory (or other configured directories). MountainLab-js will recursively search in these locations to find `.mp` files with executable permissions. Each such file corresponds to a processor package and responds to the `spec` argument with JSON text output defining the list of processors associated with the package.
+MountainLab only ships with a few system processors, found in mountainlab-js/system-packages. To install additional processor packages, clone package repositories into the ~/.mountainlab/packages directory (or other configured directories). MountainLab-js will recursively search in these locations to find `.mp` files with executable permissions. Each such file provides the spec information for a list of registered processors (see section on creating custom processor packages).
+
+To use the MountainSort processor package, either install it from source within the `~/.mountainlab/packages` directory, or install it using the Ubuntu package and then add the following line to `~/.mountainlab/mountainlab.env`:
+```
+ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES=/opt/mountainlab/packages
+```
+As suggested by the name, this tells MountainLab to also search in the `/opt/mountainlab/packages` for installed processing packages. This is the system location used in the Ubuntu package of MountainSort.
 
 ## Running processor jobs from the command-line
 Processors can either be run directly on the command-line, or indirectly through a processing script on MLStudy.
