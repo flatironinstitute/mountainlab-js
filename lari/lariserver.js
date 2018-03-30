@@ -108,7 +108,6 @@ if (process.env.LARI_LISTEN_PORT) {
 		var host=url_parts.host;
 		var path=url_parts.pathname;
 		var query=url_parts.query;
-		console.log('test 1 '+path);
 		if (path=='/api/spec') {
 			// Request the spec for a processor
 			handle_api('spec',req,resp);

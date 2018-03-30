@@ -258,6 +258,7 @@ function execute_and_read_output(exe,args,opts,callback) {
 	}
 	var txt_stdout='';
 	var txt_stderr='';
+	var error='';
 	P.stdout.on('data',function(chunk) {
 		txt_stdout+=chunk;
 		if (opts.on_stdout) {
@@ -271,7 +272,10 @@ function execute_and_read_output(exe,args,opts,callback) {
 		}
 	});
 	P.on('close',function(code) {
-		callback(null,txt_stdout,txt_stderr,code);
+		callback(error,txt_stdout,txt_stderr,code);
+	});
+	P.on('error',function() {
+		error='Error running: '+exe+' '+args.join(' ');
 	});
 	return P;
 }
