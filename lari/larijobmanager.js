@@ -70,15 +70,32 @@ function LariProcessorJob() {
 				callback(`Unexpected string type for input (${key})`);
 				return;
 			}
-			if (!('original_checksum' in val)) {
-				callback(`Missing original_checksum field in input (${key})`);
-				return;	
+			if (val instanceof Array) {
+				for (var jj=0; jj<val.length; jj++) {
+					var val0=val[jj];
+					if (!('original_checksum' in val0)) {
+						callback(`Missing original_checksum field in input (${key}[${jj}$])`);
+						return;	
+					}
+					var tmp_fname=tmp_dir+'/lari_input_'+m_job_id+'_'+key+'_'+jj+'.prv';
+					args.push(key+':'+tmp_fname);
+					if (!lari_write_text_file(tmp_fname,JSON.stringify(val0,null,4))) {
+						callback(`Problem writing text file for input (${key}[${jj}]): ${tmp_fname}`);
+						return;
+					}
+				}
 			}
-			var tmp_fname=tmp_dir+'/lari_input_'+m_job_id+'_'+key+'.prv';
-			args.push(key+':'+tmp_fname);
-			if (!lari_write_text_file(tmp_fname,JSON.stringify(val,null,4))) {
-				callback(`Problem writing text file for input (${key}): ${tmp_fname}`);
-				return;
+			else {
+				if (!('original_checksum' in val)) {
+					callback(`Missing original_checksum field in input (${key})`);
+					return;	
+				}
+				var tmp_fname=tmp_dir+'/lari_input_'+m_job_id+'_'+key+'.prv';
+				args.push(key+':'+tmp_fname);
+				if (!lari_write_text_file(tmp_fname,JSON.stringify(val,null,4))) {
+					callback(`Problem writing text file for input (${key}): ${tmp_fname}`);
+					return;
+				}
 			}
 		}
 
