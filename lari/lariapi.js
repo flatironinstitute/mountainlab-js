@@ -305,25 +305,30 @@ function handle_api_3(cmd,query,closer,callback) {
 		}
 		var opts={closer:closer};
 		console.log ('RUNNING: '+exe+' '+args.join(' '));
-		var pp=execute_and_read_output(exe,args,opts,function(err,stdout,stderr) {
-			if (err) {
-				console.error('Error in ml-list-processors: '+err);
-				callback(err);
-				return;
-			}
-			console.log ('Output of process: ['+stdout.length+' bytes]');
-			if (!stdout) {
-				callback('No stdout received for ml-list-processors');
-				return;
-			}
-			var list=stdout.split('\n');
-			var list2=[];
-			for (var i in list) {
-				if (list[i])
-					list2.push(list[i]);
-			}
-			callback(null,{success:true,processors:list2});
-		});
+		try {
+			var pp=execute_and_read_output(exe,args,opts,function(err,stdout,stderr) {
+				if (err) {
+					console.error('Error in ml-list-processors: '+err);
+					callback(err);
+					return;
+				}
+				console.log ('Output of process: ['+stdout.length+' bytes]');
+				if (!stdout) {
+					callback('No stdout received for ml-list-processors');
+					return;
+				}
+				var list=stdout.split('\n');
+				var list2=[];
+				for (var i in list) {
+					if (list[i])
+						list2.push(list[i]);
+				}
+				callback(null,{success:true,processors:list2});
+			});
+		}
+		catch(err) {
+			callback('Error calling: '+exe);
+		}
 		closer.on('close',function() {
 			console.log ('Canceling ml-list-processors process.');
 			pp.stdout.pause();
