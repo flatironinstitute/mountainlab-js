@@ -2,9 +2,6 @@
   "name": "lari",
   "version": "0.1.0",
   "description": "",
-  "engines": {
-    "node": "6.11.1"
-  },
   "main": "lari.js",
   "scripts": {
     "start": "node lariserver.js"
