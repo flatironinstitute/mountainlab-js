@@ -65,3 +65,28 @@ The following commands are available from any terminal. Use the `--help` flag on
 ## Installing processor packages
 
 By default, only a few system processors are registered. Those can be found in mountainlab-js/system-packages. To install additional processor packages, clone package repositories into the ~/.mountainlab/packages directory (or other configured directories). MountainLab-js will recursively search in these locations to find `.mp` files with executable permissions. Each such file corresponds to a processor package and responds to the `spec` argument with JSON text output defining the list of processors associated with the package.
+
+## Running processor jobs from the command-line
+Processors can either be run directly on the command-line, or indirectly through a processing script on MLStudy.
+The command-line syntax (slightly different from the previous version of mountainlab) is:
+```
+ml-run-process <processors-name> --inputs [key:value input files] --outputs [key:value output files] --parameters [key:value parameters]
+```
+For example, to run a bandpass filter:
+```
+ml-run-process ms3.bandpass_filter --inputs timeseries:raw.mda --outputs timeseries_out:filt.mda --parameters samplerate:30000 --freq_min:300 --freq_max:6000
+```
+Note that .prv files can be substituted for both inputs or outputs. In the case where an input file has a .prv extension, MountainLab will search the local machine for the corresponding data file and substitute that in before running the processor (see the `ml-prv-locate` command). In the case that one of the output files has a .prv extension, MountainLab will store the output in a temporary file (in `ML_TEMPORARY_DIRECTORY`) and then  create a corresponding .prv file in the output location specified in the command (see the `ml-prv-create` command).
+
+Thus one can do command-line processing purely using .prv files, as in the following example of creating a synthetic electrophysiology dataset:
+```
+ml-run-process pyms.synthesize_random_waveforms --outputs waveforms_out:waveforms.mda.prv
+ml-run-process pyms.synthesize_random_firings --outputs firings_out:firings.mda.prv --parameters duration:60
+pyms.synthesize_timeseries --inputs firings:firings.mda.prv waveforms:waveforms.mda.prv --outputs timeseries_out:raw_synth.mda.prv --parameters duration:60
+```
+All files will be stored in a temporary locations, which can be retrieved using the `prv-locate` command as follows:
+```
+> ml-prv-locate raw_synth.mda.prv 
+/tmp/mountainlab-tmp/output_184a04c2877517f8996fd992b6f923bee8c6bbd2_timeseries_out
+```
+
