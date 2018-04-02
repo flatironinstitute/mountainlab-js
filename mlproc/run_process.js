@@ -1,14 +1,19 @@
 exports.cmd_run_process=cmd_run_process;
 exports.cleanup=cleanup; //in case process terminated prematurely
 var tempdir_for_cleanup='';
+var processor_job_id_for_cleanup='';
 
 var common=require(__dirname+'/common.js');
 var prv_utils=require(__dirname+'/prv_utils.js');
 var db_utils=require(__dirname+'/db_utils.js');
 var SystemProcess=new require(__dirname+'/systemprocess.js').SystemProcess;
 var sha1=require('node-sha1');
+var max_num_simultaneous_processor_jobs=2;
+
+var canonical_stringify=require('canonical-json');
 
 function cmd_run_process(processor_name,opts,callback) {
+	console.log ('[ Getting processor spec... ]');
 	common.get_processor_spec(processor_name,opts,function(err,spec0) {
 		if (err) {
 			callback(err);
@@ -21,6 +26,12 @@ function cmd_run_process(processor_name,opts,callback) {
 		spec0.outputs=spec0.outputs||[];
 		spec0.outputs.push({name:'console_out',optional:true});
 		run_process_2(processor_name,opts,spec0,callback);
+	});
+}
+
+function remove_processor_job_from_database(job_id,callback) {
+	db_utils.removeDocuments('processor_jobs',{_id:job_id},function(err) {
+		callback(err);
 	});
 }
 
@@ -45,6 +56,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 	var mode=opts.mode||'run';
 	var already_completed=false;
 	var tempdir_path='';
+	var queued_processor_job_id='';
 
 	var steps=[];
 
@@ -121,11 +133,13 @@ function run_process_2(processor_name,opts,spec0,callback) {
 			return;
 		}
 		console.log ('[ Waiting for ready to run ... ]');
-		wait_for_ready_run(spec0,inputs,outputs,parameters,function(err) {
+		wait_for_ready_run(spec0,inputs,outputs,parameters,function(err,job_id) {
 			if (err) {
 				finalize(err);
 				return;
 			}
+			queued_processor_job_id=job_id;
+			processor_job_id_for_cleanup=job_id;
 			cb();
 		})
 	});
@@ -152,7 +166,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 			return;
 		}
 		console.log ('[ Initializing process ... ]');
-		do_run_process(spec0,inputs,outputs,parameters,{tempdir_path:tempdir_path},function(err) {
+		do_run_process(spec0,inputs,outputs,parameters,{tempdir_path:tempdir_path,queued_processor_job_id:queued_processor_job_id},function(err) {
 			if (err) {
 				finalize(err);
 				return;
@@ -197,6 +211,21 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		});
 	});
 
+	// Remove from database (if mode=queued)
+	steps.push(function(cb) {
+		if (!queued_processor_job_id) {
+			cb();
+			return;
+		}
+		console.log ('[ Removing processor job from database ... ]');
+		remove_processor_job_from_database(queued_processor_job_id,function(err) {
+			if (err) {
+				finalize(err);
+			}
+			cb();
+		});
+	});
+
 	common.foreach_async(steps,function(ii,step,cb) {
 		step(cb);
 	},function() {
@@ -217,14 +246,28 @@ function run_process_2(processor_name,opts,spec0,callback) {
 }
 
 function cleanup(callback) {
-	//only called if process is terminated prematurely
-	if (tempdir_for_cleanup) {
-		remove_temporary_directory(tempdir_for_cleanup,function() {
+	// only called if process is terminated prematurely
+	cleanup_tempdir(function() {
+		remove_from_database(function() {
 			callback();
 		});
+	});
+	function cleanup_tempdir(cb) {
+		if (tempdir_for_cleanup) {
+			remove_temporary_directory(tempdir_for_cleanup,function() {
+				cb();
+			});
+		}
+		else {
+			cb();
+		}	
 	}
-	else {
-		callback();
+	function remove_from_database(cb) {
+		if (processor_job_id_for_cleanup) {
+			remove_processor_job_from_database(processor_job_id_for_cleanup,function() {
+				cb();
+			});
+		}
 	}
 }
 
@@ -280,10 +323,184 @@ function remove_temporary_directory(tempdir_path,callback) {
 	});
 }
 
+function compute_input_file_stats(inputs,callback) {
+	var ret={};
+	for (var key in inputs) {
+		var val=inputs[key];
+		if (val instanceof Array) {
+			var list=[];
+			for (var ii in val) {
+				var stat0=compute_input_file_stat(val[ii]);
+				if (!stat0) {
+					callback('Problem computing stat for input file: '+key+'['+ii+']');
+					return;
+				}
+				list.push(stat0);
+			}
+			ret[key]=list;	
+		}
+		else {
+			var stat0=compute_input_file_stat(val);
+			if (!stat0) {
+				callback('Problem computing stat for input file: '+key);
+				return;
+			}
+			ret[key]=stat0;
+		}
+	}
+	callback(null,ret);
+}
+
+function check_input_file_stats_are_consistent(inputs,input_file_stats,callback) {
+	compute_input_file_stats(inputs,function(err,stats2) {
+		if (err) {
+			callback(err);
+			return;
+		}
+		var same=(canonical_stringify(input_file_stats)==canonical_stringify(stats2));
+		if (!same) {
+			callback('Detected a change in input files.');
+			return;
+		}
+		callback(null);
+	});
+}
+
+function add_processor_job_to_queue(spec0,inputs,outputs,parameters,callback) {
+	var doc0={
+		spec:spec0,
+		inputs:inputs,
+		outputs:outputs,
+		parameters:parameters,
+		status:'queued',
+		queued_timestamp:(new Date())-0,
+		checked_timestamp:(new Date())-0
+	};
+	var job_id=common.make_random_id(10);
+	doc0._id=job_id;
+	db_utils.saveDocument('processor_jobs',doc0,function(err) {
+		if (err) {
+			callback(err);
+			return;
+		}
+		callback(null,job_id);
+	});
+}
+
+function check_queued_job_ready_to_run(job_id,callback) {
+	db_utils.findDocuments('processor_jobs',{},function(err,docs) {
+		if (err) {
+			callback(err);
+			return;
+		}
+		var earliest_queued_index=-1;
+		var this_job_index=-1;
+		var num_running=0;
+		for (var i=0; i<docs.length; i++) {
+			var doc0=docs[i];
+			if (doc0.status=='queued') {
+				if (
+					(earliest_queued_index<0)||
+					(is_earlier_than(doc0,docs[earliest_queued_index]))
+				) {
+					earliest_queued_index=i;
+				}
+				if (doc0._id==job_id) {
+					this_job_index=i;
+				}
+			}
+			else if (doc0.status=='running') {
+				num_running++;
+			}
+			var elapsed_since_last_checked=(new Date())-Number(doc0.checked_timestamp);
+			if (elapsed_since_last_checked>10*1000) {
+				console.warn('Removing processor job that has not been checked for a while.');
+				db_utils.removeDocuments('processor_jobs',{_id:doc0._id},function(err0) {
+					if (err0) {
+						console.error('Problem removing queued processor job from database.')
+					}
+				});
+			}
+		}
+		if (this_job_index<0) {
+			callback('Unable to find queued job in database.');
+			return;
+		}
+		if (num_running>=max_num_simultaneous_processor_jobs) {
+			callback(null,false); //need to wait
+			return;
+		}
+		if (earliest_queued_index==this_job_index) {
+			//ready
+			doc0=docs[this_job_index];
+			doc0.status='running';
+			db_utils.saveDocument('processor_jobs',doc0,function(err) {
+				if (err) {
+					callback(err);
+					return;
+				}
+				callback(null,true);
+			});
+		}
+		else {
+			//not ready
+			doc0=docs[this_job_index];
+			doc0.checked_timestamp=(new Date())-0;
+			db_utils.saveDocument('processor_jobs',doc0,function(err) {
+				if (err) {
+					callback(err);
+					return;
+				}
+				callback(null,false);
+			});
+		}
+	});
+
+	function is_earlier_than(doc0,doc1) {
+		if (Number(doc0.queued_timestamp)<Number(doc1.queued_timestamp))
+			return true;
+		else if (Number(doc0.queued_timestamp)==Number(doc1.queued_timestamp))
+			if (doc0._id<doc1._id)
+				return true;
+		return false;
+	}
+}
+
 function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
-	// TODO: look at state of input/output files, and make sure consistent after waiting period
 	// TODO: finish this
-	callback(null);
+	compute_input_file_stats(inputs,function(err,input_file_stats) {
+		if (err) {
+			callback(err);
+			return;
+		}
+		add_processor_job_to_queue(spec0,inputs,outputs,parameters,function(err,job_id) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			do_check();
+			function do_check() {
+				check_input_file_stats_are_consistent(inputs,input_file_stats,function(err) {
+					if (err) {
+						callback(err);
+						return;
+					}
+					check_queued_job_ready_to_run(job_id,function(err,ready) {
+						if (err) {
+							callback(err);
+							return;
+						}
+						if (ready) {
+							callback(null,job_id);
+						}
+						else {
+							setTimeout(do_check,1000);
+						}
+					});
+				});
+			}
+		});
+	});
 }
 
 function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
