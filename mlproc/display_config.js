@@ -20,6 +20,16 @@ function cmd_config(opts,callback) {
 	txt=txt.split('$package_search_directories$').join(common.package_search_directories().join(':'));
 	txt=txt.split('$prv_search_directories$').join(common.prv_search_directories().join(':'));
 
-	console.log (txt);
+	if (opts['format']=='json') {
+		var obj={
+			temporary_directory:common.temporary_directory(),
+			package_search_directories:common.package_search_directories(),
+			prv_search_directories:common.prv_search_directories()
+		};
+		console.log (JSON.stringify(obj,null,4));
+	}
+	else {
+		console.log (txt);
+	}
 	callback(null);
 }

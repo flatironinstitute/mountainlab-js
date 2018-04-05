@@ -104,6 +104,7 @@ program
 program
   .command('config')
   .description('Display configuration information')
+  .option('--format [format]','Options: text (default) or json')
   .action(function (cmd) {
     require(__dirname+'/display_config.js').cmd_config(cmd,function(err) {
       if (err) {
