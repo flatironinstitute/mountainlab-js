@@ -20,8 +20,18 @@ RUN apt-get update && \
     apt-get install -y \
     mongodb
 
+# Install python, pip, and pip packages
+RUN apt-get update && \
+    apt-get install -y \
+    python3 python3-pip
+
 COPY ./mountainlab-js-test /working/mountainlab-js
 WORKDIR /working/mountainlab-js
 RUN npm install --unsafe-perm # unsafe-perm is required here because we are root
+
+WORKDIR /working/mountainlab-js/utilities/python
+RUN pip3 install .
+
+WORKDIR /working/mountainlab-js
 
 CMD /bin/bash -c "mongod --fork --logpath /var/log/mongodb.log && sleep 1 && bin/ml-list-processors"
