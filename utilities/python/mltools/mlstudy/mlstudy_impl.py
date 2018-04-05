@@ -81,6 +81,14 @@ class MLStudy:
         X.setObject(self._study['datasets'][dataset_id])
         return X;
 
+def _prv_locate(sha1,size,fcs):
+    cmd='ml-prv-locate --sha1={} --size={} --fcs={}'.format(sha1,size,fcs)
+    str0=os.popen(cmd).read().strip()
+    if os.path.isfile(str0):
+        return str0
+    else:
+        return None
+    
 def getFilePath(obj):
     if type(obj)==str:
         if obj.endswith('.prv'):
@@ -89,6 +97,9 @@ def getFilePath(obj):
         else:
             return obj
     if 'prv' in obj:
+        path0=_prv_locate(sha1=obj['prv']['original_checksum'],size=obj['prv']['original_size'],fcs=obj['prv']['original_fcs'])
+        if path0:
+            return path0
         checksum=obj['prv']['original_checksum']
         return _get_file_path_from_checksum(checksum)
     else:
@@ -101,7 +112,7 @@ def loadFile(obj):
             return binary_file.read()
     elif 'prv' in obj:
         checksum=obj['prv']['original_checksum']
-        return _load_file_from_checksum(checksum)
+        return _download_file_from_checksum(checksum)
     else:
         return None
 
@@ -109,7 +120,7 @@ def loadFile(obj):
 def _get_kbucket_url_from_checksum(checksum):
     return 'https://kbucket.flatironinstitute.org/download/'+checksum
 
-def _get_file_path_from_checksum(checksum):
+def _download_and_get_file_path_from_checksum(checksum):
     if ('KBUCKET_DOWNLOAD_DIRECTORY' in os.environ) and (os.path.isdir(os.environ['KBUCKET_DOWNLOAD_DIRECTORY'])):
         url=_get_kbucket_url_from_checksum(checksum)
         kbucket_download_directory=os.environ['KBUCKET_DOWNLOAD_DIRECTORY']
@@ -120,9 +131,9 @@ def _get_file_path_from_checksum(checksum):
     else:
         return None
 
-def _load_file_from_checksum(checksum):
+def _download_file_from_checksum(checksum):
     if ('KBUCKET_DOWNLOAD_DIRECTORY' in os.environ) and (os.path.isdir(os.environ['KBUCKET_DOWNLOAD_DIRECTORY'])):
-        file_path=_get_file_path_from_checksum(checksum)
+        file_path=_download_and_get_file_path_from_checksum(checksum)
         with open(file_path, "rb") as binary_file:
             return binary_file.read()
     else:
