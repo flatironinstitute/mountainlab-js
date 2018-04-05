@@ -344,7 +344,7 @@ function handle_api_3(cmd,query,closer,callback) {
 		var pp=execute_and_read_output('ml-prv-locate',['--sha1='+query.checksum,'--size='+query.size,'--fcs='+(query.fcs||'')],{},function(err,path) {
 			path=path.trim();
 			if (err) {
-				callback('Error in prv-locate: '+err);
+				callback('Error in ml-prv-locate: '+err);
 				return;
 			}
 			if (!require('fs').existsSync(path)) {
@@ -354,7 +354,7 @@ function handle_api_3(cmd,query,closer,callback) {
 			callback(null,{success:true,found:true});
 		});
 		closer.on('close',function() {
-			console.log ('Canceling prv-locate process.');
+			console.log ('Canceling ml-prv-locate process.');
 			pp.stdout.pause();
 			pp.kill('SIGTERM');
 		});
@@ -378,7 +378,7 @@ function handle_api_3(cmd,query,closer,callback) {
 				return;
 			}
 			if (err) {
-				callback('Error in prv-locate: '+err);
+				callback('Error in ml-prv-locate: '+err);
 				return;
 			}
 			if (!require('fs').existsSync(path)) {
@@ -393,7 +393,7 @@ function handle_api_3(cmd,query,closer,callback) {
 			callback(null,{success:true,content:content});
 		});
 		closer.on('close',function() {
-			console.log ('Canceling prv-locate process.');
+			console.log ('Canceling ml-prv-locate process.');
 			pp.stdout.pause();
 			pp.kill('SIGTERM');
 		});

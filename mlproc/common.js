@@ -107,6 +107,10 @@ function find_candidate_mp_files_in_directory(path,callback) {
 				cb();
 			}
 			else if (stat0.isDirectory()) {
+				if (starts_with(file,'.')) { //don't follow hidden directories
+					cb();
+					return;
+				}
 				find_candidate_mp_files_in_directory(fname,function(err,list0) {
 					if (err) {
 						callback(err);
@@ -214,7 +218,7 @@ function stat_file(fname) {
 
 function prv_search_directories() {
 	var ret=[];
-	ret.push(process.cwd());
+	//ret.push(process.cwd());
 	ret.push(temporary_directory());
 	var ml_additional_prv_search_directories=(process.env.ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES||'').split(':');
 	for (var i in ml_additional_prv_search_directories) {
@@ -245,7 +249,9 @@ function foreach_async(list,step,callback) {
 		}
 		step(ii,list[ii],function() {
 			ii++;
-			next_step();
+			setTimeout(function() {
+				next_step();
+			},0);
 		});
 	}
 }

@@ -5,3 +5,5 @@ bundle.js
 bundle.js.map
 mountainlab-js-test
 npm*.log
+.ipynb*
+__pycache__

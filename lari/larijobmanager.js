@@ -264,6 +264,7 @@ function lari_write_text_file(fname,txt) {
 }
 
 function execute_and_read_output(exe,args,opts,callback) {
+	console.log ('RUNNING: '+exe+' '+args.join(' '));
 	var P;
 	try {
 		P=require('child_process').spawn(exe,args);

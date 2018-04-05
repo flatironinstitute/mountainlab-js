@@ -21,7 +21,8 @@
   "dependencies": {
     "node-sha1": "latest",
     "mongodb": "latest",
-    "dotenv": "latest"
+    "dotenv": "latest",
+    "canonical-json": "latest"
   },
   "devDependencies": {
     "commander": "latest"
