@@ -22,12 +22,12 @@ exports.processUptime = function(){
 
 // Memory
 exports.freemem = function(){
-    return _os.freemem() / ( 1024 * 1024 );
+    return _os.freemem();
 }
 
 exports.totalmem = function(){
 
-    return _os.totalmem() / ( 1024 * 1024 );
+    return _os.totalmem();
 }
 
 exports.freememPercentage = function(){
