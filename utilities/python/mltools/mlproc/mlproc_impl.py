@@ -185,7 +185,7 @@ class _MLProcessor:
             os.makedirs(temporary_path+'/mountainlab')
         if not os.path.exists(temporary_path+'/mountainlab/tmp_short_term'):
             os.makedirs(temporary_path+'/mountainlab/tmp_short_term')
-        return temporary_path+'/mountainlab/tmp_short_term/output_'+oname+'_'+signature
+        return temporary_path+'/mountainlab/tmp_short_term/output_'+oname+'_'+signature+'.prv'
 
 def execProcess(processor_name,inputs={},outputs={},parameters={},opts={}):
     opts['mode']='exec'
