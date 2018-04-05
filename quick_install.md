@@ -1,12 +1,22 @@
 # Quick install instructions for MountainLab
 
+Some abbreviated instructions
+
 Install npm and then run
 
 ```
-npm install .
+cd mountainlab-js
+npm install
 ```
 
-To install the python integration, first install python3 and python3-pip
+Add the bin directory to your path:
+
+```
+export PATH=[your/path/to]/mountainlab-js/bin:$PATH
+```
+
+To install the python integration, first install python3 and python3-pip.
+
 Ideally you should be in a virtualenv to run the following
 
 ```
