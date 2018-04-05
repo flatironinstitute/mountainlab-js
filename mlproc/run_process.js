@@ -330,7 +330,8 @@ function compute_input_file_stats(inputs,callback) {
 		if (val instanceof Array) {
 			var list=[];
 			for (var ii in val) {
-				var stat0=compute_input_file_stat(val[ii]);
+				//var stat0=compute_input_file_stat(val[ii]);
+				var stat0=common.stat_file(val[ii]);
 				if (!stat0) {
 					callback('Problem computing stat for input file: '+key+'['+ii+']');
 					return;
@@ -340,7 +341,8 @@ function compute_input_file_stats(inputs,callback) {
 			ret[key]=list;	
 		}
 		else {
-			var stat0=compute_input_file_stat(val);
+			//var stat0=compute_input_file_stat(val);
+			var stat0=common.stat_file(val);
 			if (!stat0) {
 				callback('Problem computing stat for input file: '+key);
 				return;

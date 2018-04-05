@@ -168,6 +168,7 @@ if (process.env.LARI_LISTEN_PORT) {
     
 
 	function handle_api(cmd,REQ,RESP) {
+		console.log ('handle_api '+cmd);
 		// handle an api command from the client or child lari server
 		var url_parts = require('url').parse(REQ.url,true);
 		var host=url_parts.host;

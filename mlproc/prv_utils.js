@@ -21,7 +21,7 @@ function cmd_prv_locate(prv_fname,opts,callback) {
 			return;
 		}
 		else {
-			console.err ('Unable to locate file.');
+			console.error('Unable to locate file.');
 			callback(null,path);
 			return;
 		}
@@ -72,6 +72,7 @@ function cmd_prv_create(fname,prv_fname_out,opts,callback) {
 }
 
 function prv_locate(prv_fname,opts,callback) {
+	opts=opts||{};
 	var obj=null;
 	if (prv_fname) {
 		obj=common.read_json_file(prv_fname);
@@ -97,7 +98,10 @@ function prv_locate(prv_fname,opts,callback) {
 		callback('original_checksum field not found in prv file: '+prv_fname);
 		return;
 	}
-	sumit.find_doc_by_sha1(sha1,prv_search_paths,function(err,doc0) {
+	if (opts.verbose) {
+		console.log ('sumit.find_doc_by_sha1 '+sha1+' '+prv_search_paths.join(':'));
+	}
+	sumit.find_doc_by_sha1(sha1,prv_search_paths,opts,function(err,doc0) {
 		if (err) {
 			callback(err);
 			return;
@@ -111,6 +115,9 @@ function prv_locate(prv_fname,opts,callback) {
 			return;
 		}
 
+		if (opts.verbose) {
+			console.log (`Document not found in database, searching on disk...`);
+		}
 		common.foreach_async(prv_search_paths,function(ii,path0,cb) {
 			prv_locate_in_path(path0,sha1,fcs,size,function(err,fname) {
 				if (err) {
@@ -124,6 +131,9 @@ function prv_locate(prv_fname,opts,callback) {
 				cb();
 			});
 		},function() {
+			if (opts.verbose) {
+				console.log ('Not found.');
+			}
 			callback('',''); //not found
 		});
 	});
@@ -164,7 +174,10 @@ sumit.file_matches_doc=function(path,doc0) {
 	}
 	return false;
 }
-sumit.find_doc_by_sha1=function(sha1,valid_prv_search_paths,callback) {
+sumit.find_doc_by_sha1=function(sha1,valid_prv_search_paths,opts,callback) {
+	if (opts.verbose) {
+		console.log (`Finding documents for sha1=${sha1}`);
+	}
 	db_utils.findDocuments('sumit',{sha1:sha1},function(err,docs) {
 		if (err) {
 			callback(err);
@@ -173,6 +186,9 @@ sumit.find_doc_by_sha1=function(sha1,valid_prv_search_paths,callback) {
 		if (docs.length===0) {
 			callback(null,null);
 			return;
+		}
+		if (opts.verbose) {
+			console.log (`Found ${docs.length} documents.`);
 		}
 		for (var i in docs) {
 			var doc0=docs[i];
@@ -346,6 +362,10 @@ function prv_locate_in_path(path,sha1,fcs,size,callback) {
 				}
 			}
 			else if (stat0.isDirectory()) {
+				if (common.starts_with(file,'.')) { //hidden directory
+					cb();
+					return;
+				}
 				prv_locate_in_path(fname,sha1,fcs,size,function(err,fname0) {
 					if (fname0) {
 						callback('',fname0);
