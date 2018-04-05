@@ -107,6 +107,10 @@ function find_candidate_mp_files_in_directory(path,callback) {
 				cb();
 			}
 			else if (stat0.isDirectory()) {
+				if (starts_with(file,'.')) { //don't follow hidden directories
+					cb();
+					return;
+				}
 				find_candidate_mp_files_in_directory(fname,function(err,list0) {
 					if (err) {
 						callback(err);
