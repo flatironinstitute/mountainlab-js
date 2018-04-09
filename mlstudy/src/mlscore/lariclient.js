@@ -6,6 +6,7 @@ function LariClient() {
 	var that=this;
 	this.setLariServerUrl=function(url) {m_lari_server_url=url;};
 	this.setContainerId=function(id) {m_container_id=id; that.clearSpecCache();};
+    this.setPoolID=function(id) {m_pool_id=id;}; //do we need to clear cache?
 	this.getSpec=function(query,opts,callback) {getSpec(query,opts,callback);};
 	this.getProcessorNames=function(query,opts,callback) {getProcessorNames(query,opts,callback);};
 	this.queueProcess=function(query,opts,callback) {queueProcess(query,opts,callback);};
