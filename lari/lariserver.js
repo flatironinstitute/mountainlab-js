@@ -31,12 +31,17 @@ configure MountainLab.
 */
 
 var common=require(__dirname+'/laricommon.js');
+const fs = require('fs');
 
 // Set environment variables from mountainlab.env
 // Note: existing environment variables will NOT be overriden
 var ml_config_file=common.config_file_path();
-console.log ('Using configuration in: '+ml_config_file);
-require('dotenv').config({path:ml_config_file});
+if (fs.existsSync(ml_config_file)){
+    console.log ('Using configuration in: '+ml_config_file);
+    require('dotenv').config({path:ml_config_file});
+} else {
+    console.log('No config file found at: '+ml_config_file);
+}
 
 const os = require('os');
 
