@@ -1,5 +1,11 @@
 # MountainLab (JavaScript implementation)
 
+Data processing, sharing and visualization software for scientists. It is built around MountainSort, spike sorting software, but is designed to more generally applicable.
+
+This framework was conceived by and primarily implemented by Jeremy Magland at the Flatiron Institute.
+
+The web infracture is currently under development by Jeremy Magland and Alex Morley.
+
 ## Installation instructions
 
 Note: If you have a prior version of MountainLab installed, then you should uninstall it (either via apt-get remove or by removing mountainlab/bin from your path)
