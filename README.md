@@ -4,7 +4,7 @@ Data processing, sharing and visualization software for scientists. It is built 
 
 This framework was conceived by and primarily implemented by Jeremy Magland at the Flatiron Institute.
 
-The web infracture is currently under development by Jeremy Magland and Alex Morley.
+The web infrastructure is currently under development by Jeremy Magland and Alex Morley.
 
 ## Installation instructions
 
