@@ -43,17 +43,8 @@ if (fs.existsSync(ml_config_file)){
     console.log('No config file found at: '+ml_config_file);
 }
 
+// Set ID to hostname if not set
 const os = require('os');
-
-// alex m.: is this a temporary solution?
-/*
-if (process.env.LARI_CONTAINER_ID) {
-	if (process.env.LARI_CONTAINER_ID == "stream-auto") {
-		process.env.LARI_CONTAINER_ID = os.hostname();
-	}
-}
-*/
-
 if (!process.env.LARI_CONTAINER_ID) {
 	process.env.LARI_CONTAINER_ID = os.hostname();
 }
@@ -75,7 +66,7 @@ if (CONFIG_DOC) {
 }
 */
 
-var handle_api_2=require(__dirname+'/lariapi.js').handle_api_2;
+var handle_api_direct=require(__dirname+'/lariapi.js').handle_api_direct;
 
 var express = require('express');
 
@@ -115,50 +106,50 @@ if (process.env.LARI_LISTEN_PORT) {
 		var query=url_parts.query;
 		if (path=='/api/spec') {
 			// Request the spec for a processor
-			handle_api('spec',req,resp);
+			handle_api_request('spec',req,resp);
 		}
 		else if (path=='/api/list-processors') {
 			// Retrieve a list of processors available on this processing server
-			handle_api('list-processors',req,resp);
+			handle_api_request('list-processors',req,resp);
 		}
 		else if (path=='/api/queue-process') {
 			// Start (or queue) a process
-			handle_api('queue-process',req,resp);
+			handle_api_request('queue-process',req,resp);
 		}
 		else if (path=='/api/probe-process') {
 			// Check on the state of a queued, running, or finished process
-			handle_api('probe-process',req,resp);
+			handle_api_request('probe-process',req,resp);
 		}
 		else if (path=='/api/cancel-process') {
 			// Cancel a queued or running process
-			handle_api('cancel-process',req,resp);
+			handle_api_request('cancel-process',req,resp);
 		}
 		else if (path=='/api/find-file') {
 			// Check to see if a file is on the processing server (via prv-locate)
-			handle_api('find-file',req,resp);
+			handle_api_request('find-file',req,resp);
 		}
 		else if (path=='/api/get-file-content') {
 			// Return the content of a relatively small text file on the server (found via prv-locate)
 			// (To access the content of larger output files, use kbucket.upload)
-			handle_api('get-file-content',req,resp);
+			handle_api_request('get-file-content',req,resp);
 		}
         else if (path=='/api/poll-from-container') {
 			// A child lari server (container) is sending a poll request
 			// This server will reply with requests from the client that need to be handled by the child
-			handle_api('poll-from-container',req,resp);
+			handle_api_request('poll-from-container',req,resp);
 		}
 		else if (path=='/api/responses-from-container') {
 			// A child lari server (container) is sending some responses
 			// These are responses to requests (initiated by the client) and returned in the poll-from-container above
-			handle_api('responses-from-container',req,resp);
+			handle_api_request('responses-from-container',req,resp);
 		}
         else if (path=='/api/get-stats') {
             // Get cpu and memory statistics on the child server
-            handle_api('get-stats', req, resp);
+            handle_api_request('get-stats', req, resp);
         }
         else if (path=='/api/get-available-containers') {
             // Get the available containers (i.e., child lari servers, ie, processing servers)
-            handle_api('get-available-containers', req, resp);
+            handle_api_request('get-available-containers', req, resp);
         }
 		else {
 			next();
@@ -172,7 +163,7 @@ if (process.env.LARI_LISTEN_PORT) {
 	});
     
 
-	function handle_api(cmd,REQ,RESP) {
+	function handle_api_request(cmd,REQ,RESP) {
 		console.log ('handle_api '+cmd);
 		// handle an api command from the client or child lari server
 		var url_parts = require('url').parse(REQ.url,true);
@@ -195,9 +186,9 @@ if (process.env.LARI_LISTEN_PORT) {
 			RESP.end();
 		}
 		else {
-			// We'll handle both GET and POST requests, and call handle_api_2 once the query has been parsed
+			// We'll handle both GET and POST requests, and call handle_api_direct once the query has been parsed
 			if (REQ.method=='GET') {
-				handle_api_2(cmd,query,create_closer(REQ),function(resp) {
+				handle_api_direct(cmd,query,create_closer(REQ),function(resp) {
 					send_json_response(RESP,resp);
 				});
 			}
@@ -209,7 +200,7 @@ if (process.env.LARI_LISTEN_PORT) {
 						send_json_response({success:false,error:err});
 						return;
 					}
-					handle_api_2(cmd,post_query,create_closer(REQ),function(resp) {
+					handle_api_direct(cmd,post_query,create_closer(REQ),function(resp) {
 						send_json_response(RESP,resp);
 					});
 				});
@@ -239,7 +230,7 @@ if (process.env.LARI_HUB_URL) {
 	container_client.setRequestHandler(function(cmd,query,callback) {
 		// Here we respond to api request from client that has been routed through the parent lari server
 		console.log ('Handling api request in container: '+cmd);
-		handle_api_2(cmd,query,create_closer(null),function(resp) {
+		handle_api_direct(cmd,query,create_closer(null),function(resp) {
 			callback(resp);
 		});
 	});
@@ -490,5 +481,3 @@ function do_update_lari_config_2(callback) {
 function create_closer(REQ) {
 	return REQ||{on:function(str,handler) {}};
 }
-
-
