@@ -79,7 +79,24 @@ Note that the exe_command string, in this case, is dynamically generated, and co
 
 ## The processor spec object
 
-[[TODO: finish]]
+As described above, a processor library is defined by an executable .mp file that returns a JSON specification in response to the ```spec``` argument. As shown in the above examples, that JSON object contains a list of processors, each of which should have the following fields:
+
+* ```name``` The universally unique name of the processor.
+* ```version``` A version string for this processor, which should change (or increment) whenever the behavior or implementation of the processor changes.
+* ```description``` A brief description string for the processor.
+* ```inputs``` A list of inputs for the processor (corresponding to input files), each with the following fields
+	- ```name``` The name of the input
+	- ```optional``` (Boolean) Whether or not this input is optional
+* ```outputs``` A list of outputs for the processor (corresponding to output files), each with the following fields
+	- ```name``` The name of the output
+	- ```optional``` (Boolean) Whether or not this output is optional
+* ```parameters``` A list of parameters for the processor, each with the following fields
+	- ```name``` The name of the parameter
+	- ```optional``` (Boolean) Whether or not this output is optional
+	- ```default_value``` If the parameter is optional, a string representing the default value for the parameter.
+* ```opts``` A JSON object containing some additional options determining the behavior of the processor, including
+	- ```force_run``` (Boolean) Determines whether the processor should always run (regardless of caching of processor jobs on the local machine)
+
 
 
 ## Formatting the exe_command
