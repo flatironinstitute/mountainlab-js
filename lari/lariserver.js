@@ -9,6 +9,7 @@ Set the following environment variables, or use the
 mountainlab.env file:
 
 LARI_CONTAINER_ID (optional)
+LARI_POOL_ID (optional)
 LARI_LISTEN_PORT (e.g., 6057, or * for default) - to listen
 LARI_HUB_URL (optional) - to connect out to lari hub
 LARI_PROCESS_CACHE=ON - to turn on process caching
@@ -222,12 +223,16 @@ if (process.env.LARI_HUB_URL) {
 	} else {
 		console.log ('Container ID: '+process.env.LARI_CONTAINER_ID);
 	}
+    if (process.env.LARI_POOL_ID) {
+        console.log('Pool ID: '+process.env.LARI_POOL_ID);
+    }
 
 	console.log ('Connecting to parent: '+process.env.LARI_HUB_URL);
 	var container_client=new ContainerClient();
 	container_client.setLariUrl(process.env.LARI_HUB_URL);
 	container_client.setContainerId(process.env.LARI_CONTAINER_ID);
-	container_client.setRequestHandler(function(cmd,query,callback) {
+	container_client.setPoolId(process.env.LARI_POOL_ID);
+    container_client.setRequestHandler(function(cmd,query,callback) {
 		// Here we respond to api request from client that has been routed through the parent lari server
 		console.log ('Handling api request in container: '+cmd);
 		handle_api_direct(cmd,query,create_closer(null),function(resp) {
@@ -241,12 +246,14 @@ if (process.env.LARI_HUB_URL) {
 
 function ContainerClient() {
 	this.setContainerId=function(id) {m_container_id=id;};
+    this.setPoolId=function(id) {m_pool_id=id};
 	this.setLariUrl=function(url) {m_url=url;};
-	this.start=function() {start();};
+    this.start=function() {start();};
 	this.setRequestHandler=function(handler) {m_request_handler=handler;};
 
 	var m_container_id='';
-	var m_url='';
+	var m_pool_id='';
+    var m_url='';
 	var m_running=false;
 	var m_active_polls={};
 	var m_request_handler=function(cmd,query,callback) {
@@ -270,7 +277,7 @@ function ContainerClient() {
 
 		var url=m_url+'/api/poll-from-container';
 		console.log ('Making poll request to: '+url);
-		common.http_post_json(url,{container_id:m_container_id},{},function(err,resp) {
+		common.http_post_json(url,{container_id:m_container_id, pool_id:m_pool_id},{},function(err,resp) {
 			if (err) {
 				console.error('Error making poll request to lari server: '+err);
 				delete m_active_polls[poll_id];
