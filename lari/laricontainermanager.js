@@ -5,9 +5,8 @@ function LariContainerManager() {
 	this.handlePollFromContainer=function(query,closer,callback) {handlePollFromContainer(query,closer,callback);};
 	this.handleResponsesFromContainer=function(query,closer,callback) {handleResponsesFromContainer(query,closer,callback);};
 	this.availableContainers=function() {return availableContainers();};
-    this.authorizedPools=authorized_pools;
-
-    var authorized_pools = ['public'];
+   
+    var authorized_pools = {'public':{}};
 	var m_containers={};
 
 	function handleApiRequest(cmd,query,closer,callback) {
@@ -27,10 +26,10 @@ function LariContainerManager() {
 			return;
 		}
 		if (!(id in m_containers)) {
-			if (!(query.pool_id) || (query.pool_id in authorized_pools)) {
+		    m_containers[id]=new Container();    
+            if (query.pool_id) {
                 console.log("Setting pool id");
                 m_containers[id].pool_id=query.pool_id;
-                m_containers[id]=new Container();
             }
 		}
 		var C=m_containers[id];
@@ -54,9 +53,10 @@ function LariContainerManager() {
 	function availableContainers() {
 		var ret={};
 		for (var id in m_containers) {
-			console.log(typeof id);
-            console.log(m_containers[id].pool_id);
-            ret[id]={};
+			console.log(m_containers[id].pool_id);
+            if (!(m_containers[id].pool_id) || (m_containers[id].pool_id in authorized_pools)) {
+                ret[id]={};
+            }
 		}
 		return ret;
 	}
