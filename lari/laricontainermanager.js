@@ -4,8 +4,9 @@ function LariContainerManager() {
 	this.handleApiRequest=function(cmd,query,closer,callback) {handleApiRequest(cmd,query,closer,callback);};
 	this.handlePollFromContainer=function(query,closer,callback) {handlePollFromContainer(query,closer,callback);};
 	this.handleResponsesFromContainer=function(query,closer,callback) {handleResponsesFromContainer(query,closer,callback);};
-	this.availableContainers=function() {return availableContainers();};
-   
+	//this.availableContainers=function() {return availableContainers();};
+    this.handleAvailableContainers=function(query,closer,callback) {handleAvailableContainers(query,closer,callback);};
+    
     var authorized_pools = {'public':{}};
 	var m_containers={};
 
@@ -49,6 +50,18 @@ function LariContainerManager() {
 		var C=m_containers[id];
 		C.handleResponsesFromContainer(query,closer,callback);
 	}
+
+    function handleAvailableContainers(query, closer, callback) {
+        if (query.authorized_pools) {
+            authorized_pools = query.authorized_pools;
+        }
+        var available_containers=availableContainers();
+        if (process.env.LARI_CONTAINER_ID) { // add this managing server
+			available_containers[process.env.LARI_CONTAINER_ID]={};
+        }
+		callback({success:true, containers:available_containers});
+		return;
+    }
 
 	function availableContainers() {
 		var ret={};

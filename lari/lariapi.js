@@ -146,11 +146,10 @@ function handle_api_main(cmd,query,closer,callback) {
 		return;
 	}
 	if (cmd=='get-available-containers') {
-		var available_containers=container_manager.availableContainers();
-		if (process.env.LARI_CONTAINER_ID) // add this managing server
-			available_containers[process.env.LARI_CONTAINER_ID]={};
-		callback({success:true,containers:available_containers});
-		return;
+	    container_manager.handleAvailableContainers(query,closer,function(resp) {
+            callback(resp);
+        });
+        return;
 	}
 
 	// If the container_id of the query matches this container, then we proceed.
