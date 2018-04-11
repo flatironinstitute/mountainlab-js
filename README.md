@@ -1,6 +1,6 @@
 # MountainLab (JavaScript implementation)
 
-MountainLab is data processing, sharing and visualization software for scientists. It is built around MountainSort, spike sorting software, but is designed to much more generally applicable.
+MountainLab is data processing, sharing and visualization software for scientists. It is built around MountainSort, spike sorting software, but is designed to be much more generally applicable.
 
 # Credits and acknowledgements
 
@@ -16,11 +16,11 @@ MountainLab will also play a central role in the implementation of a website for
 
 Alex Morley has a project and vision for continuous integration science which will most likely use MountainLab as a core part of its implementation.
 
-(If I have neglected to acknowledge your contribution, by all means please remind me.)
+(If I have neglected to acknowledge your contribution, please remind me.)
 
 ## Quick installation for the impatient or adventurous
 
-Use linux and install nodejs (recent version), npm (node package manager), and MongoDB
+Use linux and install NodeKS (recent version), npm (node package manager), and MongoDB
 
 ```
 git clone https://github.com/flatironinstitute/mountainlab-js
@@ -36,7 +36,7 @@ ml-config
 
 The output of this command will explain how to configure MountainLab on your system (it simply involves setting environment variables by editing a .env file).
 
-If everything is good, skip down to start learning about how to use MountainLab. It is primarily a command-line utility.
+If everything is good, skip down to start learning about how to use MountainLab. It is primarily a command-line tool.
 
 
 ## Detailed installation instructions
@@ -142,4 +142,4 @@ In place of `ml-run-process`, you may substitute `ml-exec-process` to bypass the
 
 ## Creating custom processor libraries
 
-As mentioned above, you can create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. [[TODO: finish this section]]
+As mentioned above, you can create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see [creating custom processor libraries](docs/creating_custom_processor_libraries.md)
