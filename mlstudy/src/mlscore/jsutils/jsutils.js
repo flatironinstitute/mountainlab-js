@@ -22,8 +22,7 @@ exports.http_get_json=jsu_http_get_json;
 exports.http_post_json=jsu_http_post_json;
 
 function jsu_http_get_text(url,headers,callback) {
-	if (typeof window == 'undefined') {
-		// Using nodejs
+	if (using_nodejs()) {
 		nodejs_http_get_text(url,headers,callback);
 	}
 	else {
@@ -54,9 +53,18 @@ function jsu_http_get_json(url,headers,callback) {
     });
 }
 
-function jsu_http_post_json(url,data,headers,callback) {
+function using_nodejs() {
 	if (typeof window == 'undefined') {
-		// Using nodejs
+		return true;
+	}
+	if (!window.Date) {
+		return true;
+	}
+	return false;
+}
+
+function jsu_http_post_json(url,data,headers,callback) {
+	if (using_nodejs()) {
 		nodejs_http_post_json(url,data,headers,callback);
 	}
 	else {

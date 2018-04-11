@@ -18,7 +18,7 @@ function LariClient() {
 	this.getFileContent=function(prv,opts,callback) {getFileContent(prv,opts,callback);};
 	this.getStats=function(opts,callback) {getStats(opts, callback);};
     this.clearSpecCache=function() {m_spec_cache={};};
-	this.setDirectLariCall=function(func) {m_direct_lari_call=func;};
+	this.setDirectLariCall=function(func) {m_direct_lari_call=func;}; //not really used anymore I think
 
 	var m_lari_server_url='';
 	var m_container_id='';

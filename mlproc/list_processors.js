@@ -18,6 +18,7 @@ function cmd_list_processors(opts,callback) {
 				list.push(pname);
 			}
 		}
+		list=list.sort();
 		if (list.length>0)
 			console.log (list.join('\n'));
 		callback();

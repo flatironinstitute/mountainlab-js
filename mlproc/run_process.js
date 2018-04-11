@@ -508,12 +508,18 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
 	var cmd=filter_exe_command(spec0.exe_command,inputs,outputs,info,parameters);
 	console.log ('[ Running ... ] '+cmd);
+	var timer=new Date();
 	var P=new SystemProcess();
 	P.setCommand(cmd);
+	P.setTempdirPath(info.tempdir_path||'');
 	if ('console_out' in outputs) {
 		P.setConsoleOutFile(outputs['console_out']);
 	}
 	P.onFinished(function() {
+		if (!P.error()) {
+			var elapsed=(new Date())-timer;
+			console.log (`Elapsed time for processor ${spec0.name}: ${elapsed/1000} sec`);
+		}
 		callback(P.error());
 	});
 	P.start();

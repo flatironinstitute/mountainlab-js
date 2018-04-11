@@ -17,6 +17,7 @@ function SystemProcess() {
 	this.start=function() {start();};
 	this.onFinished=function(handler) {m_finished_handlers.push(handler);};
 	this.error=function() {return m_error;};
+	this.setTempdirPath=function(path) {m_tempdir_path=path;};
 
 	var m_command='';
 	var m_finished_handlers=[];
@@ -26,13 +27,16 @@ function SystemProcess() {
 	var m_console_out_fname='';
 	var m_stdout_txt='';
 	var m_stderr_txt='';
+	var m_tempdir_path='';
 
 	function start() {
 		var list=m_command.split(' ');
 		var exe=list[0]||'';
 		var args=list.slice(1);
 		try {	
-			P=require('child_process').spawn(exe,args);
+			var env = Object.create( process.env );
+			if (m_tempdir_path) env.ML_PROCESSOR_TEMPDIR = m_tempdir_path;
+			P=require('child_process').spawn(exe,args,{env:env});
 			all_running_processes[m_id]=P;
 		}
 		catch(err) {

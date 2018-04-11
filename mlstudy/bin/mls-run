@@ -1,0 +1,362 @@
+#!/usr/bin/env node
+
+var BatchJob=require(__dirname+'/../src/mlscore/batchjob.js').BatchJob;
+var DocStorClient=require(__dirname+'/../src/mlscore/docstorclient.js').DocStorClient;
+var LariClient=require(__dirname+'/../src/mlscore/lariclient.js').LariClient;
+var JSQ=require(__dirname+'/../src/mlscore/jsqcore/jsq.js').JSQ;
+var jsutils=require(__dirname+'/../src/mlscore/jsutils/jsutils.js');
+var copyFileSync=require(__dirname+'/../src/mlscore/jsutils/3rdparty/fs-copy-file-sync.js');
+var mlplog=require(__dirname+'/../src/mlscore/mlplog.js');
+
+function print_usage() {
+	console.log ('Usage:');
+	console.log ('    mls-run [script.ml] --inputs [key]:[value] ... --outputs [key]:[value] ... --parameters [key]:[value] ...');
+	console.log ('Additional options:');
+	console.log ('    --results=[/path/to/output]');
+	console.log ('    --server=[url of lari server, empty for local, * for default remote]');
+	console.log ('    --container=[container id for processing server]');
+}
+
+var CLP=new CLParamsWithIOP(process.argv);
+var arg1=CLP.unnamedParameters[0]||'';
+if (!arg1) {
+	print_usage();
+	process.exit(-1);
+}
+
+
+var results_path=CLP.namedParameters.results||'';
+var lari_server_url=CLP.namedParameters.server||'';
+if (lari_server_url=='*') lari_server_url='https://lari1.herokuapp.com';
+var container_id=CLP.namedParameters.container||'';
+if ((!lari_server_url)&&(!container_id)) {
+	container_id=require('os').hostname(); //this is the default container id for local server
+}
+if (!lari_server_url) {
+	lari_server_url='http://localhost:6057'
+}
+
+if ((lari_server_url)&&(!container_id)) {
+	console.log ('Missing required parameter when connecting to remote server: --container');
+	process.exit(-1);
+}
+
+if (results_path) {
+	if (require('fs').existsSync(results_path)) {
+		// Note: this is not as risky as it seems ... see ML_ALLOW_RM below
+		remove_directory('results');
+	}
+	if (require('fs').existsSync(results_path)) {
+		console.warn('Unable to remove directory: '+results_path);
+		process.exit(-1);
+	}
+	require('fs').mkdirSync(results_path);
+	write_text_file(results_path+'/ML_ALLOW_RM','The presence of this file allows the complete removal of this directory by ml-run.');
+}
+
+var script=read_text_file(arg1);
+if (!script) {
+	console.error('Unable to read script file: '+arg1);
+	process.exit(-1);
+}
+var all_scripts={};
+var study={scripts:{},datasets:{}};
+var DSC=new DocStorClient(); //todo
+var lari_client=new LariClient();
+
+lari_client.setLariServerUrl(lari_server_url);
+lari_client.setContainerId(container_id);
+
+var BJ=new BatchJob(null,lari_client);
+BJ.setBatchScript(script);
+BJ.setAllScripts(all_scripts);
+BJ.setStudyObject(study);
+BJ.setDocStorClient(DSC);
+BJ.setKBucketUrl('https://kbucket.flatironinstitute.org'); //todo
+BJ.getSpec(function(err,spec) {
+	if (err) {
+		console.error(err);
+		process.exit(-1);
+	}
+	if ('spec' in CLP.namedParameters) {
+		console.log (JSON.stringify(spec,null,4));
+		return;
+	}
+
+	mlplog.onMessage(function(msg) {
+		show_log_message(msg);
+	});
+
+	if (!check_iop_against_spec(spec,CLP.namedParameters.inputs,CLP.namedParameters.outputs,CLP.namedParameters.parameters)) {
+		process.exit(-1);
+	}
+
+	BJ.setInputs(CLP.namedParameters['inputs']);
+	var outputs=CLP.namedParameters['outputs'];
+	var outputs2={};
+	for (var oname in outputs) {
+		outputs2[oname]='_mls_output_'+oname;
+	}
+	BJ.setOutputs(outputs2);
+	BJ.setParameters(CLP.namedParameters['parameters']);
+
+	JSQ.connect(BJ,'results_changed',null,function() {
+		if (results_path) {
+			var results=BJ.results();
+			for (var fname in results) {
+				var X=results[fname];
+				var path=results_path+'/'+fname;
+				remove_file_if_exists(path+'.pending.json');
+				remove_file_if_exists(path+'.running.json');
+				remove_file_if_exists(path+'.error.json');
+				if (X.status=='finished') {
+					var val=X.value||{};
+					if (val.prv) {
+						write_text_file(path+'.prv',JSON.stringify(val.prv,null,4));
+					}
+					else {
+						write_text_file(path,JSON.stringify(val,null,4));	
+					}
+				}
+				else {
+					write_text_file(path+'.'+X.status+'.json',JSON.stringify(X,null,4));
+				}
+			}
+		}
+	});
+
+	JSQ.connect(BJ,'completed',null,function() {
+		if (BJ.error()) {
+			console.error('Error running script: '+BJ.error());
+			process.exit(-1);
+			return;
+		}
+		
+		var results=BJ.results();
+		for (var oname in outputs) {
+			if (!outputs2[oname] in results) {
+				console.error('Output not assigned in script: '+oname);
+				process.exit(-1);
+			}
+			var X=results[outputs2[oname]];
+			if (X.status!='finished') {
+				console.error('Unexpected, status not finished for output: '+oname);
+				process.exit(-1);
+			}
+			var val=X.value||{};
+			if (val.prv) {
+				var out_fname=outputs[oname];
+				if (jsutils.ends_with(out_fname,'.prv')) {
+					console.log ('Writing output -> '+out_fname);
+					write_text_file(out_fname,JSON.stringify(val.prv,null,4));		
+				}
+				else {
+					console.log ('Copying output -> '+out_fname);
+					copyFileSync(val.prv.original_path,out_fname);
+				}
+			}
+			else {
+				write_text_file(outputs[oname],JSON.stringify(val,null,4));
+			}
+			outputs2[oname]='_mls_output_'+oname;
+		}
+		return;
+	});
+
+	BJ.start();
+});
+
+function check_iop_against_spec(spec,inputs,outputs,parameters) {
+	var spec_inputs=spec.inputs||[];
+	var spec_inputs_by_name={};
+	for (var ii in spec_inputs) {
+		spec_inputs_by_name[spec_inputs[ii].name]=spec_inputs[ii];
+	}
+	var spec_outputs=spec.outputs||[];
+	var spec_outputs_by_name={};
+	for (var ii in spec_outputs) {
+		spec_outputs_by_name[spec_outputs[ii].name]=spec_outputs[ii];
+	}
+	var spec_parameters=spec.parameters||[];
+	var spec_parameters_by_name={};
+	for (var ii in spec_parameters) {
+		spec_parameters_by_name[spec_parameters[ii].name]=spec_parameters[ii];
+	}
+	for (var iname in inputs) {
+		if (!(iname in spec_inputs_by_name)) {
+			console.error('Unexpected input: '+iname);
+			return false;
+		}
+	}
+	for (var iname in spec_inputs_by_name) {
+		if (!(iname in inputs)) {
+			if (!spec_inputs_by_name[iname].optional) {
+				console.error('Missing required input: '+iname);
+				return false;
+			}
+		}
+	}
+	for (var oname in outputs) {
+		if (!(oname in spec_outputs_by_name)) {
+			console.error('Unexpected output: '+oname);
+			return false;
+		}
+	}
+	for (var oname in spec_outputs_by_name) {
+		if (!(oname in outputs)) {
+			if (!spec_outputs_by_name[oname].optional) {
+				console.error('Missing required output: '+oname);
+				return false;
+			}
+		}
+	}
+	for (var pname in parameters) {
+		if (!(pname in spec_parameters_by_name)) {
+			console.error('Unexpected parameter: '+pname);
+			return false;
+		}
+	}
+	for (var pname in spec_parameters_by_name) {
+		if (!(pname in parameters)) {
+			if (!spec_parameters_by_name[pname].optional) {
+				console.error('Missing required parameter: '+pname);
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+function show_log_message(msg) {
+	var col_code='';
+	if (msg.side=='server') {
+		col_code="\x1b[35m" //magenta
+	}
+	else if ((msg.labels)&&(msg.labels.script)) {
+		col_code="\x1b[32m" //green
+	}
+	if (col_code)
+		console.log (col_code+'%s\x1b[0m',msg.text);
+	else
+		console.log (msg.text);
+}
+  
+function read_text_file(fname) {
+	try {
+		return require('fs').readFileSync(fname,'utf8');
+	}
+	catch(err) {
+		return '';
+	}
+}
+
+function remove_directory(path) {
+	//to be safe
+	if (!path) return;
+	if (path=='/') return;
+	var ml_allow_rm_path=require('path').join(path,'ML_ALLOW_RM');
+	if (!require('fs').existsSync(ml_allow_rm_path)) {
+		console.warn('To be safe we cannot remove a directory that does not contain a ML_ALLOW_RM file');
+		return;
+	}
+
+	delete_folder_recursive(path);
+
+	function delete_folder_recursive(path) {
+		if (require('fs').existsSync(path)) {
+			require('fs').readdirSync(path).forEach(function(file,index) {
+				var curpath=require('path').join(path,file);
+				if (require('fs').lstatSync(curpath).isDirectory()) { //recurse
+					delete_folder_recursive(curpath);
+				}
+				else {
+					require('fs').unlinkSync(curpath);
+				}
+			});
+		}
+		require('fs').rmdirSync(path);
+	}
+}
+
+function mkdir_if_needed(path) {
+  try {
+    require('fs').mkdirSync(path);
+  }
+  catch(err) {
+  }
+}
+
+function remove_file_if_exists(path) {
+	if (require('fs').existsSync(path)) {
+		require('fs').unlinkSync(path);
+	}
+}
+
+function write_text_file(fname,txt) {
+	try {
+		require('fs').writeFileSync(fname,txt);
+		return true;
+	}
+	catch(err) {
+		return false;
+	}
+}
+
+function CLParamsWithIOP(argv) {
+	this.unnamedParameters=[];
+	this.namedParameters={};
+
+	var inputs={};
+	var outputs={};
+	var parameters={};
+	this.namedParameters['inputs']=inputs;
+	this.namedParameters['outputs']=outputs;
+	this.namedParameters['parameters']=parameters;
+
+	var args=argv.slice(2);
+	for (var i=0; i<args.length; i++) {
+		var arg0=args[i];
+		if (arg0.indexOf('--')===0) {
+			arg0=arg0.slice(2);
+			var ind=arg0.indexOf('=');
+			if (ind>=0) {
+				this.namedParameters[arg0.slice(0,ind)]=arg0.slice(ind+1);
+			}
+			else {
+				if (arg0=='inputs') {
+					while ((i+1<args.length)&&(args[i+1][0]!='-')) {
+						i++;
+						var list0=args[i].split(':');
+						inputs[list0[0]]=list0[1];
+					}
+				}
+				else if (arg0=='outputs') {
+					while ((i+1<args.length)&&(args[i+1][0]!='-')) {
+						i++;
+						var list0=args[i].split(':');
+						outputs[list0[0]]=list0[1];
+					}
+				}
+				else if (arg0=='parameters') {
+					while ((i+1<args.length)&&(args[i+1][0]!='-')) {
+						i++;
+						var list0=args[i].split(':');
+						parameters[list0[0]]=list0[1];
+					}
+				}
+				else {
+					//this.namedParameters[arg0]=args[i+1]||'';
+					//i++;
+					this.namedParameters[arg0]='';
+				}
+			}
+		}
+		else if (arg0.indexOf('-')===0) {
+			arg0=arg0.slice(1);
+			this.namedParameters[arg0]='';
+		}
+		else {
+			this.unnamedParameters.push(arg0);
+		}
+	}
+}

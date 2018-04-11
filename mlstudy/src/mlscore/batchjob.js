@@ -14,6 +14,10 @@ function BatchJob(O,lari_client) {
   this.setBatchScript=function(script) {m_script=script;};
   this.setAllScripts=function(scripts) {m_all_scripts=scripts;};
   this.setStudyObject=function(obj) {m_study_object=obj;};
+  this.setInputs=function(inputs) {m_inputs=JSQ.clone(inputs);};
+  this.setOutputs=function(outputs) {m_outputs=JSQ.clone(outputs);};
+  this.setParameters=function(parameters) {m_parameters=JSQ.clone(parameters);};
+  this.setOpts=function(opts) {m_opts=JSQ.clone(opts);};
   this.id=function() {return m_id;};
   this.start=function() {start();};
   this.stop=function() {_stop();};
@@ -28,7 +32,9 @@ function BatchJob(O,lari_client) {
   this.processorJob=function(job_id) {return m_processor_jobs_by_id[job_id]||null;}
   this.setIsCompleted=function(val) {m_is_completed=val;};
   this.isCompleted=function() {return m_is_completed;};
+  this.error=function() {return m_reported_error;};
   this.isRunning=function() {return (!m_is_completed);};
+  this.getSpec=function(callback) {return getSpec(callback);};
 
   var m_id=JSQ.makeRandomId(6);
   var m_script='';
@@ -48,6 +54,46 @@ function BatchJob(O,lari_client) {
   var m_docstor_client=null;
   var m_kbucket_url='';
   var m_processor_jobs_by_id={};
+  //these go into the call to main()
+  var m_inputs={}; 
+  var m_outputs={};
+  var m_parameters={};
+  var m_opts={};
+
+  function getSpec(callback) {
+    //need dummy values
+    var _MLS={
+      study:{},
+      runProcess:function() {},
+      setResult:function() {},
+      loadStudy:function() {},
+      loadFile:function() {},
+      upload:function() {},
+      wait:function(callback) {callback();},
+      prvToUrl: function() {}
+    };
+    var script2=`(function() {var exports={}; ${m_script}\n return exports;})()`;
+    var result=null;
+    try {
+      result=run_some_code(function() {
+        return eval(script2);
+      });
+      if (!result) {
+        callback('Error running script.');
+        return;
+      }
+      if (!result.spec) {
+        callback(null,{inputs:[],outputs:[],parameters:[]});
+        return;
+      }
+      var spec=result.spec();
+      callback(null,spec);
+    }
+    catch(err) {
+      callback('Error evaluating script: '+err.message);
+      return;
+    }
+  }
 
   function start() {
     var _MLS={
@@ -126,7 +172,7 @@ function BatchJob(O,lari_client) {
     if (result) {
       if (result.main) {
         _wait(function() {
-          result.main();
+          result.main(m_inputs,m_outputs,m_parameters,m_opts);
         });
       }
     }
