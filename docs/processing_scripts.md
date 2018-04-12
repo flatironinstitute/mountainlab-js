@@ -43,5 +43,155 @@ and this will create the actual output files (not .prv files) as prescribed.
 
 Now, let's take a look at the processing script: ```create_synthetic_timeseries.ml```
 
-[[TODO: finish]]
+The first lines are
 
+```
+exports.spec=spec;
+exports.main=main;
+```
+
+This can just be included at the top of all driver scripts (the spec is optional), and tells the system which functions in the script to look at. The spec function (optional) returns the spec for this processing script, similar to the spec for individual processors.
+
+```
+function spec() {
+	// Description
+	var description='Create a simple synthetic raw timeseries dataset for testing of spike sorting.';
+
+	// Inputs
+	var inputs=[];
+
+	// Outputs
+	var outputs=[
+		{
+			name:"timeseries_out",
+			description:"The synthesized timeseries (MxN)",
+			optional:true
+		},
+		{
+			name:"firings_out",
+			description:"The true firings file (3xL)",
+			optional:true
+		},
+		{
+			name:"waveforms_out",
+			description:"The true waveforms file (MxTxK)",
+			optional:true
+		},
+		{
+			name:"geom_out",
+			description:"The electrode geometry file corresponding to the synthesized timeseries",
+			optional:true
+		}
+	];
+
+	// Parameters
+	var parameters=[
+		{
+			name:"samplerate",
+			description:"The sampling rate for the synthesized timeseries (Hz)",
+			optional:true,
+			default_value:30000
+		},
+		{
+			name:"duration",
+			description:"The duration of the synthesized timeseries (sec)",
+			optional:true,
+			default_value:30000
+		},
+		{
+			name:"noise_level",
+			description:"The noise level for the synthesized timeseries",
+			optional:true,
+			default_value:1
+		},
+		{
+			name:"M",
+			description:"The number of channels for the synthesized timeseries",
+			optional:true,
+			default_value:1
+		},
+		{
+			name:"K",
+			description:"The number of synthetic units to generate",
+			optional:true,
+			default_value:1
+		}
+	];
+
+	return {
+		description:description,
+		inputs:inputs,
+		outputs:outputs,
+		parameters:parameters
+	};
+}
+```
+
+Just as with individual MountainLab processors, this spec defines the inputs, outputs, and parameters corresponding to command line calls (mls-run). In this case, we require no input files (we are synthesizing data from script). There are four optional output files -- the synthesized timeseries, the true firings file, the true waveforms, and the electrode geometry file. Finally, there are several parameters for controlling the synthesis operation.
+
+Next, we have the main function:
+
+```
+function main(inputs,outputs,params) {
+	// Synthesize the random waveforms (oversampled)
+	var A=synthesize_random_waveforms({
+		M:params.M,
+		K:params.K
+	});
+	var waveforms=A.waveforms_out;
+	var geom=A.geometry_out;
+
+	// Synthesize the random firing events
+	var firings=synthesize_random_firings({
+		K:params.K,
+		samplerate:params.samplerate,
+		duration:params.duration
+	}).firings_out;
+
+	// Synthesize the timeseries
+	var timeseries=synthesize_timeseries({
+		firings:firings,
+		waveforms:waveforms,
+		noise_level:params.noise_level,
+		samplerate:params.samplerate,
+		duration:params.duration
+	}).timeseries_out;
+
+	// Set the output results
+	_MLS.setResult(outputs.waveforms_out||'waveforms.mda',waveforms);
+	_MLS.setResult(outputs.geom_out||'geom.csv',geom);
+	_MLS.setResult(outputs.firings_out||'firings.mda',firings);
+	_MLS.setResult(outputs.timeseries_out||'raw.mda',timeseries);
+}
+```
+
+This function creates three processor jobs: synthesize waveforms, synthesize firings, and synthesize timeseries. The outputs of the first two are needed as inputs for the third. All calls to MountainLab processors from within processing scripts are asynchronous, meaning that they are just initiated (or queued), and the code execution continues immediately, before the processing completes. However, output objects (e.g., waveforms, geom, and firings) are available immediately as placeholders, allowing those files to be passed as inputs to subsequent stages of processing (e.g., synthesize_timeseries). Thus we can think of the script as setting up a pipeline of queued processes.
+
+The ```_MLS.setResult``` commands at the bottom of the function set the outputs. Since the four outputs in this case are optional, there are fallback values (waveforms.mda, etc), which will appear on the file system in the results directory specified by --results=[dirname] in the call to ```mls-run```, if it was provided.
+
+Finally, we have the low-level wrappers corresponding to the three processors we are calling. I'll just show the third and final wrapper here:
+
+```
+function synthesize_timeseries(opts) {
+	var A=_MLS.runProcess('pyms.synthesize_timeseries',
+		{
+			firings:opts.firings,
+			waveforms:opts.waveforms
+		},
+		{
+			timeseries_out:true
+		},
+		{
+			noise_level:opts.noise_level,
+			samplerate:opts.samplerate,
+			duration:opts.duration
+		},
+		{}
+	);
+	return A;
+}
+```
+
+The _MLS.runProcess call
+
+[[TODO: finish]]
