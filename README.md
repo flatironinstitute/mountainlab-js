@@ -8,7 +8,7 @@ The framework was conceived by and primarily implemented by Jeremy Magland at th
 
 The web infrastructure is currently under development by Jeremy Magland and Alex Morley.
 
-Other key collaborators include members of the numerical algorithms group at Flatiron Institute, including Alex Barnett (group leader), Leslie Greengard, Joakim Anden, Witold Wysota, and James Jun.
+Other key collaborators include members of the numerical algorithms group at Flatiron Institute, including Alex Barnett (group leader), Leslie Greengard, Joakim Anden, Witold Wysota, and James Jun. Dylan Simon has contributed to the web infrastructure.
 
 Jason Chung, Loren Frank, Leslie Greengard and Alex Barnett are direct collaborators in our spike sorting efforts and have therefore contributed to MountainLab, which has a broader scope. Other MountainSort users have contributed invaluable feedback, particularly investigators at UCSF (Mari Sosa has contributed code to the project).
 
@@ -99,6 +99,8 @@ The following commands are available from any terminal. Use the `--help` flag on
 * `ml-queue-process`  Queue a processor job for running when resources become available
 * `ml-run-process`  Run a processor job
 * `ml-spec`  Retrieve the spec object for a particular registered processor
+* `mls-run` Run a processing script (.ml file)
+* `mls-spec` Show the spec for a processing script (.ml file)
 
 ## Installing processor packages
 
