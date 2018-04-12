@@ -1,4 +1,4 @@
-First create some synthetic data
+First create some synthetic data (the results will go in a new directory called synth):
 
 ```
 mls-run ../001_create_synthetic_timeseries/create_synthetic_timeseries.ml --results=synth --parameters K:20 duration:20
