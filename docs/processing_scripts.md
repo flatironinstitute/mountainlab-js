@@ -36,10 +36,14 @@ Note that the actual data files are not in this directory, only pointers to thos
 If we don't want to use an output directory (or .prv files), but instead want to specify a target location for the actual file, we can instead run:
 
 ```
-mls-run create_synthetic_timeseries.ml --parameters M:8 K:20 duration:120 --timeseries_out=raw_synth.mda --firings_out=firings_synth.mda
+mls-run create_synthetic_timeseries.ml --parameters M:8 K:20 duration:120 --outputs timeseries_out:raw_synth.mda firings_out:firings_synth.mda
 ```
 
-and this will create the actual output files (not .prv files) as prescribed.
+and this will create the actual output files (not .prv files) as prescribed. If you have MountainView installed, you can view visualize this output by running:
+
+```
+mountainview --samplerate=30000 --raw=raw_synth.mda
+```
 
 Now, let's take a look at the processing script: ```create_synthetic_timeseries.ml```
 
@@ -127,7 +131,7 @@ function spec() {
 }
 ```
 
-Just as with individual MountainLab processors, this spec defines the inputs, outputs, and parameters corresponding to command line calls (mls-run). In this case, we require no input files (we are synthesizing data from script). There are four optional output files -- the synthesized timeseries, the true firings file, the true waveforms, and the electrode geometry file. Finally, there are several parameters for controlling the synthesis operation.
+Just as with individual MountainLab processors, this spec defines the inputs, outputs, and parameters corresponding to command line calls (mls-run). In this case, we require no input files (we are synthesizing data from scratch). There are four optional output files -- the synthesized timeseries, the true firings file, the true waveforms, and the electrode geometry file. Finally, there are several parameters for controlling the synthesis operation.
 
 Next, we have the main function:
 
@@ -173,25 +177,24 @@ Finally, we have the low-level wrappers corresponding to the three processors we
 
 ```
 function synthesize_timeseries(opts) {
-	var A=_MLS.runProcess('pyms.synthesize_timeseries',
-		{
+	var A=_MLS.runProcess(
+        'pyms.synthesize_timeseries', //name of processor
+		{   // the inputs
 			firings:opts.firings,
 			waveforms:opts.waveforms
 		},
-		{
+		{   // which outputs to return
 			timeseries_out:true
 		},
-		{
+		{   // the parameters
 			noise_level:opts.noise_level,
 			samplerate:opts.samplerate,
 			duration:opts.duration
 		},
-		{}
+		{}  // additional opts
 	);
-	return A;
+	return A; // returns an object containing placeholders to the requested outputs, e.g., A.timeseries_out
 }
 ```
 
-The _MLS.runProcess call
-
-[[TODO: finish]]
+The _MLS.runProcess function queues the processor job and returns an object containing placeholders for each of the requested outputs. Note that the output timeseries_out is specified using a boolean ```true```. This indicates that we are requesting that the processor outputs that particular file.
