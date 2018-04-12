@@ -95,11 +95,22 @@ BJ.getSpec(function(err,spec) {
 		show_log_message(msg);
 	});
 
-	if (!check_iop_against_spec(spec,CLP.namedParameters.inputs,CLP.namedParameters.outputs,CLP.namedParameters.parameters)) {
+	if (!check_iop_against_spec_and_set_default_params(spec,CLP.namedParameters.inputs,CLP.namedParameters.outputs,CLP.namedParameters.parameters)) {
 		process.exit(-1);
 	}
 
-	BJ.setInputs(CLP.namedParameters['inputs']);
+	var inputs=CLP.namedParameters['inputs'];
+	var inputs2={};
+	for (var iname in inputs) {
+		var prv0=create_prv_object_for_input_file(inputs[iname]);
+		if (!prv0) {
+			console.log(`Error in input ${iname}`);
+			process.exit(-1);
+		}
+		inputs2[iname]={prv:prv0};
+	}
+
+	BJ.setInputs(inputs2);
 	var outputs=CLP.namedParameters['outputs'];
 	var outputs2={};
 	for (var oname in outputs) {
@@ -185,7 +196,7 @@ BJ.getSpec(function(err,spec) {
 	});
 });
 
-function check_iop_against_spec(spec,inputs,outputs,parameters) {
+function check_iop_against_spec_and_set_default_params(spec,inputs,outputs,parameters) {
 	var spec_inputs=spec.inputs||[];
 	var spec_inputs_by_name={};
 	for (var ii in spec_inputs) {
@@ -242,10 +253,53 @@ function check_iop_against_spec(spec,inputs,outputs,parameters) {
 				return false;
 			}
 		}
+		if ((!parameters[pname])&&(spec_parameters_by_name[pname].optional)) {
+			parameters[pname]=spec_parameters_by_name[pname].default_value||'';
+		}
 	}
 	return true;
 }
 
+function create_prv_object_for_input_file(fname) {
+	if (jsutils.ends_with(fname,'.prv')) {
+		var txt=read_text_file(fname);
+		if (!txt) {
+			console.error('Error reading file, or file is empty: '+fname);
+			return null;
+		}
+		try {
+			return JSON.parse(txt);
+		}
+		catch(err) {
+			console.error('Error parsing json in file: '+fname);
+			return null;
+		}
+	}
+	else {
+		try {
+			var prv0=prv_stat_sync(fname);
+			return prv0;
+		}
+		catch(err) {
+			console.error(err);
+			return null;
+		}
+	}
+}
+
+function prv_stat_sync(fname) {
+	console.log ('Computing SHA-1 for file: '+fname+'...');
+	var r = require('child_process').execSync('ml-prv-stat '+fname);
+	var str=r.toString();
+	var obj=try_parse_json(str.trim());
+	if (!obj) {
+		console.error('Error parsing json in output of ml-prv-stat');
+		return null;
+	}
+	return obj;
+}
+
+var original_console_log=console.log;
 function show_log_message(msg) {
 	var col_code='';
 	if (msg.side=='server') {
@@ -255,9 +309,9 @@ function show_log_message(msg) {
 		col_code="\x1b[32m" //green
 	}
 	if (col_code)
-		console.log (col_code+'%s\x1b[0m',msg.text);
+		original_console_log(col_code+'%s\x1b[0m',msg.text);
 	else
-		console.log (msg.text);
+		original_console_log(msg.text);
 }
   
 function read_text_file(fname) {
@@ -355,6 +409,15 @@ function print_human_readable_spec(spec0) {
 		var opt='';
 		if (X.optional) opt='(optional) ';
 		console.log (`  ${X.name||''} -- ${opt}${X.description||''}`)
+	}
+}
+
+function try_parse_json(str) {
+	try {
+		return JSON.parse(str);
+	}
+	catch(err) {
+		return null;
 	}
 }
 

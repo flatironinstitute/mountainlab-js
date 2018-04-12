@@ -103,7 +103,7 @@ function main(inputs,outputs,params) {
 	_MLS.setResult(outputs.waveforms_out||'waveforms.mda',waveforms);
 	_MLS.setResult(outputs.geom_out||'geom.csv',geom);
 	_MLS.setResult(outputs.firings_out||'firings.mda',firings);
-	_MLS.setResult(outputs.timeseries_out||'timeseries.mda',timeseries);
+	_MLS.setResult(outputs.timeseries_out||'raw.mda',timeseries);
 }
 
 function synthesize_random_waveforms(opts) {

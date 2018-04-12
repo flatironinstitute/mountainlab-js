@@ -90,7 +90,7 @@ function BatchJob(O,lari_client) {
       callback(null,spec);
     }
     catch(err) {
-      callback('Error evaluating script: '+err.message);
+      callback(`Error evaluating script: ${err.message}`);
       return;
     }
   }
