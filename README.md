@@ -143,3 +143,7 @@ In place of `ml-run-process`, you may substitute `ml-exec-process` to bypass the
 ## Creating custom processor libraries
 
 As mentioned above, you can create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see [creating custom processor libraries](docs/creating_custom_processor_libraries.md)
+
+## Using processing scripts (.ml files)
+
+Since processors can be run individually using system calls, processing pipelines may be formed in many different ways, including bash scripts. However, the preferred way is to use the JavaScript system built in to MountainLab. This allows scripts to be portable and more secure. MountainLab processing scripts can either be run from the command-line or from within a web browser, and can execute jobs on the local machine or on a remote server. Detailed documentation can be found in [processing scripts](docs/processing_scripts.md).
