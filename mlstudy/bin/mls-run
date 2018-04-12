@@ -65,10 +65,16 @@ if (!script) {
 var all_scripts={};
 var study={scripts:{},datasets:{}};
 var DSC=new DocStorClient(); //todo
+DSC.setDocStorUrl('https://docstor1.herokuapp.com');
+DSC.login({},function() {});
 var lari_client=new LariClient();
 
 lari_client.setLariServerUrl(lari_server_url);
 lari_client.setContainerId(container_id);
+
+if ('datasets' in CLP.namedParameters) {
+	study.datasets=load_study_datasets(CLP.namedParameters['datasets']);
+}
 
 var BJ=new BatchJob(null,lari_client);
 BJ.setBatchScript(script);
@@ -351,12 +357,112 @@ function remove_directory(path) {
 	}
 }
 
+function load_study_datasets(datasets_path) {
+	var ret={};
+	var files=read_dir_safe(datasets_path);
+	if (!files) {
+		console.error('Error reading datasets directory: '+datasets_path);
+		process.exit(-1);
+	}
+	var dirs=[];
+	for (var i in files) {
+		var fname=datasets_path+'/'+files[i];
+		var stat0=stat_file(fname);
+		if (stat0) {
+			if (stat0.isDirectory()) {
+				if (!jsutils.starts_with(files[i],'.')) { //don't follow hidden directories
+					dirs.push(files[i]);
+				}
+			}
+		}
+	}
+	for (var i in dirs) {
+		var ds=load_dataset_from_directory(datasets_path+'/'+dirs[i]);
+		if (ds) {
+			ret[dirs[i]]=ds;
+		}
+	}
+	return ret;
+}
+
+function load_dataset_from_directory(path) {
+	var ret={files:{},parameters:{}};
+	var files=read_dir_safe(path);
+	if (!files) {
+		console.error('Error reading dataset directory: '+path);
+		process.exit(-1);
+	}
+	var dsfiles=[];
+	for (var i in files) {
+		var fname=path+'/'+files[i];
+		var stat0=stat_file(fname);
+		if (stat0) {
+			if (stat0.isFile()) {
+				if (files[i]=='params.json') {
+					var txt=read_text_file(fname);
+					var obj=try_parse_json(txt)
+					if (!obj) {
+						console.error('Error parsing parameter file: '+fname);
+						process.exit(-1);
+					}
+					for (var key in obj) {
+						ret.parameters[key]=obj[key];
+					}
+				}
+				else if (files[i]=='ML_ALLOW_RM') {
+					//ignore
+				}
+				else if (jsutils.starts_with(files[i],'.')) {
+					//ignore
+				}
+				else {
+					dsfiles.push(files[i]);
+				}
+			}
+		}
+	}
+	for (var i in dsfiles) {
+		var fname=path+'/'+dsfiles[i];
+		var prv0=create_prv_object_for_input_file(fname);
+		if (!prv0) {
+			console.error('Unable to get prv object for file: '+fname);
+			process.exit(-1);
+		}
+		var name=dsfiles[i];
+		if (jsutils.ends_with(name,'.prv'))
+			name=name.slice(0,name.length-4);
+		ret.files[name]={prv:prv0};
+	}
+	return ret;
+}
+
+
+
+
 function mkdir_if_needed(path) {
   try {
     require('fs').mkdirSync(path);
   }
   catch(err) {
   }
+}
+
+function read_dir_safe(path) {
+	try {
+		return require('fs').readdirSync(path);
+	}
+	catch(err) {
+		return [];
+	}
+}
+
+function stat_file(fname) {
+	try {
+		return require('fs').statSync(fname);
+	}
+	catch(err) {
+		return null;
+	}
 }
 
 function remove_file_if_exists(path) {

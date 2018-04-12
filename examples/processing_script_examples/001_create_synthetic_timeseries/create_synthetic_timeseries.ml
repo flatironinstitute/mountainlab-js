@@ -56,13 +56,13 @@ function spec() {
 			name:"M",
 			description:"The number of channels for the synthesized timeseries",
 			optional:true,
-			default_value:1
+			default_value:8
 		},
 		{
 			name:"K",
 			description:"The number of synthetic units to generate",
 			optional:true,
-			default_value:1
+			default_value:20
 		}
 	];
 
