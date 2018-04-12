@@ -32,7 +32,9 @@ var container_id=CLP.namedParameters.container||'';
 if ((!lari_server_url)&&(!container_id)) {
 	container_id=require('os').hostname(); //this is the default container id for local server
 }
+var using_local_lari_server=false;
 if (!lari_server_url) {
+	using_local_lari_server=true;
 	lari_server_url='http://localhost:6057'
 }
 
@@ -44,7 +46,7 @@ if ((lari_server_url)&&(!container_id)) {
 if (results_path) {
 	if (require('fs').existsSync(results_path)) {
 		// Note: this is not as risky as it seems ... see ML_ALLOW_RM below
-		remove_directory('results');
+		remove_directory(results_path);
 	}
 	if (require('fs').existsSync(results_path)) {
 		console.warn('Unable to remove directory: '+results_path);
@@ -54,9 +56,10 @@ if (results_path) {
 	write_text_file(results_path+'/ML_ALLOW_RM','The presence of this file allows the complete removal of this directory by ml-run.');
 }
 
-var script=read_text_file(arg1);
+var script_fname=arg1;
+var script=read_text_file(script_fname);
 if (!script) {
-	console.error('Unable to read script file: '+arg1);
+	console.error('Unable to read script file: '+script_fname);
 	process.exit(-1);
 }
 var all_scripts={};
@@ -79,6 +82,11 @@ BJ.getSpec(function(err,spec) {
 		process.exit(-1);
 	}
 	if ('spec' in CLP.namedParameters) {
+		spec.name=spec.name||script_fname;
+		if ('p' in CLP.namedParameters) {
+			print_human_readable_spec(spec);
+			return;
+		}
 		console.log (JSON.stringify(spec,null,4));
 		return;
 	}
@@ -163,7 +171,18 @@ BJ.getSpec(function(err,spec) {
 		return;
 	});
 
-	BJ.start();
+
+	lari_client.getStats({},function(err0,stats0) {
+		if (err0) {
+			console.error(err0);
+			if (using_local_lari_server)
+				console.error(`Error connecting to local lari server (${lari_server_url}). To run a server locally, open a separate terminal and run "ml-lari-start".`);
+			else
+				console.error(`Error connecting to lari server at ${lari_server_url}. Container=${container_id}`);
+			process.exit(-1);
+		}
+		BJ.start();
+	});
 });
 
 function check_iop_against_spec(spec,inputs,outputs,parameters) {
@@ -302,6 +321,43 @@ function write_text_file(fname,txt) {
 	}
 }
 
+function print_human_readable_spec(spec0) {
+	if (spec0.name) {
+		console.log (spec0.name||'');
+		console.log ('');
+	}
+	if (spec0.description) {
+		console.log (spec0.description||'');
+		console.log ('');
+	}
+	console.log ('INPUTS');
+	var inputs=spec0.inputs||[];
+	for (var i in inputs) {
+		var X=inputs[i];
+		var opt='';
+		if (X.optional) opt='(optional) ';
+		console.log (`  ${X.name||''} -- ${opt}${X.description||''}`)
+	}
+	console.log ('');
+	console.log ('OUTPUTS');
+	var outputs=spec0.outputs||[];
+	for (var i in outputs) {
+		var X=outputs[i];
+		var opt='';
+		if (X.optional) opt='(optional) ';
+		console.log (`  ${X.name||''} -- ${opt}${X.description||''}`)
+	}
+	console.log ('');
+	console.log ('PARAMETERS');
+	var parameters=spec0.parameters||[];
+	for (var i in parameters) {
+		var X=parameters[i];
+		var opt='';
+		if (X.optional) opt='(optional) ';
+		console.log (`  ${X.name||''} -- ${opt}${X.description||''}`)
+	}
+}
+
 function CLParamsWithIOP(argv) {
 	this.unnamedParameters=[];
 	this.namedParameters={};
@@ -316,6 +372,9 @@ function CLParamsWithIOP(argv) {
 	var args=argv.slice(2);
 	for (var i=0; i<args.length; i++) {
 		var arg0=args[i];
+		if ((arg0.indexOf('-')==0)&&(arg0.indexOf('-')!=0)) {
+			arg0='-'+arg0; // a hack
+		}
 		if (arg0.indexOf('--')===0) {
 			arg0=arg0.slice(2);
 			var ind=arg0.indexOf('=');
@@ -323,21 +382,21 @@ function CLParamsWithIOP(argv) {
 				this.namedParameters[arg0.slice(0,ind)]=arg0.slice(ind+1);
 			}
 			else {
-				if (arg0=='inputs') {
+				if ((arg0=='inputs')||(arg0=='i')) {
 					while ((i+1<args.length)&&(args[i+1][0]!='-')) {
 						i++;
 						var list0=args[i].split(':');
 						inputs[list0[0]]=list0[1];
 					}
 				}
-				else if (arg0=='outputs') {
+				else if ((arg0=='outputs')||(arg0=='o')) {
 					while ((i+1<args.length)&&(args[i+1][0]!='-')) {
 						i++;
 						var list0=args[i].split(':');
 						outputs[list0[0]]=list0[1];
 					}
 				}
-				else if (arg0=='parameters') {
+				else if ((arg0=='parameters')||(arg0=='p')) {
 					while ((i+1<args.length)&&(args[i+1][0]!='-')) {
 						i++;
 						var list0=args[i].split(':');
