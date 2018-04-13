@@ -7,6 +7,11 @@ var KBucketClient=require('./kbucketclient.js').KBucketClient;
 //fix the following
 var mlpLog=require('./mlplog.js').mlpLog;
 
+var Module;
+if (using_nodejs()) {
+  Module=require('module');
+}
+
 function BatchJob(O,lari_client) {
   O=O||this;
   JSQObject(O);
@@ -35,6 +40,7 @@ function BatchJob(O,lari_client) {
   this.error=function() {return m_reported_error;};
   this.isRunning=function() {return (!m_is_completed);};
   this.getSpec=function(callback) {return getSpec(callback);};
+  this.setAutoDownload=function(val) {m_auto_download=val;};
 
   var m_id=JSQ.makeRandomId(6);
   var m_script='';
@@ -48,7 +54,7 @@ function BatchJob(O,lari_client) {
   var m_reported_error='';
   var m_load_study_tasks=[];
   var m_load_file_tasks=[];
-  var m_download_to_server_tasks=[];
+  var m_find_or_download_to_server_tasks=[];
   var m_upload_tasks=[];
   var m_wait_callbacks=[];
   var m_docstor_client=null;
@@ -59,6 +65,7 @@ function BatchJob(O,lari_client) {
   var m_outputs={};
   var m_parameters={};
   var m_opts={};
+  var m_auto_download=true; //todo: should be false by default
 
   function getSpec(callback) {
     //need dummy values
@@ -70,7 +77,8 @@ function BatchJob(O,lari_client) {
       loadFile:function() {},
       upload:function() {},
       wait:function(callback) {callback();},
-      prvToUrl: function() {}
+      prvToUrl: function() {},
+      require: function() {}
     };
     var script2=`(function() {var exports={}; ${m_script}\n return exports;})()`;
     var result=null;
@@ -104,12 +112,17 @@ function BatchJob(O,lari_client) {
       loadFile:_load_file,
       upload:_upload,
       wait:_wait,
-      prvToUrl: _prv_to_url
+      prvToUrl: _prv_to_url,
+      require:_mlsrequire
     };
 
     _MLS._context={study:_MLS.study};
 
-    function require(str,obj) {
+    function require(str) {
+      throw new Error(`Trying to require ${str}: require function not allowed. Instead, use _MLS.require.`);
+    }
+
+    function _mlsrequire(str,obj) {
       if (!obj) {
         return do_require(str,_MLS._context.study);
       }
@@ -391,13 +404,13 @@ function BatchJob(O,lari_client) {
     }
 
     // Check on the download file tasks
-    for (var i=0; i<m_download_to_server_tasks.length; i++) {
-      var task=m_download_to_server_tasks[i];
+    for (var i=0; i<m_find_or_download_to_server_tasks.length; i++) {
+      var task=m_find_or_download_to_server_tasks[i];
       if (!task.is_finished) {
         done_with_all=false;
         if (!task.handling) {
           task.handling=true;
-          handle_download_to_server_task(task);
+          handle_find_or_download_to_server_task(task);
         }
       }
     }
@@ -539,7 +552,7 @@ function BatchJob(O,lari_client) {
     });
   }
 
-  function handle_download_to_server_task(task) {
+  function handle_find_or_download_to_server_task(task) {
     console.log ('Checking if file is on the processing server: '+task._mls_pending_output);
     check_if_file_is_on_processing_server(task.prv,function(err,found) {
       if (err) {
@@ -552,15 +565,20 @@ function BatchJob(O,lari_client) {
         task.is_finished=true;
       }
       else {
-        console.log ('File not found on processing server. Will download: '+task._mls_pending_output);
-        m_queued_processes.push({
-          processor_name:'kbucket.download',
-          inputs:{},
-          outputs:{file:{_mls_pending_output:task._mls_pending_output}},
-          parameters:{sha1:task.prv.original_checksum},
-          opts:{force_run:true} // we should force run because we know that the file is not on the server.
-        });
-        task.is_finished=true;
+        if (m_auto_download) {
+          console.log ('File not found on processing server. Will download: '+task._mls_pending_output);
+          m_queued_processes.push({
+            processor_name:'kbucket.download',
+            inputs:{},
+            outputs:{file:{_mls_pending_output:task._mls_pending_output}},
+            parameters:{sha1:task.prv.original_checksum},
+            opts:{force_run:true} // we should force run because we know that the file is not on the server.
+          });
+          task.is_finished=true;
+        }
+        else {
+          report_error(`File not found on processing server: ${task._mls_pending_output}. sha1=${task.prv.original_checksum}. original_path=${task.prv.original_path}`);
+        }
       }
     });
   }
@@ -691,8 +709,8 @@ function BatchJob(O,lari_client) {
       if ((inputs2[iname])&&(inputs2[iname].prv)) {
         //this means it was not generated as an output, so we need to download it if it is not on the server
         var input0=inputs2[iname];
-        inputs2[iname]={_mls_pending_output:'download--'+iname+'--'+JSQ.makeRandomId(10)};
-        m_download_to_server_tasks.push({
+        inputs2[iname]={_mls_pending_output:'tofind--'+iname+'--'+JSQ.makeRandomId(10)};
+        m_find_or_download_to_server_tasks.push({
           prv:input0.prv,
           _mls_pending_output:inputs2[iname]._mls_pending_output
         });
@@ -1273,12 +1291,29 @@ function ProcessorJob(O,lari_client) {
   }
 }
 
+function using_nodejs() {
+  if (typeof window == 'undefined') {
+    return true;
+  }
+  if (!window.Date) {
+    return true;
+  }
+  return false;
+}
+
 function run_some_code(func) {
+  if (using_nodejs()) {
+    var original_require = Module.prototype.require;
+    Module.prototype.require=function(str) {
+      throw new Error(`Trying to require ${str}: require function not allowed. Instead, use _MLS.require.`);
+    }
+  }
+
   var original_console={};
   for (var key in console)
     original_console[key]=console[key];
   try {
-    if (typeof window == 'undefined') {
+    if (using_nodejs()) {
       // Using nodejs
     }
     else {
@@ -1299,5 +1334,9 @@ function run_some_code(func) {
   function restore() {
     for (var key in original_console)
       console[key]=original_console[key];
+
+    if (using_nodejs()) {
+      Module.prototype.require=original_require;
+    }
   }
 }

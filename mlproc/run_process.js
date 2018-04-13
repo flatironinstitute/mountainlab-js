@@ -43,7 +43,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		parameters=parse_iop(opts.parameters||'','parameter');
 		check_iop(inputs,spec0.inputs||[],'input');
 		check_iop(outputs,spec0.outputs||[],'output');
-		check_iop(parameters,spec0.parameters||[],'parameter');
+		check_iop(parameters,spec0.parameters||[],'parameter',{substitute_defaults:true});
 	}
 	catch(err) {
 		console.error(err.stack);
@@ -60,7 +60,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 
 	var steps=[];
 
-	// Check inputs and substitute prvs
+	// Check inputs, set default parameters and substitute prvs
 	steps.push(function(cb) {
 		console.log ('[ Checking inputs and substituting prvs ... ]');
 		check_inputs_and_substitute_prvs(inputs,'',function(err) {
@@ -780,7 +780,8 @@ function get_checksums_for_files(inputs,opts,callback) {
 	});
 }
 
-function check_iop(A,Bspec,iop_name) {
+function check_iop(A,Bspec,iop_name,opts) {
+	if (!opts) opts={};
 	var B={};
 	for (var i in Bspec) {
 		var key0=Bspec[i].name;
@@ -795,7 +796,12 @@ function check_iop(A,Bspec,iop_name) {
 	}
 	for (var key in B) {
 		if (!(key in A)) {
-			if (!B[key].optional) {
+			if (B[key].optional) {
+				if (opts.substitute_defaults) {
+					A[key]=B[key].default_value;
+				}
+			}
+			else {
 				throw new Error(`Missing required ${iop_name}: ${key}`);
 			}
 		}

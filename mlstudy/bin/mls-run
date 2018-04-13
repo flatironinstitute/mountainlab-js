@@ -8,6 +8,11 @@ var jsutils=require(__dirname+'/../src/mlscore/jsutils/jsutils.js');
 var copyFileSync=require(__dirname+'/../src/mlscore/jsutils/3rdparty/fs-copy-file-sync.js');
 var mlplog=require(__dirname+'/../src/mlscore/mlplog.js');
 
+var fs=require('fs');
+var child_process=require('child_process');
+var os=require('os');
+var pathmodule=require('path');
+
 function print_usage() {
 	console.log ('Usage:');
 	console.log ('    mls-run [script.ml] --inputs [key]:[value] ... --outputs [key]:[value] ... --parameters [key]:[value] ...');
@@ -24,13 +29,12 @@ if (!arg1) {
 	process.exit(-1);
 }
 
-
 var results_path=CLP.namedParameters.results||'';
 var lari_server_url=CLP.namedParameters.server||'';
 if (lari_server_url=='*') lari_server_url='https://lari1.herokuapp.com';
 var container_id=CLP.namedParameters.container||'';
 if ((!lari_server_url)&&(!container_id)) {
-	container_id=require('os').hostname(); //this is the default container id for local server
+	container_id=os.hostname(); //this is the default container id for local server
 }
 var using_local_lari_server=false;
 if (!lari_server_url) {
@@ -44,15 +48,15 @@ if ((lari_server_url)&&(!container_id)) {
 }
 
 if (results_path) {
-	if (require('fs').existsSync(results_path)) {
+	if (fs.existsSync(results_path)) {
 		// Note: this is not as risky as it seems ... see ML_ALLOW_RM below
 		remove_directory(results_path);
 	}
-	if (require('fs').existsSync(results_path)) {
+	if (fs.existsSync(results_path)) {
 		console.warn('Unable to remove directory: '+results_path);
 		process.exit(-1);
 	}
-	require('fs').mkdirSync(results_path);
+	fs.mkdirSync(results_path);
 	write_text_file(results_path+'/ML_ALLOW_RM','The presence of this file allows the complete removal of this directory by ml-run.');
 }
 
@@ -82,6 +86,7 @@ BJ.setAllScripts(all_scripts);
 BJ.setStudyObject(study);
 BJ.setDocStorClient(DSC);
 BJ.setKBucketUrl('https://kbucket.flatironinstitute.org'); //todo
+BJ.setAutoDownload(false);
 BJ.getSpec(function(err,spec) {
 	if (err) {
 		console.error(err);
@@ -110,7 +115,7 @@ BJ.getSpec(function(err,spec) {
 	for (var iname in inputs) {
 		var prv0=create_prv_object_for_input_file(inputs[iname]);
 		if (!prv0) {
-			console.log(`Error in input ${iname}`);
+			console.error(`Error in input ${iname}`);
 			process.exit(-1);
 		}
 		inputs2[iname]={prv:prv0};
@@ -130,21 +135,27 @@ BJ.getSpec(function(err,spec) {
 			var results=BJ.results();
 			for (var fname in results) {
 				var X=results[fname];
-				var path=results_path+'/'+fname;
-				remove_file_if_exists(path+'.pending.json');
-				remove_file_if_exists(path+'.running.json');
-				remove_file_if_exists(path+'.error.json');
-				if (X.status=='finished') {
-					var val=X.value||{};
-					if (val.prv) {
-						write_text_file(path+'.prv',JSON.stringify(val.prv,null,4));
+				if (is_safe_result_name(fname)) {
+					make_dirs_for_file_if_needed(results_path,fname);
+					var path=results_path+'/'+fname;
+					remove_file_if_exists(path+'.pending.json');
+					remove_file_if_exists(path+'.running.json');
+					remove_file_if_exists(path+'.error.json');
+					if (X.status=='finished') {
+						var val=X.value||{};
+						if (val.prv) {
+							write_text_file(path+'.prv',JSON.stringify(val.prv,null,4));
+						}
+						else {
+							write_text_file(path,JSON.stringify(val,null,4));	
+						}
 					}
 					else {
-						write_text_file(path,JSON.stringify(val,null,4));	
+						write_text_file(path+'.'+X.status+'.json',JSON.stringify(X,null,4));
 					}
 				}
 				else {
-					write_text_file(path+'.'+X.status+'.json',JSON.stringify(X,null,4));
+					console.warn('Not writing unsafe result name: '+fname);
 				}
 			}
 		}
@@ -201,6 +212,19 @@ BJ.getSpec(function(err,spec) {
 		BJ.start();
 	});
 });
+
+function is_safe_result_name(fname) {
+	var list=fname.split('/');
+	for (var i in list) {
+		if (!is_safe_alphanumeric(list[i]))
+			return false;
+	}
+	return true;
+
+	function is_safe_alphanumeric(str) {
+		return str.match(/^[0-9a-zA-Z-_.]+$/);
+	}
+}
 
 function check_iop_against_spec_and_set_default_params(spec,inputs,outputs,parameters) {
 	var spec_inputs=spec.inputs||[];
@@ -295,7 +319,7 @@ function create_prv_object_for_input_file(fname) {
 
 function prv_stat_sync(fname) {
 	console.log ('Computing SHA-1 for file: '+fname+'...');
-	var r = require('child_process').execSync('ml-prv-stat '+fname);
+	var r = child_process.execSync('ml-prv-stat '+fname);
 	var str=r.toString();
 	var obj=try_parse_json(str.trim());
 	if (!obj) {
@@ -322,7 +346,7 @@ function show_log_message(msg) {
   
 function read_text_file(fname) {
 	try {
-		return require('fs').readFileSync(fname,'utf8');
+		return fs.readFileSync(fname,'utf8');
 	}
 	catch(err) {
 		return '';
@@ -333,8 +357,8 @@ function remove_directory(path) {
 	//to be safe
 	if (!path) return;
 	if (path=='/') return;
-	var ml_allow_rm_path=require('path').join(path,'ML_ALLOW_RM');
-	if (!require('fs').existsSync(ml_allow_rm_path)) {
+	var ml_allow_rm_path=pathmodule.join(path,'ML_ALLOW_RM');
+	if (!fs.existsSync(ml_allow_rm_path)) {
 		console.warn('To be safe we cannot remove a directory that does not contain a ML_ALLOW_RM file');
 		return;
 	}
@@ -342,18 +366,18 @@ function remove_directory(path) {
 	delete_folder_recursive(path);
 
 	function delete_folder_recursive(path) {
-		if (require('fs').existsSync(path)) {
-			require('fs').readdirSync(path).forEach(function(file,index) {
-				var curpath=require('path').join(path,file);
-				if (require('fs').lstatSync(curpath).isDirectory()) { //recurse
+		if (fs.existsSync(path)) {
+			fs.readdirSync(path).forEach(function(file,index) {
+				var curpath=pathmodule.join(path,file);
+				if (fs.lstatSync(curpath).isDirectory()) { //recurse
 					delete_folder_recursive(curpath);
 				}
 				else {
-					require('fs').unlinkSync(curpath);
+					fs.unlinkSync(curpath);
 				}
 			});
 		}
-		require('fs').rmdirSync(path);
+		fs.rmdirSync(path);
 	}
 }
 
@@ -441,7 +465,7 @@ function load_dataset_from_directory(path) {
 
 function mkdir_if_needed(path) {
   try {
-    require('fs').mkdirSync(path);
+    fs.mkdirSync(path);
   }
   catch(err) {
   }
@@ -449,7 +473,7 @@ function mkdir_if_needed(path) {
 
 function read_dir_safe(path) {
 	try {
-		return require('fs').readdirSync(path);
+		return fs.readdirSync(path);
 	}
 	catch(err) {
 		return [];
@@ -458,7 +482,7 @@ function read_dir_safe(path) {
 
 function stat_file(fname) {
 	try {
-		return require('fs').statSync(fname);
+		return fs.statSync(fname);
 	}
 	catch(err) {
 		return null;
@@ -466,14 +490,14 @@ function stat_file(fname) {
 }
 
 function remove_file_if_exists(path) {
-	if (require('fs').existsSync(path)) {
-		require('fs').unlinkSync(path);
+	if (fs.existsSync(path)) {
+		fs.unlinkSync(path);
 	}
 }
 
 function write_text_file(fname,txt) {
 	try {
-		require('fs').writeFileSync(fname,txt);
+		fs.writeFileSync(fname,txt);
 		return true;
 	}
 	catch(err) {
@@ -515,6 +539,14 @@ function print_human_readable_spec(spec0) {
 		var opt='';
 		if (X.optional) opt='(optional) ';
 		console.log (`  ${X.name||''} -- ${opt}${X.description||''}`)
+	}
+}
+
+function make_dirs_for_file_if_needed(base_directory,fname) {
+	var list=fname.split('/');
+	if (list.length<=1) return;
+	for (var j=0; j<list.length-1; j++) {
+		mkdir_if_needed(base_directory+'/'+list.slice(0,j+1).join('/'));
 	}
 }
 

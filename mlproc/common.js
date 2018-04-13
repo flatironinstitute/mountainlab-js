@@ -234,9 +234,7 @@ function get_spec_from_mp_file(fname,callback) {
 				spec:spec0,
 				timestamp:((new Date())-0)
 			}
-			console.log('C2');
 			db_utils.saveDocument('processor_specs',doc0,function(err) {
-				console.log('D');
 				callback(null,spec0);	
 			})
 			*/

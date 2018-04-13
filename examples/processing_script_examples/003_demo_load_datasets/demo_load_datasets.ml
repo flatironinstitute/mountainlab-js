@@ -9,7 +9,7 @@ var study=_MLS.study;
 function main() {
 	// Loop through each of the loaded datasets
 	for (var ds_id in study.datasets) {
-		console.log('Dataset: '+ds_id);
+		console.log ('Dataset: '+ds_id);
 		var dataset=study.datasets[ds_id]; // this is the dataset object
 		var raw=dataset.files['raw.mda']; // The raw timeseries
 		var firings=dataset.files['firings_true.mda']||dataset.files['firings.mda']; // The true firings
