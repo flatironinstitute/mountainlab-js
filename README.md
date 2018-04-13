@@ -20,7 +20,9 @@ Alex Morley has a project and vision for continuous integration science which wi
 
 ## Quick installation for the impatient or adventurous
 
-Use linux and install NodeJS (recent version), npm (node package manager), and MongoDB
+Use linux and install NodeJS (recent version) and MongoDB
+
+Warning: you must use a recent version of NodeJS, see below.
 
 ```
 git clone https://github.com/flatironinstitute/mountainlab-js
@@ -59,7 +61,6 @@ For example, on Ubuntu 16.04
 ```
 curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 sudo apt-get install nodejs
-sudo apt-get install npm
 sudo apt-get install mongodb
 ```
 
