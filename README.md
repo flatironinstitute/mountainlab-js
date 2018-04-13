@@ -8,7 +8,7 @@ The framework was conceived by and primarily implemented by Jeremy Magland at th
 
 The web infrastructure is currently under development by Jeremy Magland and Alex Morley.
 
-Other key collaborators include members of the numerical algorithms group at Flatiron Institute, including Alex Barnett (group leader), Leslie Greengard, Joakim Anden, Witold Wysota, and James Jun.
+Other key collaborators include members of the numerical algorithms group at Flatiron Institute, including Alex Barnett (group leader), Leslie Greengard, Joakim Anden, Witold Wysota, and James Jun. Dylan Simon has contributed to the web infrastructure.
 
 Jason Chung, Loren Frank, Leslie Greengard and Alex Barnett are direct collaborators in our spike sorting efforts and have therefore contributed to MountainLab, which has a broader scope. Other MountainSort users have contributed invaluable feedback, particularly investigators at UCSF (Mari Sosa has contributed code to the project).
 
@@ -20,7 +20,7 @@ Alex Morley has a project and vision for continuous integration science which wi
 
 ## Quick installation for the impatient or adventurous
 
-Use linux and install NodeKS (recent version), npm (node package manager), and MongoDB
+Use linux and install NodeJS (recent version), npm (node package manager), and MongoDB
 
 ```
 git clone https://github.com/flatironinstitute/mountainlab-js
@@ -63,7 +63,7 @@ sudo apt-get install npm
 sudo apt-get install mongodb
 ```
 
-Note that the curl command is important to get you a recent version of NodeJS (that's a fast moving project, and IMO REALLY good).
+Note that the curl command is important to get you a recent version of NodeJS (that's a fast moving project, and IMO really good).
 
 When you install MongoDB, you will get a database daemon running on the default port of 27017. You might want to make sure that port is not exposed to the outside world (usually it wouldn't be I think).
 
@@ -99,6 +99,8 @@ The following commands are available from any terminal. Use the `--help` flag on
 * `ml-queue-process`  Queue a processor job for running when resources become available
 * `ml-run-process`  Run a processor job
 * `ml-spec`  Retrieve the spec object for a particular registered processor
+* `mls-run` Run a processing script (.ml file)
+* `mls-spec` Show the spec for a processing script (.ml file)
 
 ## Installing processor packages
 
