@@ -44,7 +44,7 @@ function spec() {
 			name:"duration",
 			description:"The duration of the synthesized timeseries (sec)",
 			optional:true,
-			default_value:30000
+			default_value:20
 		},
 		{
 			name:"noise_level",
