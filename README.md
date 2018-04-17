@@ -14,7 +14,7 @@ Jason Chung, Loren Frank, Leslie Greengard and Alex Barnett are direct collabora
 
 MountainLab will also play a central role in the implementation of a website for comparing spike sorting algorithms on a standard set of ground-truth datasets. Alex Barnett, Jeremy Magland, and James Jun are leading this effort, but it is a community project, and we hope to have a lot of involvement from other players in the field of electrophysiology and spike sorting.
 
-Alex Morley has a project and vision for continuous integration science which will most likely use MountainLab as a core part of its implementation.
+Alex Morley has a project and vision for applying continuous integration principles to research which will most likely use MountainLab as a core part of its implementation.
 
 (If I have neglected to acknowledge your contribution, please remind me.)
 
