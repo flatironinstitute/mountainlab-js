@@ -414,25 +414,23 @@ function check_queued_job_ready_to_run(job_id,callback) {
 			else if (doc0.status=='running') {
 				num_running++;
 			}
-			var elapsed_since_last_checked=(new Date())-Number(doc0.checked_timestamp);
-			if (elapsed_since_last_checked>10*1000) {
-				console.warn('Removing processor job that has not been checked for a while.');
-				db_utils.removeDocuments('processor_jobs',{_id:doc0._id},function(err0) {
-					if (err0) {
-						console.error('Problem removing queued processor job from database.')
-					}
-				});
+			if (doc0.status=='queued') {
+				var elapsed_since_last_checked=(new Date())-Number(doc0.checked_timestamp);
+				if (elapsed_since_last_checked>12*1000) {
+					console.warn('Removing queued processor job that has not been checked for a while.');
+					db_utils.removeDocuments('processor_jobs',{_id:doc0._id},function(err0) {
+						if (err0) {
+							console.error('Problem removing queued processor job from database.')
+						}
+					});
+				}
 			}
 		}
 		if (this_job_index<0) {
 			callback('Unable to find queued job in database.');
 			return;
 		}
-		if (num_running>=max_num_simultaneous_processor_jobs) {
-			callback(null,false); //need to wait
-			return;
-		}
-		if (earliest_queued_index==this_job_index) {
+		if ((num_running>=max_num_simultaneous_processor_jobs)&&(earliest_queued_index==this_job_index)) {
 			//ready
 			doc0=docs[this_job_index];
 			doc0.status='running';
