@@ -8,8 +8,8 @@ var KBucketClient=require('./kbucketclient.js').KBucketClient;
 var mlpLog=require('./mlplog.js').mlpLog;
 
 var Module;
-if (using_nodejs()) {
-  Module=require('module');
+if (false) { // (using_nodejs()) {
+   Module=require('module');
 }
 
 function BatchJob(O,lari_client) {

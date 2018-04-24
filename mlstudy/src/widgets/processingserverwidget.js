@@ -241,15 +241,15 @@ function ProcessingServerWidget(O) {
 		prompt_lari_url('Connect to local machine',lari_url);
 	}
 
-	function connect_to_central_hub() {
+	/*function connect_to_central_hub() {
 		var obj=m_mls_manager.mlsConfig();
 		var lari_url=obj.lari_url||'';
 		if (!jsutils.starts_with(lari_url,'https://lari1.herokuapp.com'))
 			lari_url='https://lari1.herokuapp.com';
 		prompt_lari_url('Connect to central hub',lari_url);
-	}
+	}*/
     
-    function connect_to_proc_pool() {
+    function connect_to_central_hub() {
         var obj=m_mls_manager.mlsConfig();
 		var lari_url=obj.lari_url||'';
         var pool_id =obj.pool_id;
