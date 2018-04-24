@@ -43,7 +43,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		parameters=parse_iop(opts.parameters||'','parameter');
 		check_iop(inputs,spec0.inputs||[],'input');
 		check_iop(outputs,spec0.outputs||[],'output');
-		check_iop(parameters,spec0.parameters||[],'parameter');
+		check_iop(parameters,spec0.parameters||[],'parameter',{substitute_defaults:true});
 	}
 	catch(err) {
 		console.error(err.stack);
@@ -60,7 +60,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 
 	var steps=[];
 
-	// Check inputs and substitute prvs
+	// Check inputs, set default parameters and substitute prvs
 	steps.push(function(cb) {
 		console.log ('[ Checking inputs and substituting prvs ... ]');
 		check_inputs_and_substitute_prvs(inputs,'',function(err) {
@@ -414,25 +414,23 @@ function check_queued_job_ready_to_run(job_id,callback) {
 			else if (doc0.status=='running') {
 				num_running++;
 			}
-			var elapsed_since_last_checked=(new Date())-Number(doc0.checked_timestamp);
-			if (elapsed_since_last_checked>10*1000) {
-				console.warn('Removing processor job that has not been checked for a while.');
-				db_utils.removeDocuments('processor_jobs',{_id:doc0._id},function(err0) {
-					if (err0) {
-						console.error('Problem removing queued processor job from database.')
-					}
-				});
+			if (doc0.status=='queued') {
+				var elapsed_since_last_checked=(new Date())-Number(doc0.checked_timestamp);
+				if (elapsed_since_last_checked>12*1000) {
+					console.warn('Removing queued processor job that has not been checked for a while.');
+					db_utils.removeDocuments('processor_jobs',{_id:doc0._id},function(err0) {
+						if (err0) {
+							console.error('Problem removing queued processor job from database.')
+						}
+					});
+				}
 			}
 		}
 		if (this_job_index<0) {
 			callback('Unable to find queued job in database.');
 			return;
 		}
-		if (num_running>=max_num_simultaneous_processor_jobs) {
-			callback(null,false); //need to wait
-			return;
-		}
-		if (earliest_queued_index==this_job_index) {
+		if ((num_running>=max_num_simultaneous_processor_jobs)&&(earliest_queued_index==this_job_index)) {
 			//ready
 			doc0=docs[this_job_index];
 			doc0.status='running';
@@ -508,12 +506,18 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
 	var cmd=filter_exe_command(spec0.exe_command,inputs,outputs,info,parameters);
 	console.log ('[ Running ... ] '+cmd);
+	var timer=new Date();
 	var P=new SystemProcess();
 	P.setCommand(cmd);
+	P.setTempdirPath(info.tempdir_path||'');
 	if ('console_out' in outputs) {
 		P.setConsoleOutFile(outputs['console_out']);
 	}
 	P.onFinished(function() {
+		if (!P.error()) {
+			var elapsed=(new Date())-timer;
+			console.log (`Elapsed time for processor ${spec0.name}: ${elapsed/1000} sec`);
+		}
 		callback(P.error());
 	});
 	P.start();
@@ -774,7 +778,8 @@ function get_checksums_for_files(inputs,opts,callback) {
 	});
 }
 
-function check_iop(A,Bspec,iop_name) {
+function check_iop(A,Bspec,iop_name,opts) {
+	if (!opts) opts={};
 	var B={};
 	for (var i in Bspec) {
 		var key0=Bspec[i].name;
@@ -789,7 +794,12 @@ function check_iop(A,Bspec,iop_name) {
 	}
 	for (var key in B) {
 		if (!(key in A)) {
-			if (!B[key].optional) {
+			if (B[key].optional) {
+				if (opts.substitute_defaults) {
+					A[key]=B[key].default_value;
+				}
+			}
+			else {
 				throw new Error(`Missing required ${iop_name}: ${key}`);
 			}
 		}

@@ -41,7 +41,7 @@ if (fs.existsSync(ml_config_file)){
     console.log ('Using configuration in: '+ml_config_file);
     require('dotenv').config({path:ml_config_file});
 } else {
-    console.log('No config file found at: '+ml_config_file);
+    console.error('No config file found at: '+ml_config_file);
 }
 
 // Set ID to hostname if not set

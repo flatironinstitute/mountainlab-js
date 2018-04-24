@@ -55,7 +55,7 @@ program
 
 program
   .command('run-process <processor-name>')
-  .description('Show the spec for a specific processor.')
+  .description('Run a processor job.')
   .option('-i, --inputs [inputs...]', 'List of named input files in key:value format.')
   .option('-o, --outputs [outputs...]', 'List of named output files in key:value format.')
   .option('-p, --parameters [parameters...]', 'List of named parameters in key:value format.')

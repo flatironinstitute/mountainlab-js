@@ -20,10 +20,18 @@ exports.file_parts=jsu_file_parts;
 exports.http_get_text=jsu_http_get_text;
 exports.http_get_json=jsu_http_get_json;
 exports.http_post_json=jsu_http_post_json;
+exports.using_nodejs=using_nodejs;
+
+var urlmodule,httpmodule,httpsmodule; //,request;
+if (using_nodejs()) {
+	urlmodule=require('url');
+	httpmodule=require('http');
+	httpsmodule=require('https');
+	//request=require('request');
+}
 
 function jsu_http_get_text(url,headers,callback) {
-	if (typeof window == 'undefined') {
-		// Using nodejs
+	if (using_nodejs()) {
 		nodejs_http_get_text(url,headers,callback);
 	}
 	else {
@@ -54,9 +62,18 @@ function jsu_http_get_json(url,headers,callback) {
     });
 }
 
-function jsu_http_post_json(url,data,headers,callback) {
+function using_nodejs() {
 	if (typeof window == 'undefined') {
-		// Using nodejs
+		return true;
+	}
+	if (!window.Date) {
+		return true;
+	}
+	return false;
+}
+
+function jsu_http_post_json(url,data,headers,callback) {
+	if (using_nodejs()) {
 		nodejs_http_post_json(url,data,headers,callback);
 	}
 	else {
@@ -70,7 +87,9 @@ function nodejs_http_get_text(url,headers,callback) {
                 callback=headers;
                 headers=null;
         }
-        require('request').get({url:url,headers:headers},function(err,response,body) {
+        console.error('TODO: replace request.get with something that doesnt depend on request. Exiting.');
+        process.exit(-1);
+        request.get({url:url,headers:headers},function(err,response,body) {
                 if (err) {
                         if (callback) callback({success:false,error:err.message});
                         return;
@@ -126,7 +145,7 @@ function nodejs_http_post_json(url,data,headers,callback) {
 
 	var post_data=JSON.stringify(data);
 
-	var url_parts=require('url').parse(url);
+	var url_parts=urlmodule.parse(url);
 
 	var options={
 		method: "POST",
@@ -138,9 +157,9 @@ function nodejs_http_post_json(url,data,headers,callback) {
 
 	var http_module;
 	if (url_parts.protocol=='https:')
-		http_module=require('https');
+		http_module=httpsmodule;
 	else if (url_parts.protocol=='http:')
-		http_module=require('http');
+		http_module=httpmodule;
 	else {
 		if (callback) callback('invalid protocol for url: '+url);
 		callback=null;

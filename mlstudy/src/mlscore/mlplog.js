@@ -1,6 +1,9 @@
 exports.mlpLog=mlpLog;
 var GLOBAL_LOG=new GlobalLog();
 exports.GLOBAL_LOG=GLOBAL_LOG;
+exports.onMessage=function(handler) {
+	GLOBAL_LOG.onMessage(handler);
+}
 
 function mlpLog(msg) {
 	msg.labels=msg.labels||{};

@@ -18,6 +18,13 @@ exports.DocStorClient=DocStorClient;
 
 var jsutils=require('./jsutils/jsutils.js');
 
+var urlmodule,httpsmodule,httpmodule;
+if (jsutils.using_nodejs()) {
+	urlmodule=require('url');
+	httpsmodule=require('https');
+	httpmodule=require('http');
+}
+
 function DocStorClient() {
 
 	this.login=function(info,callback) {login(info,callback);};
@@ -352,7 +359,7 @@ function nodejs_http_post_json(url,data,headers,callback) {
 
 	var post_data=JSON.stringify(data);
 
-	var url_parts=require('url').parse(url);
+	var url_parts=urlmodule.parse(url);
 
 	var options={
 		method: "POST",
@@ -364,9 +371,9 @@ function nodejs_http_post_json(url,data,headers,callback) {
 
 	var http_module;
 	if (url_parts.protocol=='https:')
-		http_module=require('https');
+		http_module=httpsmodule;
 	else if (url_parts.protocol=='http:')
-		http_module=require('http');
+		http_module=httpmodule;
 	else {
 		if (callback)
 			callback({success:false,error:'invalid protocol for url: '+url});

@@ -29,7 +29,7 @@ function get_processor_specs(opts,callback) {
 			return;
 		}
 		var list=[];
-		foreach_async(mp_file_names,function(ii,fname,cb) {
+		foreach_async_parallel(mp_file_names,function(ii,fname,cb) {
 			get_spec_from_mp_file(fname,function(err,spec0) {
 				if (err) {
 					callback(err);
@@ -55,27 +55,51 @@ function get_processor_specs(opts,callback) {
 }
 
 function get_processor_spec(processor_name,opts,callback) {
-	get_processor_specs(opts,function(err,processor_specs) {
-		if (err) {
-			callback(err);
+	get_processor_mp_file_hint(processor_name,function(hint_fname) {
+		if (!hint_fname) {
+			step2();
 			return;
 		}
-		for (var i in processor_specs) {
-			var spec0=processor_specs[i];
-			var pname=spec0.name||'';
-			if (pname==processor_name) {
-				callback(null,spec0);
+		get_spec_from_mp_file(hint_fname,function(err,spec0) {
+			if (err) {
+				step2();
 				return;
 			}
-		}
-		callback(null,null);
+			if (spec0) {
+				var processors=spec0.processors||[];
+				for (var j in processors) {
+					if (processors[j].name==processor_name) {
+						callback(null,processors[j]);
+						return;
+					}
+				}
+			}
+			step2();
+		});
 	});
+	function step2() {
+		get_processor_specs(opts,function(err,processor_specs) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			for (var i in processor_specs) {
+				var spec0=processor_specs[i];
+				var pname=spec0.name||'';
+				if (pname==processor_name) {
+					callback(null,spec0);
+					return;
+				}
+			}
+			callback(null,null);
+		});
+	}
 }
 
 function find_candidate_mp_files(opts,callback) {
 	var list=[];
 	var paths=package_search_directories(opts);
-	foreach_async(paths,function(ii,path0,cb) {
+	foreach_async_parallel(paths,function(ii,path0,cb) {
 		find_candidate_mp_files_in_directory(path0,function(err,list0) {
 			if (err) {
 				callback(err);
@@ -94,8 +118,9 @@ function find_candidate_mp_files(opts,callback) {
 function find_candidate_mp_files_in_directory(path,callback) {
 	var list=[];
 	var files=read_dir_safe(path);
-	foreach_async(files,function(ii,file,cb) {
-		var fname=path+'/'+file;
+	var dirs=[];
+	for (var i in files) {
+		var fname=path+'/'+files[i];
 		var stat0=stat_file(fname);
 		if (stat0) {
 			if (stat0.isFile()) {
@@ -104,27 +129,65 @@ function find_candidate_mp_files_in_directory(path,callback) {
 						list.push(fname);
 					}
 				}
-				cb();
 			}
 			else if (stat0.isDirectory()) {
-				if (starts_with(file,'.')) { //don't follow hidden directories
-					cb();
-					return;
+				if (!starts_with(files[i],'.')) { //don't follow hidden directories
+					dirs.push(fname);
 				}
-				find_candidate_mp_files_in_directory(fname,function(err,list0) {
-					if (err) {
-						callback(err);
-						return;
-					}
-					for (var j in list0) {
-						list.push(list0[j]);
-					}
-					cb();
-				});
 			}
 		}
+	}
+
+	foreach_async_parallel(dirs,function(ii,dirname,cb) {
+		find_candidate_mp_files_in_directory(dirname,function(err,list0) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			for (var j in list0) {
+				list.push(list0[j]);
+			}
+			cb();
+		});
 	},function() {
 		callback(null,list);	
+	});
+}
+
+function get_processor_mp_file_hint(processor_name,callback) {
+	var search_paths=package_search_directories({});
+	db_utils.findDocuments('processor_specs',{},function(err,docs) {
+		if (err) {
+			callback('');
+			return;
+		}
+		for (var i in docs) {
+			var doc0=docs[i];
+			var mp_fname=doc0.mp_file_path;
+			if (!require('fs').existsSync(mp_fname)) {
+				db_utils.removeDocuments('processor_specs',{mp_file_path:mp_fname},function(err1) {
+				});
+			}
+			else {
+				var spec0=doc0.spec||{};
+				var processors0=spec0.processors||[];
+				for (var jj in processors0) {
+					if (processors0[jj].name==processor_name) {
+						var in_a_search_path=false;
+						for (var k in search_paths) {
+							if (mp_fname.indexOf(search_paths[k])==0) {
+								in_a_search_path=true;
+							}
+						}
+						if (in_a_search_path) {
+							callback(mp_fname);
+							return;
+						}
+					}
+				}
+			}
+		}
+		callback('');
 	});
 }
 
@@ -145,6 +208,25 @@ function get_spec_from_mp_file(fname,callback) {
 					}
 				}
 			}
+			db_utils.removeDocuments('processor_specs',{mp_file_path:fname},function(err0) {
+			});
+			require('child_process').exec(fname+' spec', function(error, stdout, stderr) { 
+				if (error) {
+					callback('Error running .mp file: '+error);
+					return;
+				}
+				var output=stdout;
+				var spec0=parse_json(output);
+				var doc0={
+					mp_file_path:fname,
+					spec:spec0,
+					timestamp:((new Date())-0)
+				}
+				db_utils.saveDocument('processor_specs',doc0,function(err) {
+					callback(null,spec0);	
+				});
+			});
+			/*
 			var output=run_program_and_read_output(fname+' spec');
 			var spec0=parse_json(output);
 			var doc0={
@@ -155,6 +237,7 @@ function get_spec_from_mp_file(fname,callback) {
 			db_utils.saveDocument('processor_specs',doc0,function(err) {
 				callback(null,spec0);	
 			})
+			*/
 		});
 	}
 	else {
@@ -253,6 +336,23 @@ function foreach_async(list,step,callback) {
 				next_step();
 			},0);
 		});
+	}
+}
+
+function foreach_async_parallel(list,step,callback) {
+	var num_completed=0;
+	check_done();
+	for (var ii=0; ii<list.length; ii++) {
+		step(ii,list[ii],function() {
+			num_completed++;
+			check_done();
+		});
+	}
+	function check_done() {
+		if (num_completed>=list.length) {
+			callback();
+			return;
+		}
 	}
 }
 
