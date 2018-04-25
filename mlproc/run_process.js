@@ -564,7 +564,8 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 
 	if (cmd.indexOf('$(argfile)')>=0) {
 		var argfile_fname=info.tempdir_path+'/argfile.txt';
-		console.log(`Writing argfile: ${argfile_fname} {argfile_lines.join('\n').length}`);
+		console.log(argfile_lines.join('\n'));
+		console.log(`Writing argfile: ${argfile_fname}`);
 		if (!common.write_text_file(argfile_fname,argfile_lines.join('\n'))) {
 			console.warn('Unable to write argfile: '+argfile_fname); //but we don't have ability to return an error. :(
 		}
