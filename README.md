@@ -171,6 +171,10 @@ ml-prv-locate raw_synth.mda.prv
 
 In place of `ml-run-process`, you may substitute `ml-exec-process` to bypass the process caching system, or `ml-queue-process` to have MountainLab wait for resources to be available before execution.
 
+## Examples
+
+Some spike sorting examples can be found in the examples/spike_sorting directory. There should be one subdirectory per example, with a readme.md file for each.
+
 ## Creating custom processor libraries
 
 As mentioned above, you can create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see [creating custom processor libraries](docs/creating_custom_processor_libraries.md)
