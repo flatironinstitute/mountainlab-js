@@ -557,6 +557,9 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 				}
 			}
 		}
+		else {
+			cmd=cmd.split('$'+key+'$').join('');
+		}
 	}
 	{
 		arguments.push(`--_tempdir=${info.tempdir_path}`);
