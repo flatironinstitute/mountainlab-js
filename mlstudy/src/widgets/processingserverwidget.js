@@ -29,7 +29,10 @@ function ProcessingServerWidget(O) {
 	O.div().find('label.connect_to#local_machine').click(function() {
 		connect_to_local_machine();
 	});
-	O.div().find('label.connect_to#central_hub').click(function() {
+	O.div().find('label.connect_to#proc_pool').click(function() {
+        connect_to_proc_pool();
+    }); 
+    O.div().find('label.connect_to#central_hub').click(function() {
 		connect_to_central_hub();
 	});
 	O.div().find('label.connect_to#custom_url').click(function() {
@@ -238,13 +241,23 @@ function ProcessingServerWidget(O) {
 		prompt_lari_url('Connect to local machine',lari_url);
 	}
 
-	function connect_to_central_hub() {
+	/*function connect_to_central_hub() {
 		var obj=m_mls_manager.mlsConfig();
 		var lari_url=obj.lari_url||'';
 		if (!jsutils.starts_with(lari_url,'https://lari1.herokuapp.com'))
 			lari_url='https://lari1.herokuapp.com';
 		prompt_lari_url('Connect to central hub',lari_url);
-	}
+	}*/
+    
+    function connect_to_central_hub() {
+        var obj=m_mls_manager.mlsConfig();
+		var lari_url=obj.lari_url||'';
+        var pool_id =obj.pool_id;
+		if (!jsutils.starts_with(lari_url,'https://lari1.herokuapp.com'))
+			lari_url='https://lari1.herokuapp.com';
+        prompt_lari_url('Choose central hub',lari_url);
+        prompt_lari_url('Choose a Pool ID', pool_id, 'pool_id');
+    }
 
 	function connect_to_custom_url() {
 		var obj=m_mls_manager.mlsConfig();
@@ -252,12 +265,12 @@ function ProcessingServerWidget(O) {
 		prompt_lari_url('Connect to custom server or hub',lari_url);
 	}
 
-	function prompt_lari_url(title,url) {
+	function prompt_lari_url(title,url,key='lari_url') {
 		update_buttons();
 		mlutils.mlprompt(title,'Enter URL for server or hub:',url,function(url2) {
 			if (url2) {
 				var obj=m_mls_manager.mlsConfig();
-				obj.lari_url=url2;
+				obj[key]=url2;
 				m_mls_manager.setMLSConfig(obj);
 				update_buttons();
 			}

@@ -1,6 +1,6 @@
-exports.directCall=function(cmd,query,closer,callback) {handle_api_2(cmd,query,closer,callback);};
+exports.directCall=function(cmd,query,closer,callback) {handle_api_direct(cmd,query,closer,callback);};
 
-exports.handle_api_2=handle_api_2;
+exports.handle_api_direct=handle_api_direct;
 
 // For hub servers (type 2), the LariContainerManager manage lari child containers
 // that have connected in
@@ -13,6 +13,7 @@ var LariJobManager=require(__dirname+'/larijobmanager.js').LariJobManager;
 // Here's the global job manager
 var JM=new LariJobManager();
 
+// Module for getting performance stats from the processing server
 var stats = require(__dirname+'/container-stats.js')
 //var os    = require('os');
 
@@ -49,7 +50,7 @@ if (process.env.DATA_DIRECTORY) {
 */
 
 var s_query_for_job_id={};
-function handle_api_2(cmd,query,closer,callback) {
+function handle_api_direct(cmd,query,closer,callback) {
 	// Handle an api request from either the client or a child lari server
 	if (!closer) closer=create_closer(null);
 	if (cmd=='queue-process') {
@@ -61,14 +62,14 @@ function handle_api_2(cmd,query,closer,callback) {
 					callback(resp);
 					return;
 				}
-				handle_api_3(cmd,query,closer,function(resp) {
+				handle_api_main(cmd,query,closer,function(resp) {
 					handle_probe_response(query,resp);
 				});
 			});
 		}
 		else {
 			*/
-			handle_api_3(cmd,query,closer,function(resp) {
+			handle_api_main(cmd,query,closer,function(resp) {
 				handle_probe_response(query,resp);
 			});
 			/*
@@ -77,13 +78,13 @@ function handle_api_2(cmd,query,closer,callback) {
 	}
 	else if (cmd=='probe-process') {
 		// check that status of an existing process (queued, running, or finished)
-		handle_api_3(cmd,query,closer,function(resp) {
+		handle_api_main(cmd,query,closer,function(resp) {
 			handle_probe_response(null,resp);
 		});
 	}
 	else {
-		// the other api commands are handled in handle_api_3
-		handle_api_3(cmd,query,closer,callback);
+		// the other api commands are handled in handle_api_main
+		handle_api_main(cmd,query,closer,callback);
 	}
 
 	function handle_probe_response(query_or_null,resp) {
@@ -127,8 +128,8 @@ function handle_api_2(cmd,query,closer,callback) {
 	}
 }
 
-function handle_api_3(cmd,query,closer,callback) {
-	// Handle an api request from either the client or a child lari server (except for those handled above by handle_api_2)
+function handle_api_main(cmd,query,closer,callback) {
+	// Handle an api request from either the client or a child lari server (except for those handled above by handle_api_direct)
 	if (cmd=='poll-from-container') {
 		// The child lari server (ie container) has sent a poll http request. We will respond with routed requests from the client.
 		var debug_code=lari_make_random_id(5);
@@ -145,11 +146,10 @@ function handle_api_3(cmd,query,closer,callback) {
 		return;
 	}
 	if (cmd=='get-available-containers') {
-		var available_containers=container_manager.availableContainers();
-		if (process.env.LARI_CONTAINER_ID)
-			available_containers[process.env.LARI_CONTAINER_ID]={};
-		callback({success:true,containers:available_containers});
-		return;
+	    container_manager.handleAvailableContainers(query,closer,function(resp) {
+            callback(resp);
+        });
+        return;
 	}
 
 	// If the container_id of the query matches this container, then we proceed.

@@ -54,7 +54,8 @@ function MLSManager(O) {
     kbucketauth_url:'https://kbucketauth.herokuapp.com',
     docstor_url:'https://docstor1.herokuapp.com',
     tidbits_url:'https://tidbits1.herokuapp.com',
-    processing_server:'default'
+    processing_server:'default',
+    pool_id:'public'
   };
 
   var obj=mlsConfig();  
@@ -86,6 +87,9 @@ function MLSManager(O) {
     m_batch_job_manager.setKBucketUrl(mlsConfig().kbucket_url);
     m_lari_client.setLariServerUrl(mlsConfig().lari_url);
     m_lari_client.setContainerId(mlsConfig().processing_server);
+    var auth_pools = {}
+    auth_pools[mlsConfig().pool_id] = {};
+    m_lari_client.setAuthorizedPools(auth_pools);
 
     for (var i in m_config_changed_handlers) {
       m_config_changed_handlers[i]();

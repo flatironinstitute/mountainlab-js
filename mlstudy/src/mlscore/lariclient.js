@@ -6,7 +6,9 @@ function LariClient() {
 	var that=this;
 	this.setLariServerUrl=function(url) {m_lari_server_url=url;};
 	this.setContainerId=function(id) {m_container_id=id; that.clearSpecCache();};
-	this.getSpec=function(query,opts,callback) {getSpec(query,opts,callback);};
+    this.setAuthorizedPools=function(pools) {m_authorized_pools=pools;}; //just for devel --
+    this.getAuthorizedPools=function() {return m_authorized_pools;}; //just for devel -- do we need to clear cache?
+    this.getSpec=function(query,opts,callback) {getSpec(query,opts,callback);};
 	this.getProcessorNames=function(query,opts,callback) {getProcessorNames(query,opts,callback);};
 	this.queueProcess=function(query,opts,callback) {queueProcess(query,opts,callback);};
 	this.probeProcess=function(job_id,opts,callback) {probeProcess(job_id,opts,callback);};
@@ -21,7 +23,8 @@ function LariClient() {
 
 	var m_lari_server_url='';
 	var m_container_id='';
-	var m_spec_cache={};
+	var m_authorized_pools={'public':{}}
+    var m_spec_cache={};
 	var m_processor_names_cache={};
 	var m_direct_lari_call=null;
 
@@ -127,7 +130,7 @@ function getStats(opts,callback) {
 
 
 	function getAvailableContainers(opts,callback) {
-		api_call('get-available-containers',{},{},function(err,resp) {
+		api_call('get-available-containers',{authorized_pools:m_authorized_pools},{},function(err,resp) {
 			if (err) {
 				callback(err);
 				return;

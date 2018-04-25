@@ -4,7 +4,8 @@
   "description": "",
   "main": "lari.js",
   "scripts": {
-    "start": "node lariserver.js"
+    "start": "node lariserver.js",
+    "startprocdev": "LARI_HUB_URL=http://localhost:6057 LARI_CONTAINER_ID=testproc LARI_POOL_ID=testpool LARI_LISTEN_PORT=6058 node lariserver.js"
   },
   "dependencies": {
     "express": "4.15.2",

@@ -4,8 +4,10 @@ function LariContainerManager() {
 	this.handleApiRequest=function(cmd,query,closer,callback) {handleApiRequest(cmd,query,closer,callback);};
 	this.handlePollFromContainer=function(query,closer,callback) {handlePollFromContainer(query,closer,callback);};
 	this.handleResponsesFromContainer=function(query,closer,callback) {handleResponsesFromContainer(query,closer,callback);};
-	this.availableContainers=function() {return availableContainers();};
-
+	//this.availableContainers=function() {return availableContainers();};
+    this.handleAvailableContainers=function(query,closer,callback) {handleAvailableContainers(query,closer,callback);};
+    
+    var authorized_pools = {'public':{}};
 	var m_containers={};
 
 	function handleApiRequest(cmd,query,closer,callback) {
@@ -25,7 +27,11 @@ function LariContainerManager() {
 			return;
 		}
 		if (!(id in m_containers)) {
-			m_containers[id]=new Container();
+		    m_containers[id]=new Container();    
+            if (query.pool_id) {
+                console.log("Setting pool id");
+                m_containers[id].pool_id=query.pool_id;
+            }
 		}
 		var C=m_containers[id];
 		C.handlePollFromContainer(query,closer,callback);
@@ -45,10 +51,25 @@ function LariContainerManager() {
 		C.handleResponsesFromContainer(query,closer,callback);
 	}
 
+    function handleAvailableContainers(query, closer, callback) {
+        if (query.authorized_pools) {
+            authorized_pools = query.authorized_pools;
+        }
+        var available_containers=availableContainers();
+        if (process.env.LARI_CONTAINER_ID) { // add this managing server
+			available_containers[process.env.LARI_CONTAINER_ID]={};
+        }
+		callback({success:true, containers:available_containers});
+		return;
+    }
+
 	function availableContainers() {
 		var ret={};
 		for (var id in m_containers) {
-			ret[id]={};
+			console.log(m_containers[id].pool_id);
+            if (!(m_containers[id].pool_id) || (m_containers[id].pool_id in authorized_pools)) {
+                ret[id]={};
+            }
 		}
 		return ret;
 	}
@@ -58,9 +79,15 @@ function Container() {
 	this.handlePollFromContainer=function(query,closer,callback) {handlePollFromContainer(query,closer,callback);};
 	this.handleApiRequest=function(cmd,query,closer,callback) {handleApiRequest(cmd,query,closer,callback);};
 	this.handleResponsesFromContainer=function(query,closer,callback) {handleResponsesFromContainer(query,closer,callback);};
+    //this.setPoolId(id)=function(id) {pool_id=id};
+    this.pool_id='';
 
 	var m_active_polls_from_container={};
 	var m_active_requests_to_container={};
+
+    //function setPoolID(id) {
+    //    pool_id=id;
+    //}
 
 	function handlePollFromContainer(query,closer,callback) {
 		var poll_id=make_random_id(10);
