@@ -156,11 +156,11 @@ ml-run-process ephys.bandpass_filter --inputs timeseries:raw.mda --outputs times
 ```
 Note that .prv files can be substituted for both inputs or outputs. In such a case, where an input file has a .prv extension, MountainLab will search the local machine for the corresponding data file and substitute that in before running the processor (see the `ml-prv-locate` command). In the case that one of the *output* files has a .prv extension, MountainLab will store the output in a temporary file (in `ML_TEMPORARY_DIRECTORY`) and then create a corresponding .prv file in the output location specified in the command (see the `ml-prv-create` command).
 
-Thus one can do command-line processing purely using .prv files, as in the following example of creating a synthetic electrophysiology dataset:
+Thus one can do command-line processing purely using .prv files, as in the following example of creating a synthetic electrophysiology dataset (which requires the ml_ephys processor library to be installed):
 ```
-ml-run-process ephys.synthesize_random_waveforms --outputs waveforms_out:waveforms.mda.prv
-ml-run-process ephys.synthesize_random_firings --outputs firings_out:firings.mda.prv --parameters duration:60
-ml-run-process ephys.synthesize_timeseries --inputs firings:firings.mda.prv waveforms:waveforms.mda.prv --outputs timeseries_out:raw_synth.mda.prv --parameters duration:60
+ml-run-process ephys.synthesize_random_waveforms --outputs waveforms_out:data/waveforms_true.mda.prv geometry_out:data/geom.csv --parameters upsamplefac:13 M:4
+ml-run-process ephys.synthesize_random_firings --outputs firings_out:data/firings_true.mda.prv --parameters duration:600
+ml-run-process ephys.synthesize_timeseries --inputs firings:data/firings_true.mda.prv waveforms:data/waveforms_true.mda.prv --outputs timeseries_out:data/raw.mda.prv --parameters duration:600 waveform_upsamplefac:13
 ```
 
 All files will be stored in temporary locations, which can be retrieved using the `ml-prv-locate` command as follows:

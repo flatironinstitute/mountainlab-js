@@ -571,9 +571,6 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 		}
 		cmd=cmd.split('$(argfile)').join(argfile_fname);
 	}
-	else {
-		console.log('Not writing argfile');
-	}
 
 	return cmd;
 }
