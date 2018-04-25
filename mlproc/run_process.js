@@ -543,16 +543,18 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 	var console_out_file='';
 	for (var key in iop) {
 		var val=iop[key];
-		if (typeof(val)!='object') {
-			if (key!='console_out') {
-				arguments.push(`--${key}=${val}`);
-				argfile_lines.push(`${key}=${val}`);
+		if (val!==undefined) {
+			if (typeof(val)!='object') {
+				if (key!='console_out') {
+					arguments.push(`--${key}=${val}`);
+					argfile_lines.push(`${key}=${val}`);
+				}
+				cmd=cmd.split('$'+key+'$').join(val);
 			}
-			cmd=cmd.split('$'+key+'$').join(val);
-		}
-		else {
-			for (var i in val) {
-				arguments.push(`--${key}=${val[i]}`);
+			else {
+				for (var i in val) {
+					arguments.push(`--${key}=${val[i]}`);
+				}
 			}
 		}
 	}
@@ -564,8 +566,6 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 
 	if (cmd.indexOf('$(argfile)')>=0) {
 		var argfile_fname=info.tempdir_path+'/argfile.txt';
-		console.log(argfile_lines.join('\n'));
-		console.log(`Writing argfile: ${argfile_fname}`);
 		if (!common.write_text_file(argfile_fname,argfile_lines.join('\n'))) {
 			console.warn('Unable to write argfile: '+argfile_fname); //but we don't have ability to return an error. :(
 		}
