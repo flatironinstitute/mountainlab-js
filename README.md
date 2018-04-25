@@ -18,68 +18,90 @@ Alex Morley has a project and vision for applying continuous integration princip
 
 (If I have neglected to acknowledge your contribution, please remind me.)
 
-## Quick installation for the impatient or adventurous
+## Installation
 
-Use linux and install NodeJS (recent version) and MongoDB
+Using Linux is highly recommended. We expect this to work on Mac OSX as well, but have not yet tested it. At some point, this may run on windows.
 
-Warning: you must use a recent version of NodeJS, see below.
+Note: If you have a prior version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system, see below).
+
+
+### Step 1: Install the prerequisites
+
+* NodeJS -- you must use a recent version. [Details.](./prerequisites.md)
+* MongoDB -- [Details.](./docs/prerequisites.md)
+* Python 3 with pip -- optional but required for most plugin packages. [Details.](./docs/prerequisites.md)
+
+### Step 2: Clone this repository and install using npm (node package manager)
+
+
+Open a terminal, ```cd``` to an installation folder, and then run:
 
 ```
 git clone https://github.com/flatironinstitute/mountainlab-js
 cd mountainlab-js
 npm install
 ```
-Then, add "mountainlab-js/bin" to your PATH variable.
+Then, add "mountainlab-js/bin" to your PATH variable. This can be done by adding the following line to your ~/.bashrc file and then opening a new terminal:
+
+```
+export PATH=[your/path/to]/mountainlab-js/bin:$PATH
+```
 
 Test the installation by running
 ```
 ml-config
 ```
 
-The output of this command will explain how to configure MountainLab on your system (it simply involves setting environment variables by editing a .env file).
+The output of this command will explain how to configure MountainLab on your system (it simply involves setting environment variables by editing a .env file). Further information is provided below.
 
-If everything is good, skip down to start learning about how to use MountainLab. It is primarily a command-line tool.
-
-
-## Detailed installation instructions
-
-Note: If you have a prior version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have not changed the .mp spec system, see below).
-
-### Installation outline
-
-Step 1. Install the prerequisites
-
-Step 2. Clone the repo and build via npm
-
-Step 3. Configure
-
-
-### Step 1: Install prerequisites
-NodeJS (recent version), npm (node package manager), mongodb
-
-For example, on Ubuntu 16.04
+Further test the installation by running
 ```
-curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-sudo apt-get install nodejs
-sudo apt-get install mongodb
+ml-list-processors
 ```
 
-Note that the curl command is important to get you a recent version of NodeJS (that's a fast moving project, and IMO really good).
-
-When you install MongoDB, you will get a database daemon running on the default port of 27017. You might want to make sure that port is not exposed to the outside world (usually it wouldn't be I think).
-
-MountainLab uses the MongoDB database for caching processor jobs that have already run, keeping track of file hashes, and managing processor job queues.
+This should list the names of the system processors that are distributed with MountainLab-js
 
 
-### Steps 2 and 3: Clone, install and configure
+### Step 3: Install plugin processor libraries
 
-Read the quick installation instructions above to clone the mountainlab-js repo and install it using npm. You will also learn how to test and configure MountainLab.
+Note: the following plugin processor libraries require python 3 and pip to be installed (see above).
 
-To add "mountainlab-js/bin" to your PATH variable, you might add the following line at the end of your .bashrc file (and then open a new terminal)
+Create the following folder:
+
 ```
-export PATH=[your/path/to]/mountainlab-js/bin:$PATH
+mkdir -p ~/.mountainlab/packages
 ```
-As you will learn from running the ```ml-config``` command, MountainLab should be configured by setting environment variables. Ideally these should should be specified in the ~/.mountainlab/mountainlab.env file.
+
+This is the default location for plugin processor libraries (see the output of the ml-config command).
+
+It is recommend that you use a python virtualenv for what follows. [Details.](./docs/virtualenv.md).
+
+To get started with the examples, clone and install the following two packages. The first is for generic utilities for working with electrophysiology datasets. The second is our spike sorting algorithm, MountainSort v4.
+
+```
+cd ~/.mountainlab/packages
+git clone https://github.com/magland/ml_ephys
+cd ml_ephys
+pip3 install --update -r requirements.txt
+```
+
+```
+cd ~/.mountainlab/packages
+git clone https://github.com/magland/ml_ms4alg
+cd ml_ms4alg
+pip3 install --update -r requirements.txt
+```
+
+Now test that the new processors have been installed:
+
+```
+ml-list-processors
+```
+
+### Step 4: Configuration
+
+As you will learn from running the ```ml-config``` command, MountainLab can be configured by setting environment variables. Ideally these should should be specified in the ~/.mountainlab/mountainlab.env file, but those values can also be overridden by setting the variables by command-line in the terminal.
+
 The following are some of the configuration variables (they each have a default value if left empty):
 * `ML_TEMPORARY_DIRECTORY` -- the location where temporary data files are stored (default: /tmp/mountainlab-tmp)
 * `ML_PACKAGE_SEARCH_DIRECTORY` -- the primary location for ML processing packages (default: ~/.mountainlab/packages)
@@ -105,9 +127,15 @@ The following commands are available from any terminal. Use the `--help` flag on
 
 ## Installing processor packages
 
-MountainLab only ships with a few system processors, found in mountainlab-js/system-packages. To install additional processor packages, clone package repositories into the ~/.mountainlab/packages directory (or other configured directories). MountainLab will recursively search in these locations to find `.mp` files with executable permissions. Each such file provides the spec information for a list of registered processors (see section on creating custom processor packages).
+MountainLab only ships with a few system processors, found in mountainlab-js/system-packages. To install additional processor packages, clone package repositories into the ~/.mountainlab/packages directory (or other configured directories). For example, see above for instructions on installing some packages recommended to get started.
 
-To use the MountainSort processor package, either install it from source within the `~/.mountainlab/packages` directory, or install it using the Ubuntu package and then add the following line to `~/.mountainlab/mountainlab.env`:
+MountainLab will recursively search in these locations to find `.mp` files with executable permissions. Each such file provides the spec information for a list of registered processors (see section on creating custom processor packages).
+
+## A note about using previous versions of MountainSort with MountainLab-js
+
+The previous version of MountainSort is compatible with this new implementation of MountainLab. That's because it has .mp files that conform to the same specification.
+
+To use the MountainSort processor package, either install it from source within the `~/.mountainlab/packages` directory, or install it using the Ubuntu package. In the latter case you must add the following line to `~/.mountainlab/mountainlab.env`:
 ```
 ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES=/opt/mountainlab/packages
 ```
@@ -118,26 +146,26 @@ To create your own processor packages, see the section on that topic below.
 ## Running processor jobs from the command-line
 
 Processors can either be run directly on the command-line, or indirectly through a processing script on MLStudy.
-The command-line syntax (slightly different from the previous version of mountainlab) is:
+The command-line syntax (slightly different from the previous version of MountainLab) is:
 ```
 ml-run-process <processors-name> --inputs [key:value input files] --outputs [key:value output files] --parameters [key:value parameters]
 ```
 The options --inputs, --outputs, and --parameters may be abbreviates -i, -o, and -p, respectively. For example, to run a bandpass filter:
 ```
-ml-run-process ms3.bandpass_filter --inputs timeseries:raw.mda --outputs timeseries_out:filt.mda --parameters samplerate:30000 --freq_min:300 --freq_max:6000
+ml-run-process ephys.bandpass_filter --inputs timeseries:raw.mda --outputs timeseries_out:filt.mda --parameters samplerate:30000 --freq_min:300 --freq_max:6000
 ```
-Note that .prv files can be substituted for both inputs or outputs. In such a case, where an input file has a .prv extension, MountainLab will search the local machine for the corresponding data file and substitute that in before running the processor (see the `ml-prv-locate` command). In the case that one of the *output* files has a .prv extension, MountainLab will store the output in a temporary file (in `ML_TEMPORARY_DIRECTORY`) and then  create a corresponding .prv file in the output location specified in the command (see the `ml-prv-create` command).
+Note that .prv files can be substituted for both inputs or outputs. In such a case, where an input file has a .prv extension, MountainLab will search the local machine for the corresponding data file and substitute that in before running the processor (see the `ml-prv-locate` command). In the case that one of the *output* files has a .prv extension, MountainLab will store the output in a temporary file (in `ML_TEMPORARY_DIRECTORY`) and then create a corresponding .prv file in the output location specified in the command (see the `ml-prv-create` command).
 
 Thus one can do command-line processing purely using .prv files, as in the following example of creating a synthetic electrophysiology dataset:
 ```
-ml-run-process pyms.synthesize_random_waveforms --outputs waveforms_out:waveforms.mda.prv
-ml-run-process pyms.synthesize_random_firings --outputs firings_out:firings.mda.prv --parameters duration:60
-pyms.synthesize_timeseries --inputs firings:firings.mda.prv waveforms:waveforms.mda.prv --outputs timeseries_out:raw_synth.mda.prv --parameters duration:60
+ml-run-process ephys.synthesize_random_waveforms --outputs waveforms_out:waveforms.mda.prv
+ml-run-process ephys.synthesize_random_firings --outputs firings_out:firings.mda.prv --parameters duration:60
+ml-run-process ephys.synthesize_timeseries --inputs firings:firings.mda.prv waveforms:waveforms.mda.prv --outputs timeseries_out:raw_synth.mda.prv --parameters duration:60
 ```
 
 All files will be stored in temporary locations, which can be retrieved using the `prv-locate` command as follows:
 ```
-> ml-prv-locate raw_synth.mda.prv 
+ml-prv-locate raw_synth.mda.prv 
 /tmp/mountainlab-tmp/output_184a04c2877517f8996fd992b6f923bee8c6bbd2_timeseries_out
 ```
 
