@@ -82,14 +82,14 @@ To get started with the examples, clone and install the following two packages. 
 cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ephys
 cd ml_ephys
-pip3 install --update -r requirements.txt
+pip3 install --upgrade -r requirements.txt
 ```
 
 ```
 cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ms4alg
 cd ml_ms4alg
-pip3 install --update -r requirements.txt
+pip3 install --upgrade -r requirements.txt
 ```
 
 Now test that the new processors have been installed:
