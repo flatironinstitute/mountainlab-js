@@ -27,7 +27,7 @@ Note: If you have a prior version of MountainLab installed, then you may want to
 
 ### Step 1: Install the prerequisites
 
-* NodeJS -- you must use a recent version. [Details.](./prerequisites.md)
+* NodeJS -- you must use a recent version. [Details.](./docs/prerequisites.md)
 * MongoDB -- [Details.](./docs/prerequisites.md)
 * Python 3 with pip -- optional but required for most plugin packages. [Details.](./docs/prerequisites.md)
 
@@ -74,7 +74,7 @@ mkdir -p ~/.mountainlab/packages
 
 This is the default location for plugin processor libraries (see the output of the ml-config command).
 
-It is recommend that you use a python virtualenv for what follows. [Details.](./docs/virtualenv.md).
+It is recommend that you use a python virtualenv for what follows. [Details.](./docs/prerequisites.md).
 
 To get started with the examples, clone and install the following two packages. The first is for generic utilities for working with electrophysiology datasets. The second is our spike sorting algorithm, MountainSort v4.
 
