@@ -30,17 +30,17 @@ function SystemProcess() {
 	var m_tempdir_path='';
 
 	function start() {
-		var list=m_command.split(' ');
-		var exe=list[0]||'';
-		var args=list.slice(1);
+		//var list=m_command.split(' ');
+		//var exe=list[0]||'';
+		//var args=list.slice(1);
 		try {	
 			var env = Object.create( process.env );
 			if (m_tempdir_path) env.ML_PROCESSOR_TEMPDIR = m_tempdir_path;
-			P=require('child_process').spawn(exe,args,{env:env});
+			P=require('child_process').spawn(m_command,{env:env,shell:true});
 			all_running_processes[m_id]=P;
 		}
 		catch(err) {
-			report_error("Problem launching: "+exe+" "+args.join(" "));
+			report_error("Problem launching: "+m_command);
 			return;
 		}
 		m_process=P;
