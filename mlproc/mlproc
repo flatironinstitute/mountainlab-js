@@ -60,6 +60,7 @@ program
   .option('-o, --outputs [outputs...]', 'List of named output files in key:value format.')
   .option('-p, --parameters [parameters...]', 'List of named parameters in key:value format.')
   .option('-m, --mode [mode]', 'Either run (default), exec, or queue.')
+  .option('--keep_tempdir','Do not remove the temporary directory for this process.')
   .action(function (processor_name, cmd) {
     require(__dirname+'/run_process.js').cmd_run_process(processor_name,cmd,function(err) {
       if (err) {

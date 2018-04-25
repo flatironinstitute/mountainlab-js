@@ -1,6 +1,7 @@
 exports.cmd_run_process=cmd_run_process;
 exports.cleanup=cleanup; //in case process terminated prematurely
 var tempdir_for_cleanup='';
+var keep_tempdir=false;
 var processor_job_id_for_cleanup='';
 
 var common=require(__dirname+'/common.js');
@@ -154,6 +155,8 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		var tmp_dir=common.temporary_directory();
 		tempdir_path=tmp_dir+'/tempdir_'+process_signature.slice(0,10)+'_'+common.make_random_id(6);
 		tempdir_for_cleanup=tempdir_path; //in case process is terminated prematurely
+		if (opts.keep_tempdir)
+			keep_tempdir=true;
 		common.mkdir_if_needed(tempdir_path);
 		cb();
 	});
@@ -272,6 +275,10 @@ function cleanup(callback) {
 }
 
 function remove_temporary_directory(tempdir_path,callback) {
+	if (keep_tempdir) {
+		callback(null);
+		return;
+	}
 	if (!tempdir_path) {
 		callback(null);
 		return;
@@ -555,12 +562,16 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 	}
 	cmd=cmd.split('$(arguments)').join(arguments.join(' '));
 
-	if (cmd.indexOf('$(argfile)')>0) {
+	if (cmd.indexOf('$(argfile)')>=0) {
 		var argfile_fname=info.tempdir_path+'/argfile.txt';
+		console.log(`Writing argfile: ${argfile_fname} {argfile_lines.join('\n').length}`);
 		if (!common.write_text_file(argfile_fname,argfile_lines.join('\n'))) {
 			console.warn('Unable to write argfile: '+argfile_fname); //but we don't have ability to return an error. :(
 		}
 		cmd=cmd.split('$(argfile)').join(argfile_fname);
+	}
+	else {
+		console.log('Not writing argfile');
 	}
 
 	return cmd;
