@@ -163,7 +163,7 @@ ml-run-process ephys.synthesize_random_firings --outputs firings_out:firings.mda
 ml-run-process ephys.synthesize_timeseries --inputs firings:firings.mda.prv waveforms:waveforms.mda.prv --outputs timeseries_out:raw_synth.mda.prv --parameters duration:60
 ```
 
-All files will be stored in temporary locations, which can be retrieved using the `prv-locate` command as follows:
+All files will be stored in temporary locations, which can be retrieved using the `ml-prv-locate` command as follows:
 ```
 ml-prv-locate raw_synth.mda.prv 
 /tmp/mountainlab-tmp/output_184a04c2877517f8996fd992b6f923bee8c6bbd2_timeseries_out
