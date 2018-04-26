@@ -7,6 +7,8 @@ def view_templates(templates,*,title=None):
     spacing_between_channels=np.max(np.abs(templates.ravel()))
     channel_colors=_get_channel_colors(M)
 
+    fig=plt.figure(figsize=(20,10), dpi=80)
+
     for k in range(K):
         x0=(T+horizontal_spacing)*k
         for m in range(M):
@@ -19,7 +21,6 @@ def view_templates(templates,*,title=None):
 
     if title:
         plt.title(title)
-    plt.show()
 
 def _get_channel_colors(M):
     cm = plt.get_cmap('gist_ncar')
@@ -43,5 +44,4 @@ def view_cross_correlograms(X):
         centers = (bin_edges[:-1] + bin_edges[1:]) / 2
         plt.subplot(num_rows, num_cols, i+1)
         plt.bar(centers,bin_counts,align='center',width=width)
-    plt.show()
         

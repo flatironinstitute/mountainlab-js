@@ -5,6 +5,7 @@ import numpy as np
 from mltools import mlstudy as mls
 from mltools import mlproc as mlp
 import deepdish as dd
+from matplotlib import pyplot as plt
 import imp
 
 mlp.runProcess(
@@ -26,4 +27,6 @@ mlp.runProcess(
 
 X=dd.io.load('data/autocorrelograms.hdf5')
 viz.view_cross_correlograms(X['correlograms'])
+
+plt.show()
 
