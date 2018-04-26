@@ -533,13 +533,7 @@ function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
 function filter_exe_command(cmd,spec,inputs_in,outputs_in,info,parameters) {
 	var inputs=JSON.parse(JSON.stringify(inputs_in));
 	var outputs=JSON.parse(JSON.stringify(outputs_in));
-	var iop={};
-	for (var key in inputs)
-		iop[key]=inputs[key];
-	for (var key in outputs)
-		iop[key]=outputs[key];
-	for (var key in parameters)
-		iop[key]=parameters[key];
+	
 	for (var i in (spec.inputs||[])) {
 		var ikey=spec.inputs[i].name;
 		if (!(ikey in inputs))
@@ -550,6 +544,15 @@ function filter_exe_command(cmd,spec,inputs_in,outputs_in,info,parameters) {
 		if (!(okey in outputs))
 			outputs[okey]='';
 	}
+
+	var iop={};
+	for (var key in inputs)
+		iop[key]=inputs[key];
+	for (var key in outputs)
+		iop[key]=outputs[key];
+	for (var key in parameters)
+		iop[key]=parameters[key];
+
 	var arguments=[];
 	var argfile_lines=[];
 	var console_out_file='';
