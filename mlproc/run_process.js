@@ -44,7 +44,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 		parameters=parse_iop(opts.parameters||'','parameter');
 		check_iop(inputs,spec0.inputs||[],'input');
 		check_iop(outputs,spec0.outputs||[],'output');
-		check_iop(parameters,spec0.parameters||[],'parameter',{substitute_defaults:true});
+		check_iop(parameters,spec0.parameters||[],'parameter');
 	}
 	catch(err) {
 		console.error(err.stack);
@@ -511,7 +511,7 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 }
 
 function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
-	var cmd=filter_exe_command(spec0.exe_command,inputs,outputs,info,parameters);
+	var cmd=filter_exe_command(spec0.exe_command,spec0,inputs,outputs,info,parameters);
 	console.log ('[ Running ... ] '+cmd);
 	var timer=new Date();
 	var P=new SystemProcess();
@@ -530,7 +530,9 @@ function do_run_process(spec0,inputs,outputs,parameters,info,callback) {
 	P.start();
 }
 
-function filter_exe_command(cmd,inputs,outputs,info,parameters) {
+function filter_exe_command(cmd,spec,inputs_in,outputs_in,info,parameters) {
+	var inputs=JSON.parse(JSON.stringify(inputs_in));
+	var outputs=JSON.parse(JSON.stringify(outputs_in));
 	var iop={};
 	for (var key in inputs)
 		iop[key]=inputs[key];
@@ -538,6 +540,16 @@ function filter_exe_command(cmd,inputs,outputs,info,parameters) {
 		iop[key]=outputs[key];
 	for (var key in parameters)
 		iop[key]=parameters[key];
+	for (var i in (spec.inputs||[])) {
+		var ikey=spec.inputs[i].name;
+		if (!(ikey in inputs))
+			inputs[ikey]='';
+	}
+	for (var i in (spec.outputs||[])) {
+		var okey=spec.outputs[i].name;
+		if (!(okey in outputs))
+			outputs[okey]='';
+	}
 	var arguments=[];
 	var argfile_lines=[];
 	var console_out_file='';
