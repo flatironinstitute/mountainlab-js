@@ -1,7 +1,7 @@
 -----------------------------------------------------------
 
 Using configuration from: $configuration_file$
-To change this, set the ML_CONFIGURATION_FILE environment
+To change this, set the ML_CONFIG_FILE environment
 variable.
 
 The following environment variables are being used.
