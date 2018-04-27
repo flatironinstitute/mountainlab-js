@@ -635,6 +635,17 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 	});
 }
 
+function get_file_extension_for_prv_file_including_dot(prv_fname) {
+	var list1=prv_fname.split('/');
+	var list2=list1[list1.length-1].split('.');
+	if (list2.length>=2) {
+		return '.'+list2[list2.length-2];
+	}
+	else {
+		return '.'
+	}
+}
+
 function check_outputs_and_substitute_prvs(outputs,process_signature,callback) {
 	var pending_output_prvs=[];
 	var okeys=Object.keys(outputs);
@@ -644,7 +655,8 @@ function check_outputs_and_substitute_prvs(outputs,process_signature,callback) {
 		fname=require('path').resolve(process.cwd(),fname);
 		outputs[key]=fname;
 		if (common.ends_with(fname,'.prv')) {
-			var fname2=tmp_dir+`/output_${process_signature}_${key}`;
+			var file_extension_including_dot=get_file_extension_for_prv_file_including_dot(fname);
+			var fname2=tmp_dir+`/output_${process_signature}_${key}${file_extension_including_dot}`;
 			pending_output_prvs.push({name:key,prv_fname:fname,output_fname:fname2});
 			outputs[key]=fname2;
 			cb();
@@ -669,6 +681,7 @@ function compute_process_signature(spec0,inputs,parameters,callback) {
 
 function compute_process_signature_object(spec0,inputs,parameters,callback) {
 	var signature_object={};
+	signature_object.version='0.1';
 	signature_object.processor_name=spec0.name;
 	signature_object.processor_version=spec0.version;
 	signature_object.parameters=parameters;
