@@ -696,6 +696,7 @@ function compute_process_signature_object(spec0,inputs,parameters,callback) {
 }
 
 function compute_process_signature_object_inputs(inputs,callback) {
+	// See the warning for the outputs and file extensions elsewhere in this file
 	get_checksums_for_files(inputs,{mode:'process_signature'},callback);
 }
 
@@ -722,6 +723,17 @@ function find_in_process_cache(process_signature,outputs,callback) {
 }
 
 function check_outputs_consistent_with_process_cache(outputs,doc0,callback) {
+	/*
+		Warning: if we ever decide to allow copying of outputs with different
+		file paths, we need to make sure we respect the file extension, 
+		because processor behavior may be different depending on the
+		output file extension.
+		Note that we don't have to worry about such things for input files,
+		because the sha-1 hash is computed for those. Persumably if the 
+		extension is different, and it matters for functionality, then
+		the sha-1 will be different as well. (I suppose there could be
+		an exception to this, but I'd be surprised)
+	*/
 	for (var key in outputs) {
 		var fname=outputs[key];
 		var stat0=common.stat_file(fname);
