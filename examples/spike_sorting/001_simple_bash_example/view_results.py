@@ -29,4 +29,3 @@ X=dd.io.load('data/autocorrelograms.hdf5')
 viz.view_cross_correlograms(X['correlograms'])
 
 plt.show()
-
