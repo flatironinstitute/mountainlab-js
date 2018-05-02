@@ -7,10 +7,10 @@ var KBucketClient=require('./kbucketclient.js').KBucketClient;
 //fix the following
 var mlpLog=require('./mlplog.js').mlpLog;
 
-var Module;
-if (false) { // (using_nodejs()) {
-   Module=require('module');
-}
+//var Module;
+//if (false) { // (using_nodejs()) {
+//   Module=require('module');
+//}
 
 function BatchJob(O,lari_client) {
   O=O||this;
@@ -1302,6 +1302,7 @@ function using_nodejs() {
 }
 
 function run_some_code(func) {
+  var Module=require('module');
   if (using_nodejs()) {
     var original_require = Module.prototype.require;
     Module.prototype.require=function(str) {

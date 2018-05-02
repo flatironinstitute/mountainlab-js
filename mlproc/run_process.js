@@ -638,11 +638,11 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 function get_file_extension_for_prv_file_including_dot(prv_fname) {
 	var list1=prv_fname.split('/');
 	var list2=list1[list1.length-1].split('.');
-	if (list2.length>=2) {
+	if (list2.length>=3) { //important: must have length at least 3 for prv file, otherwise extension is empty
 		return '.'+list2[list2.length-2];
 	}
 	else {
-		return '.'
+		return '';
 	}
 }
 

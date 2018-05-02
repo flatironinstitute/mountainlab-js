@@ -83,19 +83,68 @@ function jsu_http_post_json(url,data,headers,callback) {
 
 
 function nodejs_http_get_text(url,headers,callback) {
-        if (!callback) {
-                callback=headers;
-                headers=null;
-        }
-        console.error('TODO: replace request.get with something that doesnt depend on request. Exiting.');
-        process.exit(-1);
-        request.get({url:url,headers:headers},function(err,response,body) {
-                if (err) {
-                        if (callback) callback({success:false,error:err.message});
-                        return;
-                }
-                if (callback) callback({success:true,text:body});
-        });
+    if (!callback) {
+            callback=headers;
+            headers=null;
+    }
+
+    var url_parts=urlmodule.parse(url);
+
+	var options={
+		method: "GET",
+		//url: url
+		hostname: url_parts.hostname,
+		port:url_parts.port,
+		path:url_parts.path
+	};
+
+	var http_module;
+	if (url_parts.protocol=='https:')
+		http_module=httpsmodule;
+	else if (url_parts.protocol=='http:')
+		http_module=httpmodule;
+	else {
+		if (callback) callback({success:false,error:'invalid protocol for url: '+url});
+		callback=null;
+		return;
+	}
+
+	if (headers) {
+		options.headers=headers;
+	}
+
+	var req=http_module.request(options,function(res) {
+		var txt='';
+		res.on('data', function(d) {
+			txt+=d
+		});
+		res.on('error', function(e) {
+		  if (callback) callback({success:false,error:'Error in get response: '+e});
+		  callback=null;
+		});
+		res.on('end', function() {
+			callback({success:true,text:txt});
+		});
+	});
+	req.on('error', function(e) {
+	  if (callback) callback({success:false,error:'Error in get request: '+e});
+	  callback=null;
+	});
+
+	//req.write(post_data);
+	req.end();
+
+    /*
+    console.error('TODO: replace request.get with something that doesnt depend on request. Exiting.');
+    process.exit(-1);
+    request.get({url:url,headers:headers},function(err,response,body) {
+            if (err) {
+                    if (callback) callback({success:false,error:err.message});
+                    return;
+            }
+            if (callback) callback({success:true,text:body});
+    });
+    */
 }
 
 function jquery_http_post_json(url,data,headers,callback) {

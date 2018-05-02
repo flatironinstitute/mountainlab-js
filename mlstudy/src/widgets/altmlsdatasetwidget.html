@@ -3,6 +3,19 @@
 		<div class="ml-vlayout-item" style="flex:0 0 50px">
 			<h3>Dataset: <span id=dataset_id></span></h3>
 		</div>
+		<div class="ml-vlayout-item" style="flex:0 0 40px;overflow: visible"> <!-- need overflow:visible in order to see dropdown menu -->
+			<ul class="nav navbar-nav">
+	          <li class="dropdown">
+	            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dataset <span class="caret"></span></a>
+	            <ul class="dropdown-menu" style="padding:15px">
+	              <li><a href="#" id=download_parameters>Download parameters</a></li>
+	              <li><a href="#" id=upload_parameters>Upload parameters...</a></li>
+	              <li role="separator" class="divider"></li>
+	              <li><a href="#" id=download_dataset>Download dataset object</a></li>
+	            </ul>
+	          </li>
+	        </ul>
+		</div>
 		<div class="ml-vlayout-item" style="flex:0 0 100px">
 			<span id=description></span>
 		</div>

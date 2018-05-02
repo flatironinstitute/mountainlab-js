@@ -24,6 +24,7 @@ var KBucketClient=require('../mlscore/kbucketclient.js').KBucketClient;
 var KBucketAuthClient=require('../mlscore/kbucketauthclient.js').KBucketAuthClient;
 var KBucketUploadDialog=require('./kbucketuploaddialog.js').KBucketUploadDialog;
 var mlutils=require('../mlscore/mlutils.js');
+var FileUploader=require('../mlscore/jsutils/fileuploader.js').FileUploader;
 
 function AltMLSDatasetWidget(O) {
 	O=O||this;
@@ -65,6 +66,10 @@ function AltMLSDatasetWidget(O) {
 
 	O.div().find('#upload_files').click(upload_files);
 	O.div().find('#add_parameter').click(add_param);
+
+	O.div().find('#download_parameters').click(on_download_parameters);
+	O.div().find('#upload_parameters').click(on_upload_parameters);
+	O.div().find('#download_dataset').click(on_download_dataset);
 
 	m_description_widget.onDescriptionEdited(function() {;
 		var ds=get_dataset();
@@ -158,7 +163,7 @@ function AltMLSDatasetWidget(O) {
 		row.cell(2).append('&nbsp;');
 		row.cell(2).append(val);
 	}
-	function upload_params() {
+	function on_upload_parameters() {
 		var UP=new FileUploader();
 		UP.uploadTextFile({},function(tmp) {
 			if (!tmp.success) {
@@ -466,8 +471,14 @@ function AltMLSDatasetWidget(O) {
 		return ret;
 	}
 
+	function on_download_dataset() {
+		var ds=get_dataset();
+		if (!ds) return;
+		download(JSON.stringify(ds.object(),null,4),m_dataset_id+'.json');
+	}
+
 	//JSQ.connect(m_bottom_widget,'download_params_file',O,download_params_file);
-	function download_params_file() {
+	function on_download_parameters() {
 		var ds=get_dataset();
 		if (!ds) return;
 		var params=ds.parameters();

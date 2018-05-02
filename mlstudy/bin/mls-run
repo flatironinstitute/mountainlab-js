@@ -87,6 +87,9 @@ BJ.setStudyObject(study);
 BJ.setDocStorClient(DSC);
 BJ.setKBucketUrl('https://kbucket.flatironinstitute.org'); //todo
 BJ.setAutoDownload(false);
+if (CLP.namedParameters['auto_download']=='true') {
+	BJ.setAutoDownload(true);
+}
 BJ.getSpec(function(err,spec) {
 	if (err) {
 		console.error(err);
