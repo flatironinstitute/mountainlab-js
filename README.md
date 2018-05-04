@@ -108,6 +108,13 @@ The following are some of the configuration variables (they each have a default 
 * `ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES` -- optional additional directories to search for packages (colon separated list)
 * `ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES` -- optional additional directories to search for files pointed to by .prv objects
 
+### Step 5: Install additional programs
+
+If you are doing spike sorting, then you will also want to install the following for visualization:
+
+[ephys-viz](https://github.com/flatironinstitute/ephys-viz) - Widgets for visualization of electrophysiology experiments and the results of spike sorting.
+
+
 ## Command reference
 
 The following commands are available from any terminal. Use the `--help` flag on any of these to get more detailed information.
@@ -116,7 +123,7 @@ The following commands are available from any terminal. Use the `--help` flag on
 * `ml-lari-start`  Start a lari server, making your local machine a processing server
 * `ml-list-processors`  List all registered processors on the local machine
 * `ml-prv-create`  Create a new .prv file based on an existing data file (computes the sha1sum, etc)
-* `ml-prv-locate`  Locate a file on the local machine based on a .prv file
+* `ml-prv-locate`  Locate a file on the local machine (or remotely) based on a .prv file
 * `ml-prv-sha1sum`  Compute the sha1sum of a data file (uses a cache for efficiency)
 * `ml-prv-stat`  Compute the prv object for a data file (uses a cache for efficiency)
 * `ml-queue-process`  Queue a processor job for running when resources become available
