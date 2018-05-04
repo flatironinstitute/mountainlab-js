@@ -10,7 +10,7 @@ import imp
 
 mlp.runProcess(
     'ephys.compute_templates', # processor name
-    {"timeseries":'data/pre.mda.prv',"firings":'data/firings.npy.prv'}, # inputs
+    {"timeseries":'data/pre.mda.prv',"firings":'data/firings.mda.prv'}, # inputs
     {"templates_out":'data/templates.npy'}, # outputs
     {"clip_size":100} # parameters
 )
@@ -20,7 +20,7 @@ viz.view_templates(templates)
 
 mlp.runProcess(
     'ephys.compute_cross_correlograms',
-    {"firings":'data/firings.npy.prv'},
+    {"firings":'data/firings.mda.prv'},
     {"correlograms_out":'data/autocorrelograms.hdf5'},
     {"samplerate":30000,"max_dt_msec":50,"bin_size_msec":2,"mode":'autocorrelograms'}
 )
