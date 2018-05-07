@@ -20,7 +20,11 @@ Alex Morley has a project and vision for applying continuous integration princip
 
 ## Installation
 
-Using Linux is highly recommended. We expect this to work on Mac OSX as well, but have not yet tested it. At some point, this may run on windows.
+Using Linux is recommended.
+
+This should also work on Mac OS X, but has not been very well tested. See [notes on OS X](./docs/notes_on_osx.md).
+
+At some point, this may run on windows.
 
 Note: If you have a prior version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system, see below).
 
