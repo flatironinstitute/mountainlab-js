@@ -73,10 +73,11 @@ program
 
 program
   .command('prv-locate [prv-file-name]')
-  .description('Locate a file corresponding to a prv record.')
+  .description('Locate a file corresponding to a prv record. Prints file name (or URL) to stdout.')
   .option('--sha1 [sha1]','If prv file is not provided, specify the sha1.')
   .option('--size [size]','If prv file is not provided, specify the size.')
   .option('--fcs [fcs]','If prv file is not provided, specify the fcs.')
+  .option('--remote','Search remotely on kbucket rather than on local disk.')
   .action(function (prv_file_name, cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_locate(prv_file_name,cmd,function(err) {
       if (err) {

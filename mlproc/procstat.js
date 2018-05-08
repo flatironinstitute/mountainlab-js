@@ -8,7 +8,7 @@ var opts={
 };
 var pid=Number(CLP.unnamedParameters[0]||0);
 if (!pid) {
-	console.log('Usage: procstat [pid] [--out=rss|etime|cputime|%cpu|%mem]');
+	console.log ('Usage: procstat [pid] [--out=rss|etime|cputime|%cpu|%mem]');
 	return;
 }
 var out=CLP.namedParameters['out']||'';
@@ -35,10 +35,10 @@ get_all_descendant_pids(pid,function(pids) {
 		}
 		if (opts.maxima_only) delete output['processes'];
 		if (out) {
-			console.log(output.maxima[out]);
+			console.log (output.maxima[out]);
 		}
 		else {
-			console.log(JSON.stringify(output,null,4));	
+			console.log (JSON.stringify(output,null,4));	
 		}
 	});
 
@@ -63,10 +63,10 @@ get_all_descendant_pids(pid,function(pids) {
 		}
 		if (opts.maxima_only) delete output['processes'];
 		if (out) {
-			console.log(output.maxima[out]);
+			console.log (output.maxima[out]);
 		}
 		else {
-			console.log(JSON.stringify(output,null,4));	
+			console.log (JSON.stringify(output,null,4));	
 		}
 		
 	});

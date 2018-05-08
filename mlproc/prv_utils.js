@@ -11,7 +11,6 @@ var sha1=require('node-sha1');
 function cmd_prv_locate(prv_fname,opts,callback) {
 	prv_locate(prv_fname,opts,function(err,path) {
 		if (err) {
-			console.error(err);
 			callback(err);
 			return;
 		}
@@ -89,6 +88,30 @@ function prv_locate(prv_fname,opts,callback) {
 			prv_version:'0.11'
 		}
 	}
+
+	if ('remote' in opts) {
+		var kbucket_url=process.env.KBUCKET_URL;
+		var url=kbucket_url+'/stat/'+obj.original_checksum;
+		var url2=kbucket_url+'/download/'+obj.original_checksum;
+		nodejs_http_get_json(url,{},function(obj) {
+			if (!obj.success) {
+				callback('Error checking on kbucket: '+obj.error);
+				return;
+			}
+			obj=obj.object;
+			if (!obj.success) {
+				callback('Error checking on kbucket (*): '+obj.error);
+				return;
+			}
+			if (!obj.found) {
+				callback('File not found on kbucket.');
+				return;
+			}
+			callback('',url2);
+		});
+		return;
+	}
+
 	var prv_search_paths=common.prv_search_directories();
 
 	var sha1=obj.original_checksum||'';
@@ -381,4 +404,40 @@ function prv_locate_in_path(path,sha1,fcs,size,callback) {
 	},function() {
 		callback('',''); //not found
 	});
+}
+
+function nodejs_http_get_text(url,headers,callback) {
+        if (!callback) {
+                callback=headers;
+                headers=null;
+        }
+        require('request').get({url:url,headers:headers},function(err,response,body) {
+            if (err) {
+                    if (callback) callback({success:false,error:err.message});
+                    return;
+            }
+            if (callback) callback({success:true,text:body});
+        });
+}
+function nodejs_http_get_json(url,headers,callback) {
+	if (!callback) {
+		callback=headers;
+		headers=null;
+	}
+	nodejs_http_get_text(url,headers,function(tmp) {
+      if (!tmp.success) {
+        callback(tmp);
+        return;
+      }
+      var obj;
+      try {
+        obj=JSON.parse(tmp.text);
+      }
+      catch(err) {
+      	console.log ('Error parsing: '+tmp.text);
+        callback({success:false,error:'Error parsing.'});
+        return;
+      }
+      callback({success:true,object:obj});
+    });
 }
