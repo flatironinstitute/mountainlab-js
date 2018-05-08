@@ -20,7 +20,11 @@ Alex Morley has a project and vision for applying continuous integration princip
 
 ## Installation
 
-Using Linux is highly recommended. We expect this to work on Mac OSX as well, but have not yet tested it. At some point, this may run on windows.
+Using Linux is recommended.
+
+This should also work on Mac OS X, but has not been very well tested. See [notes on OS X](./docs/notes_on_osx.md).
+
+At some point, this may run on windows.
 
 Note: If you have a prior version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system, see below).
 
@@ -108,6 +112,13 @@ The following are some of the configuration variables (they each have a default 
 * `ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES` -- optional additional directories to search for packages (colon separated list)
 * `ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES` -- optional additional directories to search for files pointed to by .prv objects
 
+### Step 5: Install additional programs
+
+If you are doing spike sorting, then you will also want to install the following for visualization:
+
+[ephys-viz](https://github.com/flatironinstitute/ephys-viz) - Widgets for visualization of electrophysiology experiments and the results of spike sorting.
+
+
 ## Command reference
 
 The following commands are available from any terminal. Use the `--help` flag on any of these to get more detailed information.
@@ -116,7 +127,7 @@ The following commands are available from any terminal. Use the `--help` flag on
 * `ml-lari-start`  Start a lari server, making your local machine a processing server
 * `ml-list-processors`  List all registered processors on the local machine
 * `ml-prv-create`  Create a new .prv file based on an existing data file (computes the sha1sum, etc)
-* `ml-prv-locate`  Locate a file on the local machine based on a .prv file
+* `ml-prv-locate`  Locate a file on the local machine (or remotely) based on a .prv file
 * `ml-prv-sha1sum`  Compute the sha1sum of a data file (uses a cache for efficiency)
 * `ml-prv-stat`  Compute the prv object for a data file (uses a cache for efficiency)
 * `ml-queue-process`  Queue a processor job for running when resources become available
