@@ -44,10 +44,13 @@ Virtual environments (virtualenv) provide a tidy way to manage python packages, 
 
 ```
 pip3 install virtualenv
+```
+Note: you may need to use a different method for installing virtualenv. For example, on Ubuntu it could be that you need instead something like `sudo apt install virtualenv`.
+
+```
 cd ~
 virtualenv -p python3 ml-env
 ```
-
 To activate this virtualenv, use:
 
 ```
