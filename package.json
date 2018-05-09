@@ -8,7 +8,7 @@
   "main": "",
   "scripts": {
     "postinstall": "(cd mlproc && npm install && cd ..); (cd lari && npm install && cd ..); (cd system-packages/kbucket_upload && npm install && cd ../..)",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "test/test.sh"
   },
   "repository": {
     "type": "git",
