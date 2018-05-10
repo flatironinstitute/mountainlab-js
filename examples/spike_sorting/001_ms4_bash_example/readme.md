@@ -1,19 +1,28 @@
-This example shows how to run mountainlab processors from a bash script. It synthesizes ephys data and then runs spike sorting. All input and output files are stored in the data/ subdirectory.
+This example shows how to run the MountainSort v4 spike sorting algorithm using a bash script
 
-Instructions:
+First you must install the latest version of mountainlab-js, and the following mountainlab packages:
+* ml_ephys
+* ml_ms4alg
 
-Run
-
-```
-./simple_bash_example.sh
-```
-
-to create a synthetic timeseries and run spike sorting.
-
-Then visualize the results with 
+Create a synthetic dataset by running:
 
 ```
-./view_results.py
+./synthesize_dataset.sh
 ```
 
-Results are stored in the data/ directory. Here we use all .prv files. You can use ml-prv-locate to find the location of those files in the temporary directory. But you can also remove the .prv extensions in the scripts to get the actual data files.
+This will create some files in dataset/
+
+Next, run the spike sorting:
+
+```
+./ms4_sort_bash.sh
+```
+
+This should create output in output/
+
+Now, view the results:
+
+```
+./view_templates.sh
+./view_timeseries.sh
+```
