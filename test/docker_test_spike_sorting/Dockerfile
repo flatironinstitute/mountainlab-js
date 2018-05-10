@@ -26,15 +26,18 @@ RUN apt-get update && \
     python3 python3-pip
 
 # Install mountainlab-js
-RUN git clone https://github.com/flatironinstitute/mountainlab-js /working/mountainlab-js
+WORKDIR /working
+ADD https://api.github.com/repos/flatironinstitute/mountainlab-js/git/refs/heads/master version-mountainlab-js.json
+RUN git clone https://github.com/flatironinstitute/mountainlab-js
 WORKDIR /working/mountainlab-js
 RUN npm install --unsafe-perm # unsafe-perm is required here because we are root
+ENV PATH /working/mountainlab-js/bin:$PATH
 
 # Install packages
 RUN mkdir -p /working/.mountainlab/packages
 WORKDIR /working/.mountainlab/packages
 ENV ML_PACKAGE_SEARCH_DIRECTORY /working/.mountainlab/packages
-ENV PATH /working/mountainlab-js/bin:$PATH
+
 
 RUN git clone https://github.com/magland/ml_ephys
 RUN cd ml_ephys && pip3 install --upgrade -r requirements.txt

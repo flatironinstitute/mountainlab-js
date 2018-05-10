@@ -71,17 +71,20 @@ var handle_api_direct=require(__dirname+'/lariapi.js').handle_api_direct;
 
 var express = require('express');
 
+if ((!process.env.LARI_LISTEN_PORT)&&(!process.env.LARI_HUB_URL)) {
+	process.env.LARI_LISTEN_PORT="*"
+	//console.error('You must set at least one of the following environment variables: LARI_LISTEN_PORT, LARI_HUB_URL');
+	//console.error('You can do this in the mountainlab configuration file.');
+	//console.error('Use LARI_LISTEN_PORT=* to use the default port.');
+	//process.exit(-1);
+}
+
 // * means to set the default listen port (important for heroku, which assigns the port via the PORT env var)
 if (process.env.LARI_LISTEN_PORT=='*') {
 	process.env.LARI_LISTEN_PORT=process.env.PORT||6057;
 }
 
-if ((!process.env.LARI_LISTEN_PORT)&&(!process.env.LARI_HUB_URL)) {
-	console.error('You must set at least one of the following environment variables: LARI_LISTEN_PORT, LARI_HUB_URL');
-	console.error('You can do this in the mountainlab configuration file.');
-	console.error('Use LARI_LISTEN_PORT=* to use the default port.');
-	process.exit(-1);
-}
+
 
 if (process.env.LARI_LISTEN_PORT) {
 	// In this case we need to listen for http or https requests
