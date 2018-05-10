@@ -21,6 +21,7 @@
   "dependencies": {
     "canonical-json": "latest",
     "dotenv": "latest",
+    "expand-home-dir": "0.0.3",
     "mongodb": "latest",
     "node-sha1": "latest",
     "request": "^2.85.0"

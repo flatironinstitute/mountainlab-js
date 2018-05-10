@@ -255,6 +255,10 @@ function package_search_directories(opts) {
 		if (ml_additional_packages_paths[i])
 			list.push(ml_additional_packages_paths[i]);
 	}
+	for (var i in list) {
+		// the following seems to be necessary on some systems (issue reported by Mari)
+		list[i]=require('expand-home-dir')(list[i]);
+	}
 	return list;
 }
 
