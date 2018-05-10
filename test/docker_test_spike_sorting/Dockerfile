@@ -38,10 +38,11 @@ RUN mkdir -p /working/.mountainlab/packages
 WORKDIR /working/.mountainlab/packages
 ENV ML_PACKAGE_SEARCH_DIRECTORY /working/.mountainlab/packages
 
-
+ADD https://api.github.com/repos/magland/ml_ephys/git/refs/heads/master version-ml_ephys.json
 RUN git clone https://github.com/magland/ml_ephys
 RUN cd ml_ephys && pip3 install --upgrade -r requirements.txt
 
+ADD https://api.github.com/repos/magland/ml_ms4alg/git/refs/heads/master version-ml_ms4alg.json
 RUN git clone https://github.com/magland/ml_ms4alg
 RUN cd ml_ms4alg && pip3 install --upgrade -r requirements.txt
 

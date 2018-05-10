@@ -397,6 +397,7 @@ function add_processor_job_to_queue(spec0,inputs,outputs,parameters,callback) {
 }
 
 function check_queued_job_ready_to_run(job_id,callback) {
+	if (debugging) console.log('check_queued_job_ready_to_run');
 	db_utils.findDocuments('processor_jobs',{},function(err,docs) {
 		if (err) {
 			callback(err);
@@ -437,8 +438,13 @@ function check_queued_job_ready_to_run(job_id,callback) {
 			callback('Unable to find queued job in database.');
 			return;
 		}
+		if (debugging) console.log('earliest_queued_index='+earliest_queued_index);
+		if (debugging) console.log('this_job_index='+this_job_index);
+		if (debugging) console.log('num_running='+num_running);
+		if (debugging) console.log('max_num_simultaneous_processor_jobs='+max_num_simultaneous_processor_jobs);
 		if ((num_running>=max_num_simultaneous_processor_jobs)&&(earliest_queued_index==this_job_index)) {
 			//ready
+			if (debugging) console.log('looks like we are ready');
 			doc0=docs[this_job_index];
 			doc0.status='running';
 			db_utils.saveDocument('processor_jobs',doc0,function(err) {
@@ -451,6 +457,7 @@ function check_queued_job_ready_to_run(job_id,callback) {
 		}
 		else {
 			//not ready
+			if (debugging) console.log('not ready yet');
 			doc0=docs[this_job_index];
 			doc0.checked_timestamp=(new Date())-0;
 			db_utils.saveDocument('processor_jobs',doc0,function(err) {
@@ -473,8 +480,11 @@ function check_queued_job_ready_to_run(job_id,callback) {
 	}
 }
 
+var debugging=false;
+
 function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 	// TODO: finish this
+	if (debugging) console.log('wait_for_ready_run');
 	compute_input_file_stats(inputs,function(err,input_file_stats) {
 		if (err) {
 			callback(err);
@@ -487,11 +497,13 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 			}
 			do_check();
 			function do_check() {
+				if (debugging) console.log('do_check');
 				check_input_file_stats_are_consistent(inputs,input_file_stats,function(err) {
 					if (err) {
 						callback(err);
 						return;
 					}
+					console.log('input file stats are consistent');
 					check_queued_job_ready_to_run(job_id,function(err,ready) {
 						if (err) {
 							callback(err);
