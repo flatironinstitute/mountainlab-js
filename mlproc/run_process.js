@@ -442,7 +442,7 @@ function check_queued_job_ready_to_run(job_id,callback) {
 		if (debugging) console.log('this_job_index='+this_job_index);
 		if (debugging) console.log('num_running='+num_running);
 		if (debugging) console.log('max_num_simultaneous_processor_jobs='+max_num_simultaneous_processor_jobs);
-		if ((num_running>=max_num_simultaneous_processor_jobs)&&(earliest_queued_index==this_job_index)) {
+		if ((num_running<max_num_simultaneous_processor_jobs)&&(earliest_queued_index==this_job_index)) {
 			//ready
 			if (debugging) console.log('looks like we are ready');
 			doc0=docs[this_job_index];
@@ -503,7 +503,7 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 						callback(err);
 						return;
 					}
-					console.log('input file stats are consistent');
+					if (debugging) console.log('input file stats are consistent');
 					check_queued_job_ready_to_run(job_id,function(err,ready) {
 						if (err) {
 							callback(err);
