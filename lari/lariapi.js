@@ -341,7 +341,7 @@ function handle_api_main(cmd,query,closer,callback) {
 			callback("Invalid query.");	
 			return;
 		}
-		var pp=execute_and_read_output('ml-prv-locate',['--sha1='+query.checksum,'--size='+query.size,'--fcs='+(query.fcs||'')],{},function(err,path) {
+		var pp=execute_and_read_output('ml-prv-locate',['--sha1='+query.checksum,'--size='+query.size,'--fcs='+(query.fcs||''),'--original_path='+(query.original_path||'')],{},function(err,path) {
 			path=path.trim();
 			if (err) {
 				callback('Error in ml-prv-locate: '+err);

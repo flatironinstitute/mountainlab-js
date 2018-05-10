@@ -173,7 +173,7 @@ BJ.getSpec(function(err,spec) {
 		
 		var results=BJ.results();
 		for (var oname in outputs) {
-			if (!outputs2[oname] in results) {
+			if ((!outputs2[oname] in results)||(!results[outputs2[oname]])) {
 				console.error('Output not assigned in script: '+oname);
 				process.exit(-1);
 			}

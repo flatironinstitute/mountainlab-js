@@ -715,6 +715,10 @@ function BatchJob(O,lari_client) {
           _mls_pending_output:inputs2[iname]._mls_pending_output
         });
       }
+      if (!inputs2[iname]) {
+        //in this case we will delete the input (e.g., it may be an empty string)
+        delete inputs2[iname];
+      }
     }
     var PP={
       processor_name:processor_name,

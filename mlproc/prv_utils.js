@@ -85,6 +85,7 @@ function prv_locate(prv_fname,opts,callback) {
 			original_checksum:opts.sha1,
 			original_size:opts.size,
 			original_fcs:opts.fcs,
+			original_path:opts.original_path||'',
 			prv_version:'0.11'
 		}
 	}
@@ -112,54 +113,70 @@ function prv_locate(prv_fname,opts,callback) {
 		return;
 	}
 
-	var prv_search_paths=common.prv_search_directories();
-
-	var sha1=obj.original_checksum||'';
-	var fcs=obj.original_fcs||'';
-	var size=obj.original_size||'';
-	if (!sha1) {
-		callback('original_checksum field not found in prv file: '+prv_fname);
-		return;
-	}
-	if (opts.verbose) {
-		console.log ('sumit.find_doc_by_sha1 '+sha1+' '+prv_search_paths.join(':'));
-	}
-	sumit.find_doc_by_sha1(sha1,prv_search_paths,opts,function(err,doc0) {
-		if (err) {
-			callback(err);
-			return;
-		}
-		if (doc0) {
-			callback('',doc0.path);
-			return;
-		}
-		if ((!sha1)||(!size)||(!fcs)) {
-			callback('Missing fields in prv file: '+prv_fname);
-			return;
-		}
-
-		if (opts.verbose) {
-			console.log (`Document not found in database, searching on disk...`);
-		}
-		common.foreach_async(prv_search_paths,function(ii,path0,cb) {
-			prv_locate_in_path(path0,sha1,fcs,size,function(err,fname) {
-				if (err) {
-					callback(err);
-					return;
-				}
-				if (fname) {
-					callback('',fname);
-					return;
-				}
-				cb();
-			});
-		},function() {
-			if (opts.verbose) {
-				console.log ('Not found.');
+	if ((obj.original_path)&&(require('fs').existsSync(obj.original_path))) {
+		sumit.compute_file_sha1(obj.original_path,function(err,sha1) {
+			if ((!err)&&(sha1==obj.original_checksum)) {
+				callback(null,obj.original_path);
+				return;
 			}
-			callback('',''); //not found
+			proceed();
 		});
-	});
+	}
+	else {
+		proceed();
+	}
+
+	function proceed() {
+
+		var prv_search_paths=common.prv_search_directories();
+
+		var sha1=obj.original_checksum||'';
+		var fcs=obj.original_fcs||'';
+		var size=obj.original_size||'';
+		if (!sha1) {
+			callback('original_checksum field not found in prv file: '+prv_fname);
+			return;
+		}
+		if (opts.verbose) {
+			console.log ('sumit.find_doc_by_sha1 '+sha1+' '+prv_search_paths.join(':'));
+		}
+		sumit.find_doc_by_sha1(sha1,prv_search_paths,opts,function(err,doc0) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			if (doc0) {
+				callback('',doc0.path);
+				return;
+			}
+			if ((!sha1)||(!size)||(!fcs)) {
+				callback('Missing fields in prv file: '+prv_fname);
+				return;
+			}
+
+			if (opts.verbose) {
+				console.log (`Document not found in database, searching on disk...`);
+			}
+			common.foreach_async(prv_search_paths,function(ii,path0,cb) {
+				prv_locate_in_path(path0,sha1,fcs,size,function(err,fname) {
+					if (err) {
+						callback(err);
+						return;
+					}
+					if (fname) {
+						callback('',fname);
+						return;
+					}
+					cb();
+				});
+			},function() {
+				if (opts.verbose) {
+					console.log ('Not found.');
+				}
+				callback('',''); //not found
+			});
+		});
+	}
 }
 
 function prv_create(fname,callback) {
@@ -179,7 +196,7 @@ function prv_create(fname,callback) {
 			original_checksum:sha1,
 			original_size:stat0.size,
 			original_fcs:fcs,
-			original_path:fname,
+			original_path:require('path').resolve(fname),
 			prv_version:'0.11'
 		};
 		callback('',obj);

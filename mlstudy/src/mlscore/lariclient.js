@@ -99,7 +99,7 @@ function LariClient() {
 	}
 
 	function findFile(prv,opts,callback) {
-		api_call('find-file',{checksum:prv.original_checksum,fcs:prv.original_fcs,size:prv.original_size},{},function(err,resp) {
+		api_call('find-file',{checksum:prv.original_checksum,fcs:prv.original_fcs,size:prv.original_size,original_path:prv.original_path},{},function(err,resp) {
 			if (err) {
 				callback(err);
 				return;
