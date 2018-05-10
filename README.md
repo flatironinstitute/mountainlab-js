@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/flatironinstitute/mountainlab-js.svg?branch=master)](https://travis-ci.org/flatironinstitute/mountainlab-js)
+
 # MountainLab (JavaScript implementation)
 
 MountainLab is data processing, sharing and visualization software for scientists. It is built around MountainSort, spike sorting software, but is designed to be much more generally applicable.
