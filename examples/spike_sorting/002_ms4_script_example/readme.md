@@ -4,6 +4,8 @@ First you must install the latest version of mountainlab-js, and the following m
 * ml_ephys
 * ml_ms4alg
 
+(Be sure to update those packages regularly as new processors may be added, or existing processors may be udpated)
+
 Create a synthetic dataset by running:
 
 ```
@@ -26,3 +28,11 @@ Now, view the results:
 ./view_templates.sh
 ./view_timeseries.sh
 ```
+
+Compare with ground truth:
+
+```
+./compare.sh
+```
+
+This will create `output/comparison.json`
