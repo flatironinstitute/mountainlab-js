@@ -22,3 +22,8 @@ ml-run-process ephys.compute_templates \
 	--parameters \
 		clip_size:150
 
+ml-run-process ephys.compute_cluster_metrics \
+	--inputs timeseries:dataset/raw.mda.prv firings:output/firings.mda.prv \
+	--outputs metrics_out:output/basic_metrics.json \
+	--parameters samplerate:30000
+
