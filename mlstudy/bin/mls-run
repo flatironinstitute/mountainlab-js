@@ -206,8 +206,14 @@ BJ.getSpec(function(err,spec) {
 	lari_client.getStats({},function(err0,stats0) {
 		if (err0) {
 			console.error(err0);
-			if (using_local_lari_server)
-				console.error(`Error connecting to local lari server (${lari_server_url}). To run a server locally, open a separate terminal and run "ml-lari-start".`);
+			if (using_local_lari_server) {
+				console.log ('Unable to connect to local lari server.');
+				console.log ('');
+				console.log (`To run a server locally, open a separate terminal and run "ml-lari-start".`);
+				console.log (`Note: if you are in a python virtualenv, you will probably want to use the same virtualenv when running the local server.`);
+				console.log ('');
+				console.error(`Error connecting to local lari server (${lari_server_url}). See instructions above.`);
+			}
 			else
 				console.error(`Error connecting to lari server at ${lari_server_url}. Container=${container_id}`);
 			process.exit(-1);
