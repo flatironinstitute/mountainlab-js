@@ -342,7 +342,8 @@ function handle_api_main(cmd,query,closer,callback) {
 			return;
 		}
 		var pp=execute_and_read_output('ml-prv-locate',['--sha1='+query.checksum,'--size='+query.size,'--fcs='+(query.fcs||''),'--original_path='+(query.original_path||'')],{},function(err,path) {
-			path=path.trim();
+			var list=path.trim().split('\n');
+			path=list[list.length-1];
 			if (err) {
 				callback('Error in ml-prv-locate: '+err);
 				return;
@@ -371,7 +372,8 @@ function handle_api_main(cmd,query,closer,callback) {
 			return;
 		}
 		var pp=execute_and_read_output('ml-prv-locate',['--sha1='+query.checksum,'--size='+query.size,'--fcs='+(query.fcs||'')],{},function(err,path) {
-			path=path.trim();
+			var list=path.trim().split('\n');
+			path=list[list.length-1];
 			var size0=Number(query.size);
 			if (size0>1024*1024) {
 				callback('Cannot get file content for file of size '+size0);
