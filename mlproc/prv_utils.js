@@ -72,6 +72,7 @@ function cmd_prv_create(fname,prv_fname_out,opts,callback) {
 
 function prv_locate(prv_fname,opts,callback) {
 	opts=opts||{};
+	opts.verbose=Number(opts.verbose||0);
 	var obj=null;
 	if (prv_fname) {
 		obj=common.read_json_file(prv_fname);
@@ -90,10 +91,18 @@ function prv_locate(prv_fname,opts,callback) {
 		}
 	}
 
+	if (opts.verbose>=1) {
+		console.log ('Searching for prv object:');
+		console.log (JSON.stringify(obj,null,4));
+	}
+
 	if ('remote' in opts) {
 		var kbucket_url=process.env.KBUCKET_URL;
 		var url=kbucket_url+'/stat/'+obj.original_checksum;
 		var url2=kbucket_url+'/download/'+obj.original_checksum;
+		if (opts.verbose>=1) {
+			console.log ('Getting: '+url);
+		}
 		nodejs_http_get_json(url,{},function(obj) {
 			if (!obj.success) {
 				callback('Error checking on kbucket: '+obj.error);
@@ -114,6 +123,9 @@ function prv_locate(prv_fname,opts,callback) {
 	}
 
 	if ((obj.original_path)&&(require('fs').existsSync(obj.original_path))) {
+		if (opts.verbose>=1) {
+			console.log ('Trying original path: '+obj.original_path);
+		}
 		sumit.compute_file_sha1(obj.original_path,function(err,sha1) {
 			if ((!err)&&(sha1==obj.original_checksum)) {
 				callback(null,obj.original_path);
@@ -137,7 +149,7 @@ function prv_locate(prv_fname,opts,callback) {
 			callback('original_checksum field not found in prv file: '+prv_fname);
 			return;
 		}
-		if (opts.verbose) {
+		if (opts.verbose>=1) {
 			console.log ('sumit.find_doc_by_sha1 '+sha1+' '+prv_search_paths.join(':'));
 		}
 		sumit.find_doc_by_sha1(sha1,prv_search_paths,opts,function(err,doc0) {
@@ -154,7 +166,7 @@ function prv_locate(prv_fname,opts,callback) {
 				return;
 			}
 
-			if (opts.verbose) {
+			if (opts.verbose>=1) {
 				console.log (`Document not found in database, searching on disk...`);
 			}
 			common.foreach_async(prv_search_paths,function(ii,path0,cb) {
@@ -170,7 +182,7 @@ function prv_locate(prv_fname,opts,callback) {
 					cb();
 				});
 			},function() {
-				if (opts.verbose) {
+				if (opts.verbose>=1) {
 					console.log ('Not found.');
 				}
 				callback('',''); //not found
@@ -215,7 +227,7 @@ sumit.file_matches_doc=function(path,doc0) {
 	return false;
 }
 sumit.find_doc_by_sha1=function(sha1,valid_prv_search_paths,opts,callback) {
-	if (opts.verbose) {
+	if (opts.verbose>=1) {
 		console.log (`Finding documents for sha1=${sha1}`);
 	}
 	db_utils.findDocuments('sumit',{sha1:sha1},function(err,docs) {
@@ -227,7 +239,7 @@ sumit.find_doc_by_sha1=function(sha1,valid_prv_search_paths,opts,callback) {
 			callback(null,null);
 			return;
 		}
-		if (opts.verbose) {
+		if (opts.verbose>=1) {
 			console.log (`Found ${docs.length} documents.`);
 		}
 		for (var i in docs) {

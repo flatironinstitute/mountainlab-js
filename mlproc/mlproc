@@ -79,6 +79,7 @@ program
   .option('--fcs [fcs]','If prv file is not provided, specify the fcs.')
   .option('--original_path [original_path]','If prv file is not provided, optionally specify the original path.')
   .option('--remote','Search remotely on kbucket rather than on local disk.')
+  .option('--verbose [level]','Level of verbosity for debugging')
   .action(function (prv_file_name, cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_locate(prv_file_name,cmd,function(err) {
       if (err) {
