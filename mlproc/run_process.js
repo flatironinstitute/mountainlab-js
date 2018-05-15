@@ -238,7 +238,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 	function finalize(err00) {
 		remove_temporary_directory(tempdir_path,function(err) {
 			if (err) {
-				console.warn('Error removing temporary directory: '+tempdir_path);
+				console.warn('Error removing temporary directory ('+tempdir_path+'): '+err);
 			}
 			if (!err00) {
 				console.log ('[ Done. ]')
