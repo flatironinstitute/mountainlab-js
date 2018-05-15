@@ -283,6 +283,10 @@ sumit.compute_file_sha1=function(path,callback) {
 		callback('Unable to stat file: '+path,'');
 		return;
 	}
+	if (!stat0.isFile()) {
+		callback('Not file type: '+path,'');
+		return;
+	}
 	sumit.find_doc_by_path(path,function(err,doc0) {
 		if (err) {
 			callback(err);
