@@ -36,4 +36,9 @@ Compare with ground truth:
 ./compare.sh
 ```
 
-This will create `output/comparison.json`
+This will create `output/comparison.json`, which can be viewed:
+
+```
+./view_sort_comparison.sh
+```
+
