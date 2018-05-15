@@ -116,7 +116,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 				return;
 			}
 			if (doc0) {
-				console.log ('[ Process already completed. ]');
+				console.log (`[ Process ${processor_name} already completed. ]`);
 				already_completed=true;
 			}
 			cb();

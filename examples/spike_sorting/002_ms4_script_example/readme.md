@@ -27,6 +27,7 @@ Now, view the results:
 ```
 ./view_templates.sh
 ./view_timeseries.sh
+./view_cluster_metrics.sh
 ```
 
 Compare with ground truth:
