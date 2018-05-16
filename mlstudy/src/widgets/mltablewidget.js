@@ -24,6 +24,7 @@ function MLTableWidget(O) {
 	O=O||this;
 	JSQWidget(O);
 	O.div().addClass('MLTableWidget');
+	O.div().addClass('h-100');
 
 	this.setColumnCount=function(num) {setColumnCount(num);}; 
 	this.clearRows=function() {m_rows=[]; schedule_refresh();};
