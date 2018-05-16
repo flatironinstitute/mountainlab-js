@@ -15,6 +15,8 @@ var program = require('commander');
 
 var db_utils=require(__dirname+'/db_utils.js');
 
+process.env.KBUCKET_URL=process.env.KBUCKET_URL||'https://kbucket.flatironinstitute.org';
+
 // When SIGINT or SIGTERM is received, we cleanup by stopping the running process and removing the temporary directory, prior to truly exiting with error code -1
 process.on('SIGTERM', cleanup_and_exit);
 process.on('SIGINT', cleanup_and_exit);
