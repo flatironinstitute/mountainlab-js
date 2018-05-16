@@ -65,4 +65,4 @@ To deactivate, simply run:
 deactivate
 ```
 
-I personally put the above ```source ...``` line in my .bashrc file so that every time I open a terminal, I am in the default virtualenv.
+I personally put the above ```source ...``` line in my .bashrc file so that every time I open a terminal, I am in the default virtualenv. However, if you use pip to install packages without sudo then it installs them in `~/.local/lib/python3.6/site-packages` or similar so it is not really necessary to do this.
