@@ -20,6 +20,7 @@ function print_usage() {
 	console.log ('    --results=[/path/to/output]');
 	console.log ('    --server=[url of lari server, empty for local, * for default remote]');
 	console.log ('    --container=[container id for processing server]');
+	console.log ('    --auto_download');
 }
 
 var CLP=new CLParamsWithIOP(process.argv);
@@ -87,7 +88,7 @@ BJ.setStudyObject(study);
 BJ.setDocStorClient(DSC);
 BJ.setKBucketUrl('https://kbucket.flatironinstitute.org'); //todo
 BJ.setAutoDownload(false);
-if (CLP.namedParameters['auto_download']=='true') {
+if ('auto_download' in CLP.namedParameters) {
 	BJ.setAutoDownload(true);
 }
 BJ.getSpec(function(err,spec) {
