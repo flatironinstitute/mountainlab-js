@@ -1,0 +1,50 @@
+<span id="template-AltMLSWebModuleWidget">
+	<div class="" style="display:flex;flex-flow:column;width:60%">
+		<div class="" style="display:flex;flex-flow:row">
+			<div class="btn-group" data-toggle="buttons">
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			  <label class="btn btn-secondary content_mode active">
+			    <input type="radio" name="options" id="JavaScript" autocomplete="off"  data-content-mode="JavaScript" checked> JavaScript
+			  </label>
+			  &nbsp;
+			  <label class="btn btn-secondary content_mode">
+			    <input type="radio" name="options" id="HTML" autocomplete="off" data-content-mode="HTML"> HTML
+			  </label>
+			  &nbsp;
+			  <label class="btn btn-secondary content_mode">
+			    <input type="radio" name="options" id="CSS" autocomplete="off" data-content-mode="CSS"> CSS
+			  </label>
+			</div>
+			&nbsp;&nbsp;&nbsp;
+			<button class="btn btn-primary" id=show_popup style="max-height: 38px">Show popup</button>
+		</div>
+		<div class="" style="flex:1; overflow: auto">
+			<textarea class=code_editor></textarea>
+		</div>
+	</div>
+	<div class="" style="display:flex;flex-flow: column; width:40%; padding-left: 0px">
+		<!--
+		<div class="" style="height:60%">
+			<span id=results_widget></span>
+		</div>
+		-->
+		<div class="" style="height:100%;padding-top: 30px;">
+			<span id=log_widget></span>
+		</div>
+	</div>
+</span>
+
+<span id="template-PopupDialog">
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="myModalLabel"></h4>
+	      </div>
+	      <div class="modal-body">
+	      </div>
+	    </div>
+	  </div>
+	</div>
+</span>

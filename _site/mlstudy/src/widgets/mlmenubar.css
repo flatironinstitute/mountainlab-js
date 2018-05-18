@@ -1,0 +1,16 @@
+a.disabled {
+	color:lightgray !important;
+	cursor:default !important;
+}
+
+a.disabled:hover {
+	background-color:white !important;
+}
+
+.mlmenubar-menu-button {
+	cursor:default;
+}
+
+.mlmenubar-menu-button:hover {
+	color:lightblue;
+}

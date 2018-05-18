@@ -1,0 +1,33 @@
+{
+  "name": "mlstudy",
+  "version": "0.2.0",
+  "description": "",
+  "engines": {
+    "node": "6.12.3"
+  },
+  "main": "mlstudyserver.js",
+  "scripts": {
+    "start": "node mlstudyserver.js",
+    "postinstall": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development",
+    "webpack": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development",
+    "watch": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/magland/mlstudy2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "4.15.2"
+  },
+  "devDependencies": {
+    "css-loader": "^0.28.10",
+    "html-loader": "^0.5.5",
+    "style-loader": "^0.20.2",
+    "webpack": "^4.0.1",
+    "webpack-cli": "^2.0.9"
+  }
+}

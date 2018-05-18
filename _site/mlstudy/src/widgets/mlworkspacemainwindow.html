@@ -1,0 +1,178 @@
+<span>
+	<div class="MLWorkspaceMainWindow ml-vlayout" style="">
+		<div class="header_container ml-vlayout-item" style="flex:0 0 70px;overflow: visible">
+			<header class="navbar navbar-expand navbar-dark bd-navbar" style="background-color:#627DB7">
+			  <a class="navbar-brand" id=home_button href="#">MLStudy</a>
+			  <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+				  <li class="nav-item dropdown">
+				    <a class="nav-item nav-link dropdown-toggle mr-md-2" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				      Sign in
+				    </a>
+
+				    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+				      <a class="dropdown-item action_sign_in" href="#">
+				      	Sign in...
+				      </a>
+				      <div class="dropdown-divider"></div>
+				      <a class="dropdown-item action_sign_out" href="#">
+				      	Sign out
+				      </a>
+				    </div>
+				  </li>
+			  </ul>
+			</header>
+		</div>
+
+		<div class="mainwindow_below_header ml-vlayout-item" style="flex:1">
+			<div class="MLSMainWindow-Container ml-hlayout" style="">
+				<div class="ml-hlayout-item" style="flex:0 0 150px;">
+					<div class="ml-item-content">
+					    <div class="bd-sidebar" style="">
+					    	<nav class="" id="bd-docs-nav">
+
+					    		<div class="bd-toc-item active">
+					    			<a class="bd-toc-link" href="#">
+					              		Current workspace
+					            	</a>
+					            	<ul class="nav bd-sidenav">
+					            		<li data-content-id="home_view" class="active bd-sidenav-active">
+							            	<a href="#">Workspace overview</a>
+							            </li>
+							            <li data-content-id="files_view" class="">
+							            	<a href="#">Files</a>
+							            </li>
+							        </ul>
+					    		</div>
+
+					    		<div class="bd-toc-item active">
+					    			<a class="bd-toc-link" href="#">
+					              		Configuration
+					            	</a>
+					            	<ul class="nav bd-sidenav">
+					            		<li data-content-id="processing_server">
+							            	<a href="#">Processing server</a>
+							            </li>
+							            <li data-content-id="advanced_configuration">
+							            	<a href="#">Advanced</a>
+							            </li>
+							        </ul>
+					    		</div>
+
+					    		<div class="bd-toc-item active">
+					    			<a id="return_to_main_page" class="bd-toc-link" href="#">
+					              		Return to main page
+					            	</a>
+					    		</div>
+
+					    	</nav>
+						</div>
+
+					</div>
+				</div>
+				<div class="spacer ml-hlayout-item" style="flex:0 0 30px"></div>
+				<div class="main_window_right_of_navigation ml-hlayout-item" style="flex:1">
+					<div class="content_container ml-vlayout" style="">
+						<div class="workspace_top_bar ml-vlayout-item" style="flex:0 0 50px;overflow: visible"> <!-- need overflow:visible in order to see dropdown menu -->
+							<div class="" style="display:flex;flex-flow: row">
+								<ul class="nav navbar-nav">
+						          <li class="dropdown">
+						            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Workspace <span class="caret"></span></a>
+						            <ul class="dropdown-menu" style="padding:15px">
+						              <li><a href="#" id=new_workspace>New...</a></li>
+						              <li><a href="#" id=open_workspace>Open...</a></li>
+						              <li role="separator" class="divider"></li>
+						              <li><a href="#" id=save_workspace>Save</a></li>
+						              <li><a href="#" id=save_workspace_as>Save as...</a></li>
+						              <li><a href="#" id=download_workspace><nobr>Download workspace document</nobr></a></li>
+						              <li role="separator" class="divider"></li>
+						              <li><a href="#" id=share_workspace>Share...</a></li>
+						            </ul>
+						          </li>
+						        </ul>
+						        &nbsp;&nbsp;&nbsp;&nbsp;
+								<span id=document_info style="font-weight: bold;"></span>
+								&nbsp;&nbsp;&nbsp;&nbsp;
+								<button class="btn btn-primary btn-sm" disabled="disabled" id="save_changes">Save changes to workspace</button>
+								&nbsp
+								<button class="btn btn-primary btn-sm" id="spawn_jupyter_container">Spawn Jupyter Container</button>
+							</div>
+						</div>
+						<div id=content class="workspace_view ml-vlayout-item" style="flex:1">
+							<div class="tab-content" id="myTabContent" style="height:100%;">
+							  <div class="tab-pane fade show active" id="home_view" role="tabpanel" aria-labelledby="home-tab" style="height:100%;"></div>
+
+							  <div class="tab-pane fade show" id="files_view" role="tabpanel" aria-labelledby="files-tab" style="height:100%;"></div>
+
+							  <div class="tab-pane fade" id="processing_server" role="tabpanel" aria-labelledby="home-tab" style="height:100%;"></div>
+
+							  <div class="tab-pane fade" id="advanced_configuration" role="tabpanel" aria-labelledby="home-tab" style="height:100%;"></div>
+							</div>
+						</div>
+							
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="MLWHomeView ml-vlayout">
+		<div class="ml-vlayout-item" style="flex:0 0 80px">
+			<h3 style="">Workspace: <span id=workspace_title></span></h3>
+		</div>
+		<div class="ml-vlayout-item" style="flex:1 0 0">
+			<div class="ml-hlayout">
+				<div class="ml-hlayout-item" style="flex:0 0 50%">
+					<p>
+						<span style="font-weight:bold">Description:</span>
+						<span style="font-style:italic">
+							<span id=description_content></span>
+						</span>
+						<a href="#" id=edit_description class="octicon octicon-pencil" title="Edit study description"></a>
+					</p>
+				</div>
+				<div class="ml-hlayout-item" style="flex:0 0 50%">
+					<div class="ml-vlayout">
+						<ul>
+							<li><a href=# id=open_files><span id=num_files></span> files</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="MLWFilesView ml-hlayout" style="">
+		<div class="ml-hlayout-item" style="flex:0 0 200px">
+			<div class="ml-vlayout" style="">
+				<div class="ml-vlayout-item" style="flex:0 0 60px;overflow: visible">
+					<a href=# title="Add new file" id="add_file"><span class="octicon octicon-plus"></span> Add file</a>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<ul class="nav navbar-nav">
+			          <li class="dropdown">
+			            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">... <span class="caret"></span></a>
+			            <ul class="dropdown-menu" style="padding:15px">
+			              <li><nobr><a href="#" id=delete_selected>Delete selected files...</a></nobr></li>
+			            </ul>
+			          </li>
+			        </ul>
+				</div>
+				<div class="ml-vlayout-item" style="flex:1">
+					<span id=file_list>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="ml-hlayout-item" style="flex:1;">
+			<span id=file_widget>
+			</span>
+		</div>
+	</div>
+
+	<div class="MLWFileWidget ml-vlayout" style="">
+		<div class="ml-vlayout-item" style="flex:1;">
+			<textarea class=code_editor></textarea>
+		</div>
+	</div>
+
+</span>

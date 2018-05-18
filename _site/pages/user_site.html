@@ -1,0 +1,121 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Making a personal site</title>
+    <meta name="description" content="How to make a personal web page with GitHub Pages">
+    <meta name="author" content="Jeremy Magland & Alex Morley">
+
+    <!-- Enable responsive viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link href="/assets/themes/twitter/bootstrap/css/bootstrap.2.2.2.min.css" rel="stylesheet">
+    <link href="/assets/themes/twitter/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+    <link href="/assets/themes/twitter/css/kbroman.css" rel="stylesheet" type="text/css" media="all">
+
+    <!-- Le fav and touch icons -->
+
+    <!-- atom & rss feed -->
+    <link href="nil" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
+    <link href="nil" type="application/rss+xml" rel="alternate" title="Sitewide RSS Feed">
+
+  </head>
+
+  <body>
+    <div class="navbar">
+      <div class="navbar-inner">
+        <div class="container-narrow">
+          <a class="brand" href="/">MountainLab</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-narrow">
+
+      <div class="content">
+        
+
+<div class="page-header">
+  <h2>Making a personal site </h2>
+</div>
+
+<div class="row-fluid">
+  <div class="span12">
+    <p>Your <a href="https://pages.github.com">GitHub Pages</a> sites will appear at</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://username.github.io/some_site
+</code></pre></div></div>
+
+<p>Of course, this will be with <em>your</em> GitHub user name and with the
+names of your GitHub repositories.</p>
+
+<p>I’d recommend putting <em>something</em> at <code class="highlighter-rouge">https://username.github.io</code>,
+since people might look there. (When I started with GitHub Pages, I
+thought you were <em>required</em> to have such a site, but either they’ve
+changed things or I’m just mistaken; you don’t <em>need</em> this anymore.)</p>
+
+<p>You create one of these sites in much the same way as you
+<a href="independent_site">create an independent GitHub Pages site</a>. The only
+real differences are</p>
+
+<ul>
+  <li>The repository needs to be called <code class="highlighter-rouge">username.github.io</code></li>
+  <li>The site sits in the <code class="highlighter-rouge">master</code> branch rather than the <code class="highlighter-rouge">gh-pages</code> branch.</li>
+</ul>
+
+<p><em>My</em> personal site, <a href="https://kbroman.github.io">kbroman.github.io</a>
+(which shows up as <a href="http://kbroman.org">kbroman.org</a>; see the
+<a href="https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages">GitHub help page on setting up a custom domain</a>)
+is minimal and is actually written in straight html rather than
+<a href="https://daringfireball.net/projects/markdown/">Markdown</a>. If you
+want, you could just make an edited version of my site:</p>
+
+<ul>
+  <li>Clone my
+<a href="https://github.com/kbroman/kbroman.github.io">kbroman.github.io repository</a></li>
+  <li>Remove the <code class="highlighter-rouge">.git</code> directory</li>
+  <li>Edit <code class="highlighter-rouge">index.html</code>, <code class="highlighter-rouge">404.html</code>, <code class="highlighter-rouge">README.md</code>, and <code class="highlighter-rouge">License.md</code></li>
+  <li>Use <code class="highlighter-rouge">git init</code>, <code class="highlighter-rouge">git add</code>, <code class="highlighter-rouge">git commit</code></li>
+  <li>Create a new repository on GitHub named <code class="highlighter-rouge">username.github.io</code></li>
+  <li>Go back to the command line and do <code class="highlighter-rouge">git remote add</code> and
+<code class="highlighter-rouge">git push -u origin master</code></li>
+</ul>
+
+<p>Alternatively, you could use the procedure I described for
+<a href="independent_site.html">making an independent website</a>. The only thing
+you do differently is to use the <code class="highlighter-rouge">master</code> branch rather than a
+<code class="highlighter-rouge">gh-pages</code> branch.</p>
+
+<p>A final note: the <code class="highlighter-rouge">404.html</code> file will serve as the “page not
+found” page for <em>all</em> of your GitHub Pages (that is, if you
+<em>want</em> a personalized 404 page).</p>
+
+<h3 id="up-next">Up next</h3>
+
+<p>Now go to <a href="project_site.html">making a project site</a>.</p>
+
+  </div>
+</div>
+
+
+      </div>
+      <hr>
+      <footer>
+        <p><small>
+          <a href="http://www.apache.org/licenses/LICENSE-2.0"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Apache_Software_Foundation_Logo_%282016%29.svg/512px-Apache_Software_Foundation_Logo_%282016%29.svg.png" width="10%" alt="Apache"/></a> &nbsp;
+          <a href="https://www.simonsfoundation.org/flatiron/">Flatiron Institute</a>
+        </small></p>
+      </footer>
+
+    </div>
+  </body>
+</html>
+

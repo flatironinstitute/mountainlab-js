@@ -1,0 +1,23 @@
+-----------------------------------------------------------
+
+Using configuration from: $configuration_file$
+To change this, set the ML_CONFIG_FILE environment
+variable.
+
+The following environment variables are being used.
+They can be set in the configuration file (see above),
+although existing environment variables will not be
+overriden by these values.
+
+ML_TEMPORARY_DIRECTORY: $ML_TEMPORARY_DIRECTORY$
+ML_PACKAGE_SEARCH_DIRECTORY: $ML_PACKAGE_SEARCH_DIRECTORY$
+ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES: $ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES$
+ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES: $ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES$
+
+The following are the values actually being used:
+
+Temporary directory: $temporary_directory$
+Package search_directories: $package_search_directories$
+PRV search directories: $prv_search_directories$
+
+-----------------------------------------------------------

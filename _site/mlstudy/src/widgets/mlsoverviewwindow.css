@@ -1,0 +1,30 @@
+.MLSOverviewWindow {
+}
+
+.MLSOverviewWindow li {
+	margin-top:16px;
+	margin-bottom:16px;
+}
+
+.MLSOverviewWindow ul {
+	list-style:none;
+	padding-left:0;
+}
+
+.MLSOverviewWindow li {
+	font-size:18px;
+	padding:4px;
+	border-radius: 6px;
+	border:solid 1px rgb(50,80,50);
+	text-decoration: none;
+}
+
+.MLSOverviewLeftWindow-selected {
+	font-weight: bold;
+	background-color: rgb(100,160,100);
+	color:white;
+}
+
+.MLSOverviewRightWindow {
+	background: rgb(240,250,240);
+}
