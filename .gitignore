@@ -7,3 +7,4 @@ mountainlab-js-test
 npm*.log
 .ipynb*
 __pycache__
+_site
