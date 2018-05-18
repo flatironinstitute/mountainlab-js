@@ -188,9 +188,24 @@ In place of `ml-run-process`, you may substitute `ml-exec-process` to bypass the
 
 Some spike sorting examples can be found in the examples/spike_sorting directory. There should be one subdirectory per example, with a readme.md file for each.
 
-## Creating custom processor libraries
+## Custom processor libraries
 
-As mentioned above, you can create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see [creating custom processor libraries](docs/creating_custom_processor_libraries.md)
+Here is a list of user-contributed processor packages that we know of.
+You may git clone each of these into your `~/.mountainlab/packages/` directory:
+
+* [`ddms`](https://github.com/alexmorley/ddms):
+tools by Alex Morley for converting to/from neurosuite format.
+
+* Loren Frank's lab processors (to come)
+
+* [`ironclust`](https://github.com/jamesjun/ironclust): James Jun's
+CPU-only octave implementation of his [JRCLUST](https://github.com/JaneliaSciComp/JRCLUST/wiki) algorithm, wrapped as a processor.
+
+* [`ml_identity`](https://github.com/alexmorley/ml_identity):
+A set of "hello world" processors in python, to show how to make a simple
+processor and do file I/O.
+
+You can also create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see [creating custom processor libraries](docs/creating_custom_processor_libraries.md)
 
 ## Using processing scripts (.ml files)
 
