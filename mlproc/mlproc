@@ -140,7 +140,7 @@ function preprocess_run_process_argv(argv) {
   while (i<argv.length) {
     var arg0=argv[i];
     var do_combine=false;
-    if ((arg0=='--inputs')||(arg0=='-i')||(arg0=='--outputs')||(arg0=='-o')||(arg0=='--parameters')||(arg0=='-p'))
+    if ((arg0=='--inputs')||(arg0=='-i')||(arg0=='--outputs')||(arg0=='-o')||(arg0=='--parameters')||(arg0=='-p')||(arg0=='--iops'))
       do_combine=true;
     i++;
     if (do_combine) {
