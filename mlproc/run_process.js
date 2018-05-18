@@ -37,11 +37,13 @@ function remove_processor_job_from_database(job_id,callback) {
 }
 
 function run_process_2(processor_name,opts,spec0,callback) {
-	var inputs,outputs,parameters;
+	var inputs,outputs,parameters,iops;
 	try {
 		inputs=parse_iop(opts.inputs||'','input');
 		outputs=parse_iop(opts.outputs||'','output');
 		parameters=parse_iop(opts.parameters||'','parameter');
+		iops=parse_iop(opts.iops||'','iop');
+		separate_iops(inputs,outputs,parameters,iops,spec0.inputs||[],spec0.outputs||[],spec0.parameters||[]);
 		check_iop(inputs,spec0.inputs||[],'input');
 		check_iop(outputs,spec0.outputs||[],'output');
 		check_iop(parameters,spec0.parameters||[],'parameter');
@@ -842,6 +844,44 @@ function get_checksums_for_files(inputs,opts,callback) {
 	});
 }
 
+function separate_iops(inputs,outputs,parameters,iops,spec_inputs,spec_outputs,spec_parameters) {
+	var B_inputs={};
+	for (var i in spec_inputs) {
+		var key0=spec_inputs[i].name;
+		if (key0) {
+			B_inputs[key0]=spec_inputs[i];
+		}
+	}
+	var B_outputs={};
+	for (var i in spec_outputs) {
+		var key0=spec_outputs[i].name;
+		if (key0) {
+			B_outputs[key0]=spec_outputs[i];
+		}
+	}
+	var B_parameters={};
+	for (var i in spec_parameters) {
+		var key0=spec_parameters[i].name;
+		if (key0) {
+			B_parameters[key0]=spec_parameters[i];
+		}
+	}
+	for (var key in iops) {
+		if (key in B_inputs) {
+			inputs[key]=iops[key];
+		}
+		else if (key in B_outputs) {
+			outputs[key]=iops[key];
+		}
+		else if (key in B_parameters) {
+			parameters[key]=iops[key];
+		}
+		else {
+			throw new Error(`Unexpected argument: ${key}`);
+		}
+	}
+}
+
 function check_iop(A,Bspec,iop_name,opts) {
 	if (!opts) opts={};
 	var B={};
@@ -853,7 +893,7 @@ function check_iop(A,Bspec,iop_name,opts) {
 	}
 	for (var key in A) {
 		if (!(key in B)) {
-			throw new Error(`Unexpected ${iop_name}: ${key}`)
+			throw new Error(`Unexpected ${iop_name}: ${key}`);
 		}
 	}
 	for (var key in B) {

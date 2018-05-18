@@ -61,6 +61,7 @@ program
   .option('-i, --inputs [inputs...]', 'List of named input files in key:value format.')
   .option('-o, --outputs [outputs...]', 'List of named output files in key:value format.')
   .option('-p, --parameters [parameters...]', 'List of named parameters in key:value format.')
+  .option('--iops [iops...]', 'List of inputs, outputs, or parameters in key:value format. It is preferred to instead use --inputs, --outputs, or --parameters.')
   .option('-m, --mode [mode]', 'Either run (default), exec, or queue.')
   .option('--keep_tempdir','Do not remove the temporary directory for this process.')
   .action(function (processor_name, cmd) {
