@@ -120,7 +120,7 @@ If you are doing spike sorting, then you will also want to install the following
 
 [ephys-viz](https://github.com/flatironinstitute/ephys-viz) - Widgets for visualization of electrophysiology experiments and the results of spike sorting.
 
-Since ephys-viz is currently being developed, it does not have nearly as much functionality as our previous viewer (mountainview). Therefore, you will probably also want to install the newly packaged version of this GUI called qt-mountainview, which is designed to be compatible with mountainlab-js. Here are the [installation instructions for installing qt-mountainview](docs/install-qt-mountainview.md).
+Since ephys-viz is currently being developed, it does not have nearly as much functionality as our previous viewer (mountainview). Therefore, you will probably also want to install the newly packaged version of this GUI called [qt-mountainview](https://github.com/flatironinstitute/qt-mountainview), which is designed to be compatible with mountainlab-js. Here are the [installation instructions for installing qt-mountainview](https://github.com/flatironinstitute/qt-mountainview).
 
 
 ## Command reference
