@@ -9,7 +9,7 @@ MountainLab itself manages queing processes, running pipelines, and making sure 
 A processor is simply a program, but in this context *all* of the side-effects (outputs) of the program must be made via reading from (if any) `inputs` files and writing to any `outputs` files. These inputs and outputs are defined in the `processor spec`.
 
 ### Processor Spec
-A string describing which (if any) input files, output files, and paramaeters a particular processor supports/requires.
+A string describing which (if any) input files, output files, and paramaeters a particular processor supports/requires. See [creating your own processor](./creating_custom_processor_libraries.md) for more details.
 
 ## Package
 A package is a collection of processors. It is defined by a (or many) `.mp` files which are unix-executables that return the spec of one or more processors when called with the argument `--spec`.
