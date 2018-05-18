@@ -9,7 +9,7 @@ It is important that you install a recent version of NodeJS (it is a rapidly-evo
 For example, on Ubuntu 16.04, use the following:
 ```
 curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-sudo apt-get install nodejs
+sudo apt-get install nodejs npm
 ```
 
 For more information, visit [nodejs.org](https://nodejs.org).
@@ -57,7 +57,9 @@ To activate this virtualenv, use:
 source ~/ml-env/bin/activate
 ```
 
-Now, any package installed using pip3 will be specific to this virtualenv (you can explore ~/ml-env) to see where pip3 is placing the packages.
+You will notice the command-line prompt of the terminal you run the command in displays the name of this virtualenv (e.g. `(ml-env) user@host:~$`)
+
+Now, while the virtualenv is active, any package installed using pip3 will be specific to this virtualenv (you can explore ~/ml-env to see where pip3 is placing the packages).
 
 To deactivate, simply run:
 

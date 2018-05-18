@@ -1,5 +1,8 @@
-# MountainLab processing scripts (.ml files)
-
+---
+layout: page
+title: MountainLab processing script
+tagline: .ml files
+---
 
 Since processors can be run individually using system calls, processing pipelines may be formed in many different ways, including bash scripts. However, the preferred way is to use the JavaScript system built in to MountainLab. This allows scripts to be portable and more secure. MountainLab processing scripts can either be run from the command-line or from within a web browser, and can execute jobs on the local machine or on a remote server.
 
