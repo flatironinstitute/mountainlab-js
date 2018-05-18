@@ -527,7 +527,9 @@ function wait_for_ready_run(spec0,inputs,outputs,parameters,callback) {
 function erase_output_files(outputs) {
 	for (key in outputs) {
 		var fname=outputs[key];
-		require('fs').unlinkSync(fname);
+		if (require('fs').existsSync(fname)) {
+			require('fs').unlinkSync(fname);
+		}
 	}
 }
 
