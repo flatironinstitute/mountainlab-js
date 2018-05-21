@@ -14,6 +14,8 @@ sudo apt-get install nodejs npm
 
 For more information, visit [nodejs.org](https://nodejs.org).
 
+For anaconda users, see *Using an Anaconda environment* below
+
 ## Installing MongoDB
 
 MongoDB is a database for storing JSON documents. In contrast to structured databases built around tables, MongoDB is an example of a NoSQL key-value store. MountainLab uses MongoDB to keep track of running processor jobs, cached jobs, and SHA-1 hashes of data files.
@@ -26,9 +28,11 @@ sudo apt-get install mongodb
 
 You will then get a database daemon running on the default port of 27017. You might want to make sure this port is not exposed to the outside world (usually it wouldn't be I think).
 
+For anaconda users, see *Using an Anaconda environment* below
+
 ## Installing Python 3 and pip
 
-While not required for the core program, most MountainLab pre vocessor packages use Python 3.
+While not required for the core program, most MountainLab processor packages use Python 3.
 
 Install Python 3 and pip using your linux package manager. For example, on Ubuntu 16.04, use the following:
 
@@ -68,3 +72,34 @@ deactivate
 ```
 
 I personally put the above ```source ...``` line in my .bashrc file so that every time I open a terminal, I am in the default virtualenv. However, if you use pip to install packages without sudo then it installs them in `~/.local/lib/python3.6/site-packages` or similar so it is not really necessary to do this.
+
+## Using an Anaconda environment
+
+For users that are using a python 3.6 [Anaconda distribution](https://www.anaconda.com/distribution/), you can set up a mountainlab Anaconda environment.
+
+Create a new python 3.6 anaconda environment:
+```
+conda create -n ml-env python=3.6
+```
+Activate this new environment:
+```
+source activate ml-env
+```
+Be sure to install any packages that you intend on using within this environment, such as ipython and jupyter:
+```
+conda install ipython jupyter
+```
+
+Install a current version of nodejs and mongodb from anaconda-forge
+```
+conda install -c conda-forge nodejs
+conda install -c conda-forge mongodb
+```
+
+Install some other required packages
+```
+conda install -c conda-forge deepdish
+conda install numpy scipy
+```
+
+For any anaconda-related problems, be sure that you are using an executable from within the environment.

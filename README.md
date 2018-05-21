@@ -84,6 +84,7 @@ It is recommend that you use a python virtualenv for what follows. [Details.](./
 
 To get started with the examples, clone and install the following two packages. The first is for generic utilities for working with electrophysiology datasets. The second is our spike sorting algorithm, MountainSort v4.
 
+For users following the recommended python installation (using apt-get)
 ```
 cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ephys
@@ -96,6 +97,18 @@ cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ms4alg
 cd ml_ms4alg
 pip3 install --upgrade -r requirements.txt
+```
+
+For anaconda users:
+```
+cd ~/.mountainlab/packages
+git clone https://github.com/magland/ml_ephys
+cd ml_ephys
+pip install --upgrade -r requirements.txt
+```
+Some of the requirements may not be found in within the default conda libraries, and may have to be installed directly from conda-forge, such as deepdish:
+```
+conda install -c conda-forge deepdish
 ```
 
 Now test that the new processors have been installed:
