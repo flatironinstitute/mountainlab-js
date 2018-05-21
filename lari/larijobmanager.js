@@ -59,6 +59,9 @@ function LariProcessorJob() {
 		*/
 		var tmp_dir=common.temporary_directory();
 		var exe='ml-queue-process';
+		if (opts.run_mode=='exec') exe='ml-exec-process';
+		else if (opts.run_mode=='run') exe='ml-run-process';
+		else if (opts.run_mode=='queue') exe='ml-queue-process';
 		var args=[];
 		args.push(processor_name);
 

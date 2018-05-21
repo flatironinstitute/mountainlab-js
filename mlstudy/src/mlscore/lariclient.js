@@ -20,7 +20,6 @@ function LariClient() {
 	this.clearSpecCache=function() {m_spec_cache={};};
 	this.setDirectLariCall=function(func) {m_direct_lari_call=func;};
 
-
 	var m_lari_server_url='';
 	var m_container_id='';
 	var m_authorized_pools={'public':{}}

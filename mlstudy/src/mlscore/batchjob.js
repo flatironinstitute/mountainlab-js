@@ -41,6 +41,7 @@ function BatchJob(O,lari_client) {
   this.isRunning=function() {return (!m_is_completed);};
   this.getSpec=function(callback) {return getSpec(callback);};
   this.setAutoDownload=function(val) {m_auto_download=val;};
+  this.setRunMode=function(mode) {m_run_mode=mode;};
 
   var m_id=JSQ.makeRandomId(6);
   var m_script='';
@@ -66,6 +67,7 @@ function BatchJob(O,lari_client) {
   var m_parameters={};
   var m_opts={};
   var m_auto_download=true; //todo: should be false by default
+  var m_run_mode='run';
 
   function getSpec(callback) {
     //need dummy values
@@ -656,6 +658,7 @@ function BatchJob(O,lari_client) {
     X.setOutputsToReturn(outputs_to_return);
     X.setParameters(P.parameters);
     X.setOptions(P.opts);
+    X.setRunMode(m_run_mode);
     X.start();
   }
 
@@ -1097,13 +1100,14 @@ function ProcessorJob(O,lari_client) {
   this.isCompleted=function() {return m_is_completed;};
   this.error=function() {return m_error;};
   this.consoleOutput=function() {return m_console_output;};
+  this.setRunMode=function(mode) {m_options.run_mode=mode;};
 
   var m_id=JSQ.makeRandomId(6);
   var m_processor_name='';
   var m_input_files={};
   var m_outputs_to_return={};
   var m_parameters={};
-  var m_options={};
+  var m_options={run_mode:'run'};
   var m_is_completed=false;
   var m_error='';
   var m_job_id=''; //returned from lari
@@ -1161,7 +1165,11 @@ function ProcessorJob(O,lari_client) {
 
       outputs_to_return.console_out=true;
       plog('----------------------------------------------------------------------------');
-      plog('Queueing job: '+m_processor_name);
+      var str0='';
+      if (m_options.run_mode=='exec') str0='Executing job';
+      else if (m_options.run_mode=='run') str0='Running job';
+      else if (m_options.run_mode=='queue') str0='Queueing job';
+      plog(`${str0}: ${m_processor_name}`);
       {
         var inputs_str='INPUTS: ';
         for (var iname in inputs) {

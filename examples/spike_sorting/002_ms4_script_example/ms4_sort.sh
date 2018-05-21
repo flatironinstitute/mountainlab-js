@@ -6,7 +6,7 @@ mkdir -p output
 
 PACKAGES=${ML_PACKAGE_SEARCH_DIRECTORY:-~/.mountainlab/packages}
 
-mls-run $PACKAGES/ml_ms4alg/mlscripts/ms4_v1.ml \
+ml-run-script $PACKAGES/ml_ms4alg/mlscripts/ms4_v1.ml \
 	--inputs \
 		timeseries:dataset/raw.mda.prv \
 		geom:dataset/geom.csv \

@@ -67,7 +67,6 @@ function spec() {
 }
 
 function main(inputs,outputs,pp,opts) {
-  console.log({owner:pp.study_owner,title:pp.study_name});
   var study0=_MLS.loadStudy({owner:pp.study_owner,title:pp.study_name});
   _MLS.wait(function() {
     var ds=study0.datasets[pp.dataset];

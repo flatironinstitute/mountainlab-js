@@ -8,6 +8,8 @@ var jsutils=require(__dirname+'/../src/mlscore/jsutils/jsutils.js');
 var copyFileSync=require(__dirname+'/../src/mlscore/jsutils/3rdparty/fs-copy-file-sync.js');
 var mlplog=require(__dirname+'/../src/mlscore/mlplog.js');
 
+var direct_lari_call=require(__dirname+'/../../lari/lariapi.js').directCall;
+
 var fs=require('fs');
 var child_process=require('child_process');
 var os=require('os');
@@ -15,12 +17,13 @@ var pathmodule=require('path');
 
 function print_usage() {
 	console.log ('Usage:');
-	console.log ('    mls-run [script.ml] --inputs [key]:[value] ... --outputs [key]:[value] ... --parameters [key]:[value] ...');
+	console.log ('    ml-run-script [script.ml] --inputs [key]:[value] ... --outputs [key]:[value] ... --parameters [key]:[value] ...');
 	console.log ('Additional options:');
 	console.log ('    --results=[/path/to/output]');
 	console.log ('    --server=[url of lari server, empty for local, * for default remote]');
 	console.log ('    --container=[container id for processing server]');
 	console.log ('    --auto_download');
+	console.log ('    --mode=[exec|run|queue]')
 }
 
 var CLP=new CLParamsWithIOP(process.argv);
@@ -38,10 +41,12 @@ if ((!lari_server_url)&&(!container_id)) {
 	container_id=os.hostname(); //this is the default container id for local server
 }
 var using_local_lari_server=false;
-if (!lari_server_url) {
-	using_local_lari_server=true;
-	lari_server_url='http://localhost:6057'
-}
+//if (!lari_server_url) {
+//	using_local_lari_server=true;
+//	lari_server_url='http://localhost:6057'
+//}
+
+var run_mode=CLP.namedParameters['mode']||'run';
 
 if ((lari_server_url)&&(!container_id)) {
 	console.log ('Missing required parameter when connecting to remote server: --container');
@@ -74,7 +79,12 @@ DSC.setDocStorUrl('https://docstor1.herokuapp.com');
 DSC.login({},function() {});
 var lari_client=new LariClient();
 
-lari_client.setLariServerUrl(lari_server_url);
+if (lari_server_url) {
+	lari_client.setLariServerUrl(lari_server_url);	
+}
+else {
+	lari_client.setDirectLariCall(direct_lari_call);
+}
 lari_client.setContainerId(container_id);
 
 if ('datasets' in CLP.namedParameters) {
@@ -91,6 +101,7 @@ BJ.setAutoDownload(false);
 if ('auto_download' in CLP.namedParameters) {
 	BJ.setAutoDownload(true);
 }
+BJ.setRunMode(run_mode);
 BJ.getSpec(function(err,spec) {
 	if (err) {
 		console.error(err);
