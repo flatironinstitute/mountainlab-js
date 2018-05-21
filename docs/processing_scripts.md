@@ -19,7 +19,7 @@ cd examples/processing_script_examples/001_create_synthetic_timeseries
 You will notice a single processing script named ```create_synthetic_timeseries.ml```. To run this script, simply run
 
 ```
-mls-run create_synthetic_timeseries.ml --parameters M:8 K:20 duration:120 --results=output
+ml-run-script create_synthetic_timeseries.ml --parameters M:8 K:20 duration:120 --results=output
 ```
 
 This will generate a synthetic timeseries with 8 channels, 20 synthetic units and a duration of 120 seconds (the default sample rate of 30000 Hz is used). The output can be seen in the newly created output/ directory:
@@ -39,7 +39,7 @@ Note that the actual data files are not in this directory, only pointers to thos
 If we don't want to use an output directory (or .prv files), but instead want to specify a target location for the actual file, we can instead run:
 
 ```
-mls-run create_synthetic_timeseries.ml --parameters M:8 K:20 duration:120 --outputs timeseries_out:raw_synth.mda firings_out:firings_synth.mda
+ml-run-script create_synthetic_timeseries.ml --parameters M:8 K:20 duration:120 --outputs timeseries_out:raw_synth.mda firings_out:firings_synth.mda
 ```
 
 and this will create the actual output files (not .prv files) as prescribed. If you have MountainView installed, you can view visualize this output by running:
@@ -134,7 +134,7 @@ function spec() {
 }
 ```
 
-Just as with individual MountainLab processors, this spec defines the inputs, outputs, and parameters corresponding to command line calls (mls-run). In this case, we require no input files (we are synthesizing data from scratch). There are four optional output files -- the synthesized timeseries, the true firings file, the true waveforms, and the electrode geometry file. Finally, there are several parameters for controlling the synthesis operation.
+Just as with individual MountainLab processors, this spec defines the inputs, outputs, and parameters corresponding to command line calls (ml-run-script). In this case, we require no input files (we are synthesizing data from scratch). There are four optional output files -- the synthesized timeseries, the true firings file, the true waveforms, and the electrode geometry file. Finally, there are several parameters for controlling the synthesis operation.
 
 Next, we have the main function:
 
@@ -174,7 +174,7 @@ function main(inputs,outputs,params) {
 
 This function creates three processor jobs: synthesize waveforms, synthesize firings, and synthesize timeseries. The outputs of the first two are needed as inputs for the third. All calls to MountainLab processors from within processing scripts are asynchronous, meaning that they are just initiated (or queued), and the code execution continues immediately, before the processing completes. However, output objects (e.g., waveforms, geom, and firings) are available immediately as placeholders, allowing those files to be passed as inputs to subsequent stages of processing (e.g., synthesize_timeseries). Thus we can think of the script as setting up a pipeline of queued processes.
 
-The ```_MLS.setResult``` commands at the bottom of the function set the outputs. Since the four outputs in this case are optional, there are fallback values (waveforms.mda, etc), which will appear on the file system in the results directory specified by --results=[dirname] in the call to ```mls-run```, if it was provided.
+The ```_MLS.setResult``` commands at the bottom of the function set the outputs. Since the four outputs in this case are optional, there are fallback values (waveforms.mda, etc), which will appear on the file system in the results directory specified by --results=[dirname] in the call to ```ml-run-script```, if it was provided.
 
 Finally, we have the low-level wrappers corresponding to the three processors we are calling. I'll just show the third and final wrapper here:
 

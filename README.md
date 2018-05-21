@@ -127,6 +127,7 @@ As ephys-viz is currently being developed, it does not yet have nearly as much f
 The following commands are available from any terminal. Use the `--help` flag on any of these to get more detailed information.
 * `ml-config`  Show the current configuration (i.e., environment variables)
 * `ml-exec-process`  Run a processor job without involving the process cache for completed processes
+* `ml-exec-script` Run a processing script (.ml file) in exec mode
 * `ml-lari-start`  Start a lari server, making your local machine a processing server
 * `ml-list-processors`  List all registered processors on the local machine
 * `ml-prv-create`  Create a new .prv file based on an existing data file (computes the sha1sum, etc)
@@ -134,9 +135,10 @@ The following commands are available from any terminal. Use the `--help` flag on
 * `ml-prv-sha1sum`  Compute the sha1sum of a data file (uses a cache for efficiency)
 * `ml-prv-stat`  Compute the prv object for a data file (uses a cache for efficiency)
 * `ml-queue-process`  Queue a processor job for running when resources become available
+* `ml-queue-script` Run a processing script (.ml file) in queue mode
 * `ml-run-process`  Run a processor job
+* `ml-run-script` Run a processing script (.ml file) in run mode
 * `ml-spec`  Retrieve the spec object for a particular registered processor
-* `mls-run` Run a processing script (.ml file)
 * `mls-spec` Show the spec for a processing script (.ml file)
 
 ## Installing processor packages

@@ -8,7 +8,7 @@ Processor script files should have a .ml extension and should be written in pure
 
 ## The *spec* and *main* functions
 
-To allow running and probing of the processing script via ```mls-run``` and ```mls-spec```,  use the following two lines at the top of the script:
+To allow running and probing of the processing script via ```ml-run-script``` and ```mls-spec```,  use the following two lines at the top of the script:
 
 ```
 exports.spec = spec;
@@ -38,7 +38,7 @@ mls-spec [script_name.ml] -p
 
 The -p option specifies that the output formatted for humans. Otherwise, a JSON string is output.
 
-The ```main``` function is executed when the script is run via the ```mls-run``` command. It should assemble a pipeline of processor jobs by calling ```_MLS.runProcess``` for each job (see below). An example ```main``` function is [provided here](processing_scripts.md).
+The ```main``` function is executed when the script is run via the ```ml-run-script``` command. It should assemble a pipeline of processor jobs by calling ```_MLS.runProcess``` for each job (see below). An example ```main``` function is [provided here](processing_scripts.md).
 
 ## Queing processor jobs
 
@@ -85,6 +85,6 @@ _MLS.setResult(name, value)
 
 If the script was run in a web browser (within MLStudy) then the results will appear in the *Results* window. If the ```value``` represents an output file, then the user can download the corresponding .prv file or, if the file is available on kbucket, they can download the actual file. If the ```value``` is a JSON object, then the user can view or download the JSON content.
 
-If the script was run from the command line and the ```--results=[output_dir]``` option was specified in the command-line call to ```mls-run```, then each result will get stored as a .prv file in the ```[output_dir]```. The name of each file will be ```[name].prv``` where ```[name]``` is the name string specified in the call to ```_MLS.setResult```. If the ```name``` argument is the placeholder corresponding to one of the outputs provided in to the call to ```main```, and if that output was also included as an argument in the command-line call to ```mls-run```, then the file will get written to that specified location. If that location has a '.prv' ending, then only the PRV object will get written. (It's easier to just look at examples.)
+If the script was run from the command line and the ```--results=[output_dir]``` option was specified in the command-line call to ```ml-run-script```, then each result will get stored as a .prv file in the ```[output_dir]```. The name of each file will be ```[name].prv``` where ```[name]``` is the name string specified in the call to ```_MLS.setResult```. If the ```name``` argument is the placeholder corresponding to one of the outputs provided in to the call to ```main```, and if that output was also included as an argument in the command-line call to ```ml-run-script```, then the file will get written to that specified location. If that location has a '.prv' ending, then only the PRV object will get written. (It's easier to just look at examples.)
 
 
