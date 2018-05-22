@@ -106,12 +106,13 @@ function AltMLSDatasetWidget(O) {
 	}
 
 	function update_tables() {
-		m_files_table.setColumnCount(5);
-		m_files_table.headerRow().cell(0).css({"width":"10px"});
+		m_files_table.setColumnCount(6);
+		m_files_table.headerRow().cell(0).css({"width":"80px"});
 		m_files_table.headerRow().cell(1).html('File');
 		m_files_table.headerRow().cell(2).html('Size');
 		m_files_table.headerRow().cell(3).html('Orig. Path');
 		m_files_table.headerRow().cell(4).html('KBucket');
+		m_files_table.headerRow().cell(5).html('Labels');
 		
 		m_files_table.clearRows();
 		var ds=get_dataset();
@@ -191,7 +192,9 @@ function AltMLSDatasetWidget(O) {
 	}
 	function update_file_row(row,name,file) {
 
+		// file name
 		var rename_file_link=$('<span class="edit_button  octicon octicon-pencil"></span>');
+		rename_file_link.attr('title','Rename file');
 		rename_file_link.click(function() {
 			rename_file(name);
 		});
@@ -215,6 +218,17 @@ function AltMLSDatasetWidget(O) {
 			});
 			row.cell(0).append(download_link1);
 
+			var actions=m_manager.getCustomFileActions(file,{});
+			for (var i in actions) {
+				var A=actions[i];
+				var link0=$('<span class="octicon octicon-link-external"></span>');
+				link0.click(function() {
+					A.callback(file,{});
+				});
+				row.cell(0).append(' ');
+				row.cell(0).append(link0);
+			}
+
 			row.cell(2).append(format_file_size(file.prv.original_size));
 
 			var elmt=$('<span>'+shorten_path(file.prv.original_path)+'</span>')
@@ -224,6 +238,15 @@ function AltMLSDatasetWidget(O) {
 
 			var kb_elmt=$('<span class=kb data-sha1="'+file.prv.original_checksum+'" data-size="'+file.prv.original_size+'" data-name="'+name+'"></span>');
 			row.cell(4).append(kb_elmt);
+
+			var labels_str=labels_to_string(file.labels||[]);
+			var edit_labels_link=$('<span class="edit_button octicon octicon-pencil"></span>');
+			edit_labels_link.attr('title','Edit labels for file');
+			edit_labels_link.click(function() {
+				edit_file_labels(name);
+			});
+			row.cell(5).append(edit_labels_link);
+			row.cell(5).append(labels_str);
 		}
 	}
 	function shorten_path(path) {
@@ -330,6 +353,45 @@ function AltMLSDatasetWidget(O) {
 		var file0=ds.file(name);
 		ds.removeFile(name);
 		ds.setFile(new_name,file0);
+		set_dataset(ds);
+		refresh();
+	}
+	function labels_to_string(labels) {
+		try {
+			labels.sort();
+			return labels.join(', ');
+		}
+		catch(err) {
+			return '';
+		}
+	}
+	function string_to_labels(str) {
+		try {
+			var list=str.split(',');
+			var ret=[];
+			for (var i in list) {
+				var item=list[i].trim();
+				if (item) {
+					ret.push(item);
+				}
+			}
+			ret.sort();
+			return ret;
+		}
+		catch(err) {
+			return [];
+		}
+	}
+	function edit_file_labels(name) {
+		var ds=get_dataset();
+		var file0=ds.file(name);
+		var labels=file0.labels||[];
+		var labels_str=labels_to_string(labels);
+		var new_labels_str=prompt('Labels for file (comma-separated list):',labels_str);
+		if (new_labels_str===null) return;
+		var new_labels=string_to_labels(new_labels_str);
+		file0.labels=new_labels;
+		ds.setFile(name,file0);
 		set_dataset(ds);
 		refresh();
 	}

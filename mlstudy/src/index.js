@@ -13,6 +13,37 @@ $(document).ready(function() {
   main(query);
 });
 
+function EphysVizPlugin() {
+    this.getFileActions=function(file,context) {return getFileActions(file,context);};
+
+    var m_base_url='http://ephys-viz.herokuapp.com';
+
+    function getFileActions(file,context) {
+        var actions=[];
+        var labels=to_set(file.labels||[]);
+        if (('timeseries' in labels)&&(file.prv)) {
+            var A={
+                callback:view_timeseries
+            };
+            actions.push(A);
+        }
+        return actions;
+    }
+    function view_timeseries(file,context) {
+        var url0=m_base_url;
+        var url_timeseries=`https://kbucket.flatironinstitute.org/download/${file.prv.original_checksum}`;
+        var url=`${url0}?view=timeseries&timeseries=${url_timeseries}`;
+        console.log (url);
+        window.open(url,'_blank');
+    }
+    function to_set(list) {
+        var ret={};
+        for (var i in list) {
+            ret[list[i]]=1;
+        }
+        return ret;
+    }
+}
 
 function main(query) {
 
@@ -33,6 +64,7 @@ function main(query) {
     }
 
     var mls_manager=new MLSCore.MLSManager();
+    mls_manager.registerVisualizationPlugin(new EphysVizPlugin());
     var mls_config=mls_manager.mlsConfig();
 
     //Set up the DocStorClient, which will either be directed to localhost or the heroku app, depending on how we are running it.

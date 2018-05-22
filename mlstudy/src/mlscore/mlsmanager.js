@@ -34,6 +34,8 @@ function MLSManager(O) {
   this.defaultMLSConfig=function() {return JSQ.clone(default_config);};
   this.lariClient=function() {return m_lari_client;};
   this.clear=function() {clear();};
+  this.registerVisualizationPlugin=function(P) {m_visualization_plugins.push(P);};
+  this.getCustomFileActions=function(file,context) {return getCustomFileActions(file,context);};
 
   var m_lari_client=new LariClient();
   m_lari_client.setContainerId('child');
@@ -43,6 +45,7 @@ function MLSManager(O) {
   var m_job_manager=null;
   var m_config_changed_handlers=[];
   var m_docstor_client=null;
+  var m_visualization_plugins=[];
 
   JSQ.connect(m_batch_job_manager,'results_changed',O,'results_changed');
 
@@ -117,6 +120,18 @@ function MLSManager(O) {
     m_batch_job_manager.setKBucketUrl(mlsConfig().kbucket_url);
 
     m_workspace=new MLWorkspace(null);
+  }
+
+  function getCustomFileActions(file,context) {
+    var actions=[];
+    for (var i in m_visualization_plugins) {
+      var VP=m_visualization_plugins[i];
+      var actions0=VP.getFileActions(file,context);
+      for (var j in actions0) {
+        actions.push(actions0[j]);
+      }
+    }
+    return actions;
   }
 }
 
