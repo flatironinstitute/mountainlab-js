@@ -1,5 +1,9 @@
 # Creating custom processor libraries
 
+Below is a description of how to create a processor library.
+You may also want to work by editing the "hello world"
+processor examples
+here: [`ml_identity`](https://github.com/alexmorley/ml_identity).
 
 Each MountainLab processor library is defined by an executable .mp file located somewhere within the (recursive) set of processor library search paths. The file must (a) have executable permissions and (b) have a .mp extension. If those two conditions are met, the MountainLab framework will make a system call of the file with a single "spec" argument, and will expect a JSON string to be printed to stdout. For example, the ```kbucket_upload.mp``` file is one of the built-in processor libraries distributed with mountainlab. If you run this file with the ```spec``` argument
 
