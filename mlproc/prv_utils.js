@@ -1,5 +1,6 @@
 exports.cmd_prv_locate=cmd_prv_locate;
 exports.cmd_prv_create=cmd_prv_create;
+exports.cmd_prv_create_index=cmd_prv_create_index;
 exports.prv_locate=prv_locate;
 exports.prv_create=prv_create;
 exports.compute_file_sha1=compute_file_sha1;
@@ -67,6 +68,76 @@ function cmd_prv_create(fname,prv_fname_out,opts,callback) {
 			callback(err);
 			return;
 		}
+	});
+}
+
+function get_all_fnames_in_directory(dirname,recursive) {
+	var ret=[];
+	var files=common.read_dir_safe(dirname);
+	for (var i in files) {
+		var fname=dirname+'/'+files[i];
+		var stat0=common.stat_file(fname);
+		if (stat0.isFile()) {
+			ret.push(files[i]);
+		}
+	}
+	if (recursive) {
+		for (var i in files) {
+			var fname=dirname+'/'+files[i];
+			var stat0=common.stat_file(fname);
+			if (stat0.isDirectory()) {
+				var tmp=get_all_fnames_in_directory(fname,recursive);
+				for (var j in tmp) {
+					ret.push(files[i]+'/'+tmp[j]);
+				}
+			}
+		}
+	}
+	return ret;
+}
+
+function cmd_prv_create_index(dirname,index_fname_out,opts,callback) {
+	process.on('SIGINT', function() {
+	    process.exit(-1);
+	});
+	process.on('SIGTERM', function() {
+	    process.exit(-1);
+	});
+
+	if (!index_fname_out) index_fname_out=dirname+'/.prvindex';
+	var fnames=get_all_fnames_in_directory(dirname,true);
+	var index={
+		files:[]
+	};
+	common.foreach_async(fnames,function(ii,fname,cb) {
+		var fname2=dirname+'/'+fname;
+		console.log (fname);
+		prv_create(fname2,function(err,obj) {
+			if (err) {
+				console.error(err);
+				callback(err);
+				return;
+			}
+			if (obj) {
+				index.files.push({
+					path:fname,
+					prv:obj
+				});
+				setTimeout(function() {
+					cb();
+				},0);
+				return;
+			}
+			else {
+				var err='Unable to create prv object for file: '+fname;
+				console.err (err);
+				callback(err);
+				return;
+			}
+		});
+	},function() {
+		common.write_text_file(index_fname_out,JSON.stringify(index,null,4));
+		callback(null);
 	});
 }
 
