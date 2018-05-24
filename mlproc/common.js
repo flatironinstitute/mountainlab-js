@@ -218,6 +218,7 @@ function get_spec_from_mp_file(fname,callback) {
 				var output=stdout;
 				var spec0=parse_json(output);
 				var doc0={
+					_id:fname,
 					mp_file_path:fname,
 					spec:spec0,
 					timestamp:((new Date())-0)

@@ -374,6 +374,7 @@ sumit.compute_file_sha1=function(path,callback) {
 				return;
 			}
 			var doc0={
+				_id:path,
 				path:path,
 				sha1:hash,
 				size:stat0.size,
