@@ -9,7 +9,7 @@ It is important that you install a recent version of NodeJS (it is a rapidly-evo
 For example, on Ubuntu 16.04, use the following:
 ```
 curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-sudo apt-get install nodejs npm
+sudo apt-get install nodejs
 ```
 
 For more information, visit [nodejs.org](https://nodejs.org).
