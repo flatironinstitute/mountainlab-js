@@ -19,12 +19,14 @@
   "author": "Jeremy Magland",
   "license": "Apache-2.0",
   "dependencies": {
+    "async": "^2.6.1",
     "canonical-json": "latest",
     "dotenv": "latest",
     "expand-home-dir": "0.0.3",
     "mongodb": "latest",
     "node-sha1": "latest",
-    "request": "^2.85.0"
+    "request": "^2.85.0",
+    "url-exists": "^1.0.3"
   },
   "devDependencies": {
     "commander": "latest"

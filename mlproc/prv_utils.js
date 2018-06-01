@@ -8,6 +8,8 @@ exports.compute_file_sha1=compute_file_sha1;
 var common=require(__dirname+'/common.js');
 var db_utils=require(__dirname+'/db_utils.js');
 var sha1=require('node-sha1');
+var url_exists=require('url-exists');
+var async=require('async');
 
 function cmd_prv_locate(prv_fname,opts,callback) {
 	prv_locate(prv_fname,opts,function(err,path) {
@@ -169,8 +171,8 @@ function prv_locate(prv_fname,opts,callback) {
 
 	if ('remote' in opts) {
 		var kbucket_url=process.env.KBUCKET_URL;
-		var url=kbucket_url+'/stat/'+obj.original_checksum;
-		var url2=kbucket_url+'/download/'+obj.original_checksum;
+		var url=kbucket_url+'/find/'+obj.original_checksum;
+		//var url2=kbucket_url+'/download/'+obj.original_checksum;
 		if (opts.verbose>=1) {
 			console.log ('Getting: '+url);
 		}
@@ -188,7 +190,17 @@ function prv_locate(prv_fname,opts,callback) {
 				callback('File not found on kbucket.');
 				return;
 			}
-			callback('',url2);
+			var candidate_urls=obj.direct_urls||[];
+			if (obj.proxy_url) {
+				candidate_urls.push(obj.proxy_url);
+			}
+			find_existing_url(candidate_urls,function(url2) {
+				if (!url2) {
+					callback('Found file, but none of the urls seem to work.');
+					return;
+				}
+				callback(null, url2);
+			});
 		});
 		return;
 	}
@@ -260,6 +272,20 @@ function prv_locate(prv_fname,opts,callback) {
 			});
 		});
 	}
+}
+
+function find_existing_url(candidate_urls,callback) {
+	async.eachSeries(candidate_urls,function(candidate_url,cb) {
+		url_exists(candidate_url,function(err,exists) {
+			if ((!err)&&(exists)) {
+				callback(candidate_url);
+				return;
+			}
+			cb();
+		})
+	},function() {
+		callback('');
+	});
 }
 
 function prv_create(fname,callback) {
