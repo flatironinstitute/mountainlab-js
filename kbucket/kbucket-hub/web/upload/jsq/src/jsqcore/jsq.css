@@ -1,0 +1,35 @@
+.jsqpanelwidget_panel {
+	border: solid 2px gray
+}
+
+.jsqpanelwidget_current_panel {
+	border: solid 2px black
+}
+
+.JSQTabBar {
+	border-top: 1px solid lightgray;
+}
+.JSQTabBar td {
+	border-bottom: 1px solid lightgray;
+	border-right: 1px solid lightgray;
+	border-left: 1px solid lightgray;
+	background: lightgray;
+	color: gray;
+}
+.JSQTabBar td.current_tab {
+	border-bottom: 1px solid gray;
+	border-right: 1px solid gray;
+	border-left: 1px solid gray;
+	background: white;
+	color: black;
+}
+
+.JSQTabBar a {
+	font-size:20px;
+	text-decoration: none;
+	color: black;
+}
+
+.JSQTabBar {
+	border-top: solid 1px lightgray;
+}

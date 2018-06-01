@@ -1,0 +1,79 @@
+.KBucketUploadDialog .btn:focus,
+.KBucketUploadDialog .upload-btn:focus {
+  outline: 0 !important;
+}
+
+/*
+html,
+body {
+  height: 100%;
+  background-color: #4791D2;
+}
+
+body {
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+}
+*/
+
+.KBucketUploadDialog .row {
+  margin-top: 80px;
+}
+
+.KBucketUploadDialog .upload-btn {
+  color: #ffffff;
+  background-color: #F89406;
+  border: none;
+}
+
+.KBucketUploadDialog .upload-btn:hover,
+.KBucketUploadDialog .upload-btn:focus,
+.KBucketUploadDialog .upload-btn:active,
+.KBucketUploadDialog .upload-btn.active {
+  color: #ffffff;
+  background-color: #FA8900;
+  border: none;
+}
+
+.KBucketUploadDialog h4 {
+  padding-bottom: 0px;
+  color: #B8BDC1;
+}
+
+.KBucketUploadDialog .glyphicon {
+  font-size: 5em;
+  color: #9CA3A9;
+}
+
+.KBucketUploadDialog h2 {
+  margin-top: 15px;
+  color: #68757E;
+}
+
+.KBucketUploadDialog .panel {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.KBucketUploadDialog #upload-input {
+  display: none;
+}
+
+.KBucketUploadDialog #list {
+  text-align: left;
+}
+
+.KBucketUploadDialog li.file.error {
+  color: red;
+}
+
+.KBucketUploadDialog li.file.error:before {
+  font-family: 'Glyphicons Halflings';
+  content: "\e014";
+}
+
+.KBucketUploadDialog li.file.complete:after {
+  font-family: 'Glyphicons Halflings';
+  content: "\e013";
+}
+

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>File Uploader - kbucket</title>
+  <link rel="stylesheet" href="jquery-ui.min.css">
+  
+  <script src="jquery.min.js"></script>
+  <script src="jquery-ui.min.js"></script>
+  <script src="kbucketauthclient.js"></script>
+  <script src="kbucketuploaddialog.js"></script>
+  <script src="jsq/src/jsqcore/jsq.js"></script>
+  <link rel="stylesheet" href="jsq/src/jsqcore/jsq.css">
+  <script src="jsq/src/jsqcore/jsqobject.js"></script>
+  <script src="jsq/src/jsqcore/jsqwidget.js"></script>
+  <script src="jsutils/jsutils.js"></script>
+  <link rel="stylesheet" href="kbucketuploaddialog.css">
+  <script src="resumable.js"></script>
+</head>
+
+<body>
+<script>
+$(document).ready(function() {
+  var query=parse_url_params();
+  var CC=new KBucketAuthClient();
+  CC.setKBucketAuthUrl('https://kbucketauth.herokuapp.com');
+  CC.getAuth('upload',{passcode:query.passcode},function(err,token) {
+    if (err) {
+      alert(err);
+      return;
+    }
+    var dlg=new KBucketUploadDialog();
+    dlg.setKBucketUrl('../..');
+    //dlg.setKBucketAuthToken(token);
+    dlg.show();
+  });
+});
+
+function parse_url_params() {
+  var match,
+  pl     = /\+/g,  // Regex for replacing addition symbol with a space
+  search = /([^&=]+)=?([^&]*)/g,
+  decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+  query  = window.location.search.substring(1);
+  url_params = {};
+  while (match = search.exec(query))
+    url_params[decode(match[1])] = decode(match[2]);
+  return url_params;
+}
+
+</script>
+
+</body>

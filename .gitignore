@@ -8,3 +8,5 @@ npm*.log
 .ipynb*
 __pycache__
 _site
+.env
+package-lock.json

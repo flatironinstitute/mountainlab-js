@@ -1,0 +1,33 @@
+{
+  "name": "kbucket-share",
+  "version": "0.2.1",
+  "description": "Share and serve files based on their SHA-1 sums",
+  "main": "src/kbucket-share.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm run webpack",
+    "webpack": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development"
+  },
+  "keywords": [
+    "mountainlab",
+    "kbucket",
+    "prv"
+  ],
+  "author": "Jeremy Magland",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "async": "^2.6.1",
+    "bootstrap": "^4.1.1",
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "find-port": "^2.0.1",
+    "jquery": "^3.3.1",
+    "octicons": "4.3.0",
+    "request": "^2.87.0",
+    "ws": "^5.2.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.10.2",
+    "webpack-cli": "^2.1.4"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "kbucket-hub",
+  "version": "0.2.1",
+  "description": "Share and serve files based on their SHA-1 sums",
+  "main": "kbucket-hub-start.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node kbucket-hub-start.js"
+  },
+  "keywords": [
+    "mountainlab",
+    "kbucket",
+    "prv"
+  ],
+  "author": "Jeremy Magland",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "async": "^2.6.1",
+    "dotenv": "^5.0.1",
+    "express": "^4.16.3",
+    "request": "^2.87.0",
+    "sanitize-filename": "^1.6.1",
+    "ws": "^5.2.0"
+  },
+  "devDependencies": {}
+}
