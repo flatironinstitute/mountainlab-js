@@ -144,10 +144,34 @@ function cmd_prv_create_index(dirname,index_fname_out,opts,callback) {
 }
 
 function prv_locate(prv_fname,opts,callback) {
+	// Locate file corresponding to prv file or object
 	opts=opts||{};
+
+	if (('local' in opts)&&('remote' in opts)) {
+		// if both local and remote options are specified, then let's search local first, then remote
+		delete opts['remote'];
+		prv_locate(prv_fname,opts,function(err,path_or_url) {
+			if (err) {
+				callback(err);
+				return;
+			}
+			if (path_or_url) {
+				callback(null,path_or_url);
+				return;
+			}
+			delete opts['local'];
+			opts['remote']=true;
+			prv_locate(prv_fname,opts,callback);
+			return;
+		});
+		return;
+	}
+
+
 	opts.verbose=Number(opts.verbose||0);
 	var obj=null;
 	if (prv_fname) {
+		// read the prv file and store the object
 		obj=common.read_json_file(prv_fname);
 		if (!obj) {
 			callback('Cannot read json file: '+prv_fname);
@@ -155,6 +179,7 @@ function prv_locate(prv_fname,opts,callback) {
 		}
 	}
 	else {
+		// construct the prv object from the opts
 		obj={
 			original_checksum:opts.sha1,
 			original_size:opts.size,
@@ -170,6 +195,7 @@ function prv_locate(prv_fname,opts,callback) {
 	}
 
 	if ('remote' in opts) {
+		// search remotely
 		var kbucket_url=process.env.KBUCKET_URL;
 		var url=kbucket_url+'/find/'+obj.original_checksum;
 		//var url2=kbucket_url+'/download/'+obj.original_checksum;
@@ -206,6 +232,7 @@ function prv_locate(prv_fname,opts,callback) {
 	}
 
 	if ((obj.original_path)&&(require('fs').existsSync(obj.original_path))) {
+		// try the original path
 		if (opts.verbose>=1) {
 			console.log ('Trying original path: '+obj.original_path);
 		}
