@@ -160,7 +160,7 @@ function handle_find(sha1,filename,req,res) {
             	}
             	else {
             		// The file was not found
-            		resp.json({
+            		res.json({
             			success:true,
             			found:false
             		});
