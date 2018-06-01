@@ -1,8 +1,10 @@
 exports.cmd_prv_locate=cmd_prv_locate;
 exports.cmd_prv_create=cmd_prv_create;
 exports.cmd_prv_create_index=cmd_prv_create_index;
+exports.cmd_prv_download=cmd_prv_download;
 exports.prv_locate=prv_locate;
 exports.prv_create=prv_create;
+exports.prv_download=prv_download;
 exports.compute_file_sha1=compute_file_sha1;
 
 var common=require(__dirname+'/common.js');
@@ -10,6 +12,7 @@ var db_utils=require(__dirname+'/db_utils.js');
 var sha1=require('node-sha1');
 var url_exists=require('url-exists');
 var async=require('async');
+var request=require('request');
 
 function cmd_prv_locate(prv_fname,opts,callback) {
 	prv_locate(prv_fname,opts,function(err,path) {
@@ -143,6 +146,158 @@ function cmd_prv_create_index(dirname,index_fname_out,opts,callback) {
 	});
 }
 
+function cmd_prv_download(prv_fname,output_filename,opts,callback) {
+	if (output_filename) opts.output=output_filename;
+	prv_download(prv_fname,opts,function(err,path) {
+		if (err) {
+			console.error(`Error downloading: ${err}`);
+			callback(err);
+			return;
+		}
+		if (path) {
+			callback(null,path);
+			return;
+		}
+		else {
+			console.error('Unexpected: path is empty in cmd_prv_download.');
+			callback('Unexpected: path is empty in cmd_prv_download.');
+			return;
+		}
+	});
+}
+
+function prv_download(prv_fname,opts,callback) {
+	opts.remote=true;
+	opts.local=true;
+	console.log ('Locating file...');
+	prv_locate(prv_fname,opts,function(err,url,obj) {
+		if (err) {
+			callback('Unable to locate file: '+err);
+			return;
+		}
+		if (opts.output) {
+			proceed();
+		}
+		else {
+			if (!is_url(url)) {
+				console.log (`File is already on local system: ${url}`);
+				opts.output=url;
+				callback(null,opts.output);
+				return;
+			}
+			console.log ('Creating file path for download...');
+			opts.output=get_file_path_for_download(obj.original_checksum);
+			if (require('fs').existsSync(opts.output)) {
+				console.log ('Output file already exists...');
+				compute_file_sha1(opts.output,function(err,sha1) {
+					if ((!err)&&(sha1==obj.original_checksum)) {
+						console.log ('And checksum matches, so no need to download...');
+						callback(null,opts.output);
+						return;
+					}
+					console.log ('But checksums do not match, so re-downloading...');
+					proceed();
+				});
+			}
+			else {
+				proceed();
+			}
+		}
+
+		function proceed() {
+			if (!is_url(url)) {
+				console.log (`Copying "${url}" to "${opts.output}" ...`);	
+				copy_file(url,opts.output,function(err) {
+					if (err) {
+						callback('Error copying: '+err);
+						return;
+					}
+					console.log('Done.');
+					callback(null,opts.output);
+				});
+				return;
+			}
+			console.log (`Downloading "${url}" to "${opts.output}" ...`);
+			download_url(url,opts.output,function(err) {
+				if (err) {
+					callback('Error downloading: '+err);
+					return;
+				}
+				console.log ('Computing checksum...');
+				compute_file_sha1(opts.output,function(err,sha1) {
+					if (err) {
+						callback('Error computing sha1 of downloaded file: '+err);
+						return;
+					}
+					if (sha1!=obj.original_checksum) {
+						callback(`SHA-1 of downloaded file does not match expected. ${sha1} <> ${obj.original_checksum}`);
+						return;
+					}
+					console.log('Done.');
+					callback(null,opts.output);
+				})
+			});
+		}
+		
+	});
+
+	
+}
+
+function download_url(url,output_path,callback) {
+	if (require('fs').existsSync(output_path)) {
+		require('fs').unlinkSync(output_path);
+	}
+	var r = request(url);
+	r.on('response',  function (res) {
+		var dest=require('fs').createWriteStream(output_path+'.tmp');
+		res.pipe(dest);
+		dest.on('error',function(err) {
+			finalize('Error writing download: '+err.message);
+		});
+		dest.on('finish',function() {
+			require('fs').renameSync(output_path+'.tmp',output_path);
+			finalize(null);
+		});
+	});
+	r.on('error',function(err) {
+		finalize('Error in download request: '+err.message);
+	});
+	function finalize(errstr) {
+		if (!callback) return;
+		callback(errstr);
+		callback=null;
+	}
+}
+
+function copy_file(input_path,output_path,callback) {
+	if (require('fs').existsSync(output_path)) {
+		require('fs').unlinkSync(output_path);
+	}
+	var in_stream=require('fs').createReadStream(input_path);
+	var out_stream=require('fs').createWriteStream(output_path+'.tmp');
+	in_stream.pipe(out_stream);
+	out_stream.on('error',function(err) {
+		finalize('Error writing to file: '+err.message);
+	});
+	out_stream.on('finish',function() {
+		require('fs').renameSync(output_path+'.tmp',output_path);
+		finalize(null);
+	});
+
+	function finalize(errstr) {
+		if (!callback) return;
+		callback(errstr);
+		callback=null;
+	}
+}
+
+function get_file_path_for_download(sha1) {
+	const downloads_directory=common.temporary_directory()+'/downloads';
+	common.mkdir_if_needed(downloads_directory);
+	return downloads_directory+'/'+sha1;
+}
+
 function prv_locate(prv_fname,opts,callback) {
 	// Locate file corresponding to prv file or object
 	opts=opts||{};
@@ -150,13 +305,13 @@ function prv_locate(prv_fname,opts,callback) {
 	if (('local' in opts)&&('remote' in opts)) {
 		// if both local and remote options are specified, then let's search local first, then remote
 		delete opts['remote'];
-		prv_locate(prv_fname,opts,function(err,path_or_url) {
+		prv_locate(prv_fname,opts,function(err,path_or_url,obj) {
 			if (err) {
 				callback(err);
 				return;
 			}
 			if (path_or_url) {
-				callback(null,path_or_url);
+				callback(null,path_or_url,obj);
 				return;
 			}
 			delete opts['local'];
@@ -202,30 +357,30 @@ function prv_locate(prv_fname,opts,callback) {
 		if (opts.verbose>=1) {
 			console.log ('Getting: '+url);
 		}
-		nodejs_http_get_json(url,{},function(obj) {
-			if (!obj.success) {
-				callback('Error checking on kbucket: '+obj.error);
+		nodejs_http_get_json(url,{},function(obj2) {
+			if (!obj2.success) {
+				callback('Error checking on kbucket: '+obj2.error);
 				return;
 			}
-			obj=obj.object;
-			if (!obj.success) {
-				callback('Error checking on kbucket (*): '+obj.error);
+			obj2=obj2.object;
+			if (!obj2.success) {
+				callback('Error checking on kbucket (*): '+obj2.error);
 				return;
 			}
-			if (!obj.found) {
+			if (!obj2.found) {
 				callback('File not found on kbucket.');
 				return;
 			}
-			var candidate_urls=obj.direct_urls||[];
-			if (obj.proxy_url) {
-				candidate_urls.push(obj.proxy_url);
+			var candidate_urls=obj2.direct_urls||[];
+			if (obj2.proxy_url) {
+				candidate_urls.push(obj2.proxy_url);
 			}
 			find_existing_url(candidate_urls,function(url2) {
 				if (!url2) {
 					callback('Found file, but none of the urls seem to work.');
 					return;
 				}
-				callback(null, url2);
+				callback(null, url2, obj);
 			});
 		});
 		return;
@@ -238,7 +393,7 @@ function prv_locate(prv_fname,opts,callback) {
 		}
 		sumit.compute_file_sha1(obj.original_path,function(err,sha1) {
 			if ((!err)&&(sha1==obj.original_checksum)) {
-				callback(null,obj.original_path);
+				callback(null,obj.original_path,obj);
 				return;
 			}
 			proceed();
@@ -268,7 +423,7 @@ function prv_locate(prv_fname,opts,callback) {
 				return;
 			}
 			if (doc0) {
-				callback('',doc0.path);
+				callback('',doc0.path,obj);
 				return;
 			}
 			if ((!sha1)||(!size)||(!fcs)) {
@@ -286,7 +441,7 @@ function prv_locate(prv_fname,opts,callback) {
 						return;
 					}
 					if (fname) {
-						callback('',fname);
+						callback('',fname,obj);
 						return;
 					}
 					cb();
@@ -295,7 +450,7 @@ function prv_locate(prv_fname,opts,callback) {
 				if (opts.verbose>=1) {
 					console.log ('Not found.');
 				}
-				callback('',''); //not found
+				callback('','',null); //not found
 			});
 		});
 	}
@@ -598,4 +753,8 @@ function nodejs_http_get_json(url,headers,callback) {
       }
       callback({success:true,object:obj});
     });
+}
+
+function is_url(path_or_url) {
+	return ((path_or_url.startsWith('http://'))||(path_or_url.startsWith('https://')));
 }

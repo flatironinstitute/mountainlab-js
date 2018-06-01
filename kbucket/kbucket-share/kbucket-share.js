@@ -31,7 +31,8 @@ if (!fs.statSync(share_directory).isDirectory()) {
   console.error('Not a directory: '+share_directory);
   process.exit(-1);
 }
-var KBUCKET_SHARE_KEY=process.env.KBUCKET_SHARE_KEY||make_random_id(8);
+
+var KBSC=new KBShareConfig(share_directory);
 
 // Set environment variable DEBUG=true to get some debugging console output
 const debugging=(process.env.DEBUG=='true');
@@ -42,10 +43,10 @@ Using the following:
   KBUCKET_SHARE_PROTOCOL=${KBUCKET_SHARE_PROTOCOL}
   KBUCKET_SHARE_HOST=${KBUCKET_SHARE_HOST}
   KBUCKET_SHARE_PORT_RANGE=${KBUCKET_SHARE_PORT_RANGE}
-  KBUCKET_SHARE_KEY=${KBUCKET_SHARE_KEY}
   debugging=${debugging}
 
 Sharing directory: ${share_directory}
+Share key: ${KBSC.shareKey()}
 
 `);
 
@@ -82,7 +83,7 @@ app.use('/:share_key/web', express.static(__dirname+'/web'));
 
 function check_share_key(req,res) {
   var params=req.params;
-  if (params.share_key!=KBUCKET_SHARE_KEY) {
+  if (params.share_key!=KBSC.shareKey()) {
     var errstr=`Incorrect kbucket share key: ${params.share_key}`;
     console.error(errstr);
     res.status(500).send({error:errstr});
@@ -105,7 +106,7 @@ function handle_readdir(subdirectory,req,res) {
     }
     var files=[],dirs=[];
     async.eachSeries(list,function(item,cb) {
-      if ((item=='.')||(item=='..')) {
+      if ((item=='.')||(item=='..')||(item=='.kbucket')) {
         cb();
         return;
       }
@@ -167,7 +168,7 @@ function start_server(callback) {
     KBUCKET_SHARE_PORT=port;
     app.listen(KBUCKET_SHARE_PORT, function() {
       console.log (`Listening on port ${KBUCKET_SHARE_PORT}`);
-      console.log (`Web interface: ${KBUCKET_SHARE_PROTOCOL}://${KBUCKET_SHARE_HOST}:${KBUCKET_SHARE_PORT}/${KBUCKET_SHARE_KEY}/web`)
+      console.log (`Web interface: ${KBUCKET_SHARE_PROTOCOL}://${KBUCKET_SHARE_HOST}:${KBUCKET_SHARE_PORT}/${KBSC.shareKey()}/web`)
       connect_to_websocket();
     });
   });
@@ -385,7 +386,7 @@ function connect_to_websocket() {
         }
         var filepaths=[],dirpaths=[];
         async.eachSeries(list,function(item,cb) {
-          if ((item=='.')||(item=='..')) {
+          if ((item=='.')||(item=='..')||(item=='.kbucket')) {
             cb();
             return;
           }
@@ -459,7 +460,7 @@ function connect_to_websocket() {
 
 
     function send_message_to_hub(obj) {
-      obj.share_key=KBUCKET_SHARE_KEY;
+      obj.share_key=KBSC.shareKey();
       send_json_message(obj);
     }
     function send_json_message(obj) {
@@ -476,6 +477,38 @@ function connect_to_websocket() {
 }
 
 start_server();
+
+function KBShareConfig(share_directory) {
+
+  this.shareKey=function() {return shareKey();};
+
+  var m_config_dir=share_directory+'/.kbucket';
+  var m_config_file_path=m_config_dir+'/kbshare.json';
+
+  if (!require('fs').existsSync(m_config_dir)) {
+    require('fs').mkdirSync(m_config_dir);
+  }
+  if (!get_config('share_key')) {
+    set_config('share_key',make_random_id(12));
+  }
+
+  function shareKey() {
+    return get_config('share_key');
+  }
+
+  function get_config(key) {
+    var config=read_json_file(m_config_file_path)||{};
+    return config[key];
+  }
+  function set_config(key,val) {
+    var config=read_json_file(m_config_file_path)||{};
+    config[key]=val;
+    if (!write_json_file(m_config_file_path,config)) {
+      console.error('Unable to write to file: '+m_config_file_path+'. Aborting.');
+      process.exit(-1);
+    }
+  }
+}
 
 
 function run_command_and_read_stdout(cmd,callback) {
@@ -498,7 +531,6 @@ function run_command_and_read_stdout(cmd,callback) {
     callback(`Problem running ${cmd}: ${err.message}`);
   })
 }
-
 
 function CLParams(argv) {
   this.unnamedParameters=[];
@@ -550,5 +582,45 @@ function parse_json(str) {
   }
   catch(err) {
     return null;
+  }
+}
+
+function read_json_file(fname) {
+  try {
+    var txt=require('fs').readFileSync(fname,'utf8')
+    return parse_json(txt);
+  }
+  catch(err) {
+    return null;
+  }
+}
+
+function read_text_file(fname) {
+  try {
+    var txt=require('fs').readFileSync(fname,'utf8')
+    return txt;
+  }
+  catch(err) {
+    return null;
+  }
+}
+
+function write_json_file(fname,obj) {
+  try {
+    require('fs').writeFileSync(fname,JSON.stringify(obj,null,4));
+    return true;
+  }
+  catch(err) {
+    return false;
+  }
+}
+
+function write_text_file(fname,txt) {
+  try {
+    require('fs').writeFileSync(fname,txt);
+    return true;
+  }
+  catch(err) {
+    return false;
   }
 }

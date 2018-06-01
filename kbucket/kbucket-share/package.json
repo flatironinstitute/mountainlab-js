@@ -18,10 +18,12 @@
   "dependencies": {
     "async": "^2.6.1",
     "bootstrap": "^4.1.1",
+    "crypto": "^1.0.1",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "find-port": "^2.0.1",
     "jquery": "^3.3.1",
+    "keypair": "^1.0.1",
     "octicons": "4.3.0",
     "request": "^2.87.0",
     "ws": "^5.2.0"

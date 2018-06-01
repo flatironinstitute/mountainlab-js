@@ -66,7 +66,7 @@ function run_process_2(processor_name,opts,spec0,callback) {
 	// Check inputs, set default parameters and substitute prvs
 	steps.push(function(cb) {
 		console.log ('[ Checking inputs and substituting prvs ... ]');
-		check_inputs_and_substitute_prvs(inputs,'',function(err) {
+		check_inputs_and_substitute_prvs(inputs,'',opts,function(err) {
 			if (err) {
 				finalize(err);
 				return;
@@ -617,7 +617,7 @@ function filter_exe_command(cmd,spec,inputs_in,outputs_in,info,parameters) {
 	return cmd;
 }
 
-function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
+function check_inputs_and_substitute_prvs(inputs,prefix,opts,callback) {
 	var ikeys=Object.keys(inputs);
 	common.foreach_async(ikeys,function(ii,key,cb) {
 		if (typeof(inputs[key])!='object') {
@@ -629,7 +629,12 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 				return;
 			}
 			if (common.ends_with(fname,'.prv')) {
-				prv_utils.prv_locate(fname,{},function(err,fname2) {
+				var prv_opts={};
+				if ('locate_remote' in opts) {
+					prv_opts['local']=true;
+					prv_opts['remote']=true;
+				}
+				prv_utils.prv_locate(fname,prv_opts,function(err,fname2) {
 					if (err) {
 						console.error(err);
 					}
@@ -637,8 +642,21 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 						callback(`Unable to locate file for input prv: ${(prefix||'')+key}`);
 						return;
 					}
-					inputs[key]=fname2;
-					cb();
+					if (!is_url(fname2)) {
+						inputs[key]=fname2;
+						cb();
+					}
+					else {
+						prv_utils.prv_download(fname,prv_opts,function(err,fname3) {
+							if (err) {
+								callback(`Error downloading prv: `+err);
+								return;
+							}
+							inputs[key]=fname3;
+							cb();
+						});
+					}
+					
 				});
 			}
 			else {
@@ -657,6 +675,10 @@ function check_inputs_and_substitute_prvs(inputs,prefix,callback) {
 	},function() {
 		callback(null);
 	});
+}
+
+function is_url(path_or_url) {
+	return ((path_or_url.startsWith('http://'))||(path_or_url.startsWith('https://')));
 }
 
 function get_file_extension_for_prv_file_including_dot(prv_fname) {
