@@ -7,7 +7,7 @@ exports.download_document_content_from_docstor=download_document_content_from_do
 exports.set_document_content_to_docstor=set_document_content_to_docstor;
 exports.download_kbucket_file_from_prv=download_kbucket_file_from_prv;
 
-var KBucketClient=require('./kbucketclient.js').KBucketClient;
+var KBucketClient=require('./kbucketclient2.js').KBucketClient;
 
 function mlprompt(title,message,val,callback) {
 	var elmt=bootbox.prompt({
@@ -161,13 +161,17 @@ function download_kbucket_file_from_prv(prv) {
 
     var kbucket_client=new KBucketClient();
     kbucket_client.setKBucketUrl(m_mls_manager.kBucketUrl());
-    kbucket_client.stat(sha1,size,function(err,stat0) {
+    kbucket_client.findFile(sha1,function(err,stat0) {
         if (err) {
             alert(err);
             return;
         }
         if (!stat0.found) {
             alert('Unexpected: not found on server.');
+            return;
+        }
+        if (stat0.size!=size) {
+            alert('Unexpected: incorrect size for server file.');
             return;
         }
         var file_name=get_file_name_from_path(prv.original_path||'');

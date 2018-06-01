@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
+// Load environment variables
 require('dotenv').config({
     path: __dirname + '/.env'
 });
 
-const debugging=(process.env.DEBUG=='true');
-
+// Import various nodejs modules
 const fs=require('fs');
 const express=require('express');
 const request=require('request');
@@ -33,14 +33,17 @@ if (!fs.statSync(share_directory).isDirectory()) {
 }
 var KBUCKET_SHARE_KEY=process.env.KBUCKET_SHARE_KEY||make_random_id(8);
 
+// Set environment variable DEBUG=true to get some debugging console output
+const debugging=(process.env.DEBUG=='true');
+
 console.log (`
 Using the following:
-KBUCKET_HUB_URL=${KBUCKET_HUB_URL}
-KBUCKET_SHARE_PROTOCOL=${KBUCKET_SHARE_PROTOCOL}
-KBUCKET_SHARE_HOST=${KBUCKET_SHARE_HOST}
-KBUCKET_SHARE_PORT_RANGE=${KBUCKET_SHARE_PORT_RANGE}
-KBUCKET_SHARE_KEY=${KBUCKET_SHARE_KEY}
-debugging=${debugging}
+  KBUCKET_HUB_URL=${KBUCKET_HUB_URL}
+  KBUCKET_SHARE_PROTOCOL=${KBUCKET_SHARE_PROTOCOL}
+  KBUCKET_SHARE_HOST=${KBUCKET_SHARE_HOST}
+  KBUCKET_SHARE_PORT_RANGE=${KBUCKET_SHARE_PORT_RANGE}
+  KBUCKET_SHARE_KEY=${KBUCKET_SHARE_KEY}
+  debugging=${debugging}
 
 Sharing directory: ${share_directory}
 
@@ -77,25 +80,27 @@ app.use('/:share_key/web', express.static(__dirname+'/web'));
 // ===================================================== //
 
 
-
 function check_share_key(req,res) {
   var params=req.params;
   if (params.share_key!=KBUCKET_SHARE_KEY) {
-    res.json({success:false,error:`Incorrect kbucket share key: ${params.share_key}`});
+    var errstr=`Incorrect kbucket share key: ${params.share_key}`;
+    console.error(errstr);
+    res.status(500).send({error:errstr});
     return false;
   }
   return true;
 }
 
 function handle_readdir(subdirectory,req,res) {
+  allow_cross_domain_requests(req,res);
   if (!is_safe_path(subdirectory)) {
-    res.json({success:false,error:'Unsafe path: '+subdirectory});
+    res.status(500).send({error:'Unsafe path: '+subdirectory});
     return;
   }
   var path0=require('path').join(share_directory,subdirectory);
   fs.readdir(path0,function(err,list) {
     if (err) {
-      res.json({success:false,error:err.message});
+      res.status(500).send({error:err.message});
       return;
     }
     var files=[],dirs=[];
@@ -106,7 +111,7 @@ function handle_readdir(subdirectory,req,res) {
       }
       fs.stat(require('path').join(path0,item),function(err0,stat0) {
         if (err0) {
-          res.json({success:false,error:`Error in stat of file ${item}: ${err0.message}`});
+          res.status(500).send({error:`Error in stat of file ${item}: ${err0.message}`});
           return;
         }
         if (stat0.isFile()) {
@@ -129,18 +134,20 @@ function handle_readdir(subdirectory,req,res) {
 }
 
 function handle_download(filename,req,res) {
+  allow_cross_domain_requests(req,res);
+
   // don't worry too much because express takes care of this below (b/c we specify a root directory)
   if (!is_safe_path(filename)) {
-    res.json({success:false,error:'Unsafe path: '+filename});
+    res.status(500).send({error:'Unsafe path: '+filename});
     return;
   }
   var path0=require('path').join(share_directory,filename);
   if (!fs.existsSync(path0)) {
-    res.json({success:false,error:'File does not exist: '+filename});
+    res.status(404).send('404: File Not Found');
     return;
   }
   if (!fs.statSync(path0).isFile()) {
-    res.json({success:false,error:'Not a file: '+filename});
+    res.status(500).send({error:'Not a file: '+filename});
     return;
   }
   res.sendFile(filename,{dotfiles:'allow',root:share_directory});
@@ -188,6 +195,22 @@ function get_free_port_in_range(range,callback) {
       }
       callback(null,ports[0]);
   });
+}
+
+function allow_cross_domain_requests(req,res) {
+  if (req.method == 'OPTIONS') {
+      res.set('Access-Control-Allow-Origin', '*');
+      res.set("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+      res.set("Access-Control-Allow-Credentials", true);
+      res.set("Access-Control-Max-Age", '86400'); // 24 hours
+      res.set("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Range");
+      res.status(200).send();
+        return;
+    }
+    else {
+      res.header("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Range");  
+    }
 }
 
 var HTTP_REQUESTS={};

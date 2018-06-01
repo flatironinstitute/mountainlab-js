@@ -19,7 +19,7 @@ exports.AltMLSBatchScriptResultsWidget=AltMLSBatchScriptResultsWidget;
 var JSQWidget=require('../mlscore/jsqcore/jsqwidget.js').JSQWidget;
 var JSQObject=require('../mlscore/jsqcore/jsqobject.js').JSQObject;
 var MLTableWidget=require('./mltablewidget.js').MLTableWidget;
-var KBucketClient=require('../mlscore/kbucketclient.js').KBucketClient;
+var KBucketClient=require('../mlscore/kbucketclient2.js').KBucketClient;
 var MLSBatchScript=require('../mlscore/mlsmanager.js').MLSBatchScript;
 var mlutils=require('../mlscore/mlutils.js');
 var jsutils=require('../mlscore/jsutils/jsutils.js');
@@ -343,7 +343,7 @@ function AltMLSBatchScriptResultsWidget(O) {
 	function check_on_kbucket_3(prv,callback) {
 		var KC=new KBucketClient();
 		KC.setKBucketUrl(m_mls_manager.kBucketUrl());
-		KC.stat(prv.original_checksum,prv.original_size,function(err,res) {
+		KC.findFile(prv.original_checksum,function(err,res) {
 			callback(err,res);
 		});
 	}

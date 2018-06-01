@@ -20,7 +20,7 @@ var JSQWidget=require('../mlscore/jsqcore/jsqwidget.js').JSQWidget;
 
 var MLTableWidget=require('./mltablewidget.js').MLTableWidget;
 var MLMenuBar=require('./mlmenubar.js').MLMenuBar;
-var KBucketClient=require('../mlscore/kbucketclient.js').KBucketClient;
+var KBucketClient=require('../mlscore/kbucketclient2.js').KBucketClient;
 var KBucketAuthClient=require('../mlscore/kbucketauthclient.js').KBucketAuthClient;
 var KBucketUploadDialog=require('./kbucketuploaddialog.js').KBucketUploadDialog;
 var mlutils=require('../mlscore/mlutils.js');
@@ -424,7 +424,7 @@ function AltMLSDatasetWidget(O) {
 			var name=elmt.attr('data-name');
 			var KC=new KBucketClient();
 			KC.setKBucketUrl(m_manager.kBucketUrl());
-			KC.stat(sha1,size,function(err,stat0) {
+			KC.findFile(sha1,function(err,stat0) {
 				if (err) {
 					elmt.html('Error checking');
 					elmt.attr('title',err);
@@ -436,6 +436,12 @@ function AltMLSDatasetWidget(O) {
 					elmt.attr('title','Not found on the kbucket server.');
 					elmt.attr('class','kb no');
 					return;
+				}
+				if (stat0.size!=size) {
+					elmt.html('Incorrect size');
+					elmt.attr('title','Unexpected size of file on kbucket server.');
+					elmt.attr('class','kb no');
+					return;	
 				}
 				elmt.html('');
 				elmt.attr('title','This file was found on the kbucket server.');

@@ -2,7 +2,7 @@ exports.BatchJob=BatchJob;
 
 var JSQObject=require('./jsqcore/jsqobject.js').JSQObject;
 var mlutils=require('./mlutils.js');
-var KBucketClient=require('./kbucketclient.js').KBucketClient;
+var KBucketClient=require('./kbucketclient2.js').KBucketClient;
 
 //fix the following
 var mlpLog=require('./mlplog.js').mlpLog;
@@ -935,7 +935,7 @@ function BatchJob(O,lari_client) {
   function check_on_kbucket(prv,callback) {
     var KC=new KBucketClient();
     KC.setKBucketUrl(m_kbucket_url);
-    KC.stat(prv.original_checksum,prv.original_size,function(err,res) {
+    KC.findFile(prv.original_checksum,function(err,res) {
       callback(err,res);
     });
   }
