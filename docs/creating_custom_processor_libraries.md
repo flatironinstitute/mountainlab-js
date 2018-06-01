@@ -5,7 +5,19 @@ You may also want to work by editing the "hello world"
 processor examples
 here: [`ml_identity`](https://github.com/alexmorley/ml_identity).
 
-Each MountainLab processor library is defined by an executable .mp file located somewhere within the (recursive) set of processor library search paths. The file must (a) have executable permissions and (b) have a .mp extension. If those two conditions are met, the MountainLab framework will make a system call of the file with a single "spec" argument, and will expect a JSON string to be printed to stdout. For example, the ```kbucket_upload.mp``` file is one of the built-in processor libraries distributed with mountainlab. If you run this file with the ```spec``` argument
+## Definitition of a MountainLab Processor.
+A processor library must fufil these three basic requirements:
+- **.mp file(s)**  
+At least one exectuable file with the extension `.mp` somewhere in the (recursively searched) library search paths (see `ml-config`)  
+
+- **`my_library1.mp spec` prints JSON spec object**   
+Each executable `.mp` file must print a JSON object to STDOUT when it is called with the argument `spec`.  
+
+- **JSON object must contain `processors[1].exe_command` and `processors[1].name`**  
+At least one key in the JSON object must be `"processors"` and should have at one object containing the two sub-keys `"exe_command"` for the command to be called when running this processor and `"name"` for the name by which the processor can be called using e.g. `ml-exec-process`.
+
+## Example of a MountainLab Processor
+For example, the ```kbucket_upload.mp``` file is one of the built-in processor libraries distributed with mountainlab. If you run this file with the ```spec``` argument
 
 ```
 > ./kbucket_upload.mp spec
@@ -101,9 +113,13 @@ As described above, a processor library is defined by an executable .mp file tha
 * ```opts``` A JSON object containing some additional options determining the behavior of the processor, including
 	- ```force_run``` (Boolean) Determines whether the processor should always run (regardless of caching of processor jobs on the local machine)
 
-
-
 ## Formatting the exe_command
 
 [[TODO: finish]]
+
+### NBs
+
+**NB1** The `.mp` file itself needn't be written in the same programming language as whatever it calls (defined by it's various `exe_commands`. Thus a processor library can contain any mix of arbitrary programming languages.
+
+**NB2** The name of the individual processors (`processors[1].name`) is what is printed when using the command `ml-list-processors`. The name is usually formatted as `mylibname.myprocessorname` and has no direct connection to the name of the `.mp` file itself.
 
