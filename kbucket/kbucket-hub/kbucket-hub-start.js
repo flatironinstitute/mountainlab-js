@@ -121,7 +121,7 @@ app.use('/proxy-download/:sha1',function(req,res) {
 
 // API upload -- upload a file to the kbucket-hub disk
 // TODO: think about what restrictions to place on this operation (aside from the per-upload limit)
-app.post('/upload', handle_upload);
+app.use('/upload', handle_upload);
 
 // API web
 // A web interface that will expand over time
