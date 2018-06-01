@@ -182,7 +182,7 @@ What it does:
 */
 function handle_download(sha1,filename,req,res) {
 	allow_cross_domain_requests(req,res);
-    if (req.method == 'GET') {
+    if ((req.method == 'GET')||(req.method == 'HEAD')) {
         console.log (`download: sha1=${sha1}`)
 
         // check whether it is a valid sha1
@@ -211,7 +211,7 @@ What it does:
 */
 function handle_proxy_download(sha1,filename,req,res) {
     allow_cross_domain_requests(req,res);
-    if (req.method == 'GET') {
+    if ((req.method == 'GET')||(req.method=='HEAD')) {
         console.log (`proxy-download: sha1=${sha1}`)
 
         // First check whether it is a valid sha1
@@ -287,7 +287,7 @@ function allow_cross_domain_requests(req,res) {
 	// Allow browsers to access this server
 	if (req.method == 'OPTIONS') {
         res.set('Access-Control-Allow-Origin', '*');
-	    res.set("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+	    res.set("Access-Control-Allow-Methods", "POST, GET, HEAD, OPTIONS");
 	    res.set("Access-Control-Allow-Credentials", true);
 	    res.set("Access-Control-Max-Age", '86400'); // 24 hours
 	    res.set("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Range");
