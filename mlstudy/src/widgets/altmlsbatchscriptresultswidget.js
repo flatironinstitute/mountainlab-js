@@ -343,7 +343,7 @@ function AltMLSBatchScriptResultsWidget(O) {
 	function check_on_kbucket_3(prv,callback) {
 		var KC=new KBucketClient();
 		KC.setKBucketUrl(m_mls_manager.kBucketUrl());
-		KC.findFile(prv.original_checksum,function(err,res) {
+		KC.findFile(prv.original_checksum,'',function(err,res) {
 			callback(err,res);
 		});
 	}

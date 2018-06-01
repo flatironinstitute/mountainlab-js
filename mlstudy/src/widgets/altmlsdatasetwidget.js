@@ -424,7 +424,7 @@ function AltMLSDatasetWidget(O) {
 			var name=elmt.attr('data-name');
 			var KC=new KBucketClient();
 			KC.setKBucketUrl(m_manager.kBucketUrl());
-			KC.findFile(sha1,function(err,stat0) {
+			KC.findFile(sha1,'',function(err,stat0) {
 				if (err) {
 					elmt.html('Error checking');
 					elmt.attr('title',err);

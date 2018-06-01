@@ -9,7 +9,7 @@ var s_kbucket_client_data={
 
 function KBucketClient() {
 	this.setKBucketUrl=function(url) {m_kbucket_url=url;};
-	this.findFile=function(sha1,callback) {findFile(sha1,callback);}
+	this.findFile=function(sha1,file_name,callback) {findFile(sha1,file_name,callback);}
 	this.clearCacheForFile=function(sha1) {clearCacheForFile(sha1);};
 	this.clearCache=function() {s_kbucket_client_data.infos_by_sha1={};};
 	
@@ -20,7 +20,7 @@ function KBucketClient() {
 			delete s_kbucket_client_data.infos_by_sha1[sha1];
 		}
 	}
-	function findFile(sha1,callback) {
+	function findFile(sha1,filename,callback) {
 		if (s_kbucket_client_data.infos_by_sha1[sha1]) {
 			callback(null,s_kbucket_client_data.infos_by_sha1[sha1]);
 			return;
@@ -31,6 +31,9 @@ function KBucketClient() {
 		}
 		var url0=m_kbucket_url;
 		var url1=url0+'/find/'+sha1;
+		if (filename) {
+			url1+='/'+filename;
+		}
 		jsutils.http_get_json(url1,function(tmp) {
 			if (!tmp.success) {
 				callback('Error in http_get_json: '+tmp.error,null);

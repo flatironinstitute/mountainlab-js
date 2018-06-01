@@ -209,7 +209,7 @@ function allow_cross_domain_requests(req,res) {
     }
     else {
       res.header("Access-Control-Allow-Origin", "*");
-    res.set("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Range");  
+      res.set("Access-Control-Allow-Headers", "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization, Range");  
     }
 }
 

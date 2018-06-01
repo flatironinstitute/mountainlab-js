@@ -935,7 +935,7 @@ function BatchJob(O,lari_client) {
   function check_on_kbucket(prv,callback) {
     var KC=new KBucketClient();
     KC.setKBucketUrl(m_kbucket_url);
-    KC.findFile(prv.original_checksum,function(err,res) {
+    KC.findFile(prv.original_checksum,'',function(err,res) {
       callback(err,res);
     });
   }

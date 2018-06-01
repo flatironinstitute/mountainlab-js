@@ -161,7 +161,8 @@ function download_kbucket_file_from_prv(prv) {
 
     var kbucket_client=new KBucketClient();
     kbucket_client.setKBucketUrl(m_mls_manager.kBucketUrl());
-    kbucket_client.findFile(sha1,function(err,stat0) {
+    var file_name=get_file_name_from_path(prv.original_path||'');
+    kbucket_client.findFile(sha1,file_name,function(err,stat0) {
         if (err) {
             alert(err);
             return;
@@ -174,8 +175,8 @@ function download_kbucket_file_from_prv(prv) {
             alert('Unexpected: incorrect size for server file.');
             return;
         }
-        var file_name=get_file_name_from_path(prv.original_path||'');
         var url=stat0.url;
+        /*
         var aaa=url.indexOf('?');
         if (aaa>=0) {
             url=url.slice(0,aaa)+'/'+file_name+'?'+url.slice(aaa+1);
@@ -183,6 +184,7 @@ function download_kbucket_file_from_prv(prv) {
         else {
             url=url+'/'+file_name;
         }
+        */
         window.open(url,'_blank');
     });
 
