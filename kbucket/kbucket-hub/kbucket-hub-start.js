@@ -846,6 +846,7 @@ function is_valid_sha1(sha1) {
 }
 
 function handle_upload(req, res) {
+	allow_cross_domain_requests(req,res);
 	// TODO: document this
     const send_response = function(obj) {
         if (res.headersSent)
