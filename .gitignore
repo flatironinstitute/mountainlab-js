@@ -7,7 +7,7 @@ mountainlab-js-test
 npm*.log
 .ipynb*
 __pycache__
-_site
 .env
 package-lock.json
 .kbucket
+docs/_site
