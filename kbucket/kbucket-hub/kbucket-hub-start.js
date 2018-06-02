@@ -154,8 +154,7 @@ function handle_find(sha1,filename,req,res) {
 	                    success: true,
 	                    found: true,
 	                    size: resp.size,
-	                    direct_urls: resp.direct_urls||undefined,
-	                    proxy_url: resp.proxy_url||undefined
+	                    urls: resp.urls||undefined
 	                });
             	}
             	else {
@@ -499,15 +498,14 @@ function KBucketHubManager() {
 			var resp={
 				success:true,
 				found:false,
-				direct_urls:undefined,
-				proxy_url:undefined
+				urls:[]
 			};
 			if ((shares_resp.found)||(hub_resp.found)) {
 				// Found with at least one of the methods
 				resp.found=true; // report found
 				if (shares_resp.found) {
 					// found on at least one of the shares
-					resp.direct_urls=shares_resp.direct_urls; // so we have direct urls
+					resp.urls=shares_resp.urls; // so we have direct urls
 					resp.size=shares_resp.size; // we can report the size
 				}
 				else if (hub_resp.found) {
@@ -517,11 +515,13 @@ function KBucketHubManager() {
 				}
 				// We also provide a proxy url in case the direct urls are not reachable
 				// for example, if the share computers are behind firewalls
-				resp.proxy_url=`${KBUCKET_HUB_URL}/proxy-download/${opts.sha1}`;
+				var proxy_url=`${KBUCKET_HUB_URL}/proxy-download/${opts.sha1}`;
 				if (opts.filename) {
 					// append the filename to the url so that the downloaded file has the desired name
-					resp.proxy_url+=`/${opts.filename}`;
+					proxy_url+=`/${opts.filename}`;
 				}
+				resp.urls.push(proxy_url);
+				
 			}
 			// return the results
 			callback(null,resp);
@@ -607,7 +607,7 @@ function KBShareManager() {
 		var resp={
 			found:false, // whether the file was found
 			size:undefined, // size of the file if found
-			direct_urls:[], // a list of direct urls (direct to the share computers)
+			urls:[], // a list of direct urls (direct to the share computers)
 			internal_finds:[] // a list of objects for each find (described elsewhere)
 		};
 
@@ -631,9 +631,9 @@ function KBShareManager() {
 					resp.found=true;
 					// TODO: we should check for consistency with size, and do something if there is an inconsistency
 					resp.size=resp0.size; // record the size
-					if (resp0.direct_url) {
+					if (resp0.url) {
 						// add the direct url (direct connection to the share computer)
-						resp.direct_urls.push(resp0.direct_url);
+						resp.urls.push(resp0.url);
 					}
 					// keep track of the info for this find
 					// used when serving the file with the kbucket-hub acting as a proxy
@@ -810,7 +810,7 @@ function KBShare(share_key,info,on_message_handler) {
 		};
 		if (info.share_host) {
 			// The share computer has reported it's ip address, etc. So we'll use that as the direct url
-			ret.direct_url=`${info.share_protocol}://${info.share_host}:${info.share_port}/${share_key}/download/${FF.path}`;
+			ret.url=`${info.share_protocol}://${info.share_host}:${info.share_port}/${share_key}/download/${FF.path}`;
 		}
 		// return the results
 		callback(null,ret);

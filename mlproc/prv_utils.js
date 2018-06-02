@@ -370,10 +370,7 @@ function prv_locate(prv_fname,opts,callback) {
 				callback('File not found on kbucket.');
 				return;
 			}
-			var candidate_urls=obj2.direct_urls||[];
-			if (obj2.proxy_url) {
-				candidate_urls.push(obj2.proxy_url);
-			}
+			var candidate_urls=obj2.urls||[];
 			find_existing_url(candidate_urls,function(url2) {
 				if (!url2) {
 					callback('Found file, but none of the urls seem to work.');

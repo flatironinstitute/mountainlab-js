@@ -49,13 +49,7 @@ function KBucketClient() {
 				return;
 			}
 			var url='';
-			var candidate_urls=obj.direct_urls||[];
-			if (obj.proxy_url) {
-				candidate_urls.push(obj.proxy_url);
-			}
-			if (obj.hub_url) {
-				candidate_urls.push(obj.proxy_url);
-			}
+			var candidate_urls=obj.urls||[];
 			async.eachSeries(candidate_urls,function(candidate_url,cb) {
 				urlExists(candidate_url,function(exists) {
 					if (exists) {
