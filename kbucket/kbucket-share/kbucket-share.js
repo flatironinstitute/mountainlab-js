@@ -12,6 +12,9 @@ const request=require('request');
 const async = require('async');
 const WebSocket = require('ws');
 const findPort = require('find-port');
+const keypair = require('keypair');
+const sha1=require('node-sha1');
+const watcher = require('chokidar');
 
 const KBUCKET_HUB_URL=process.env.KBUCKET_HUB_URL||'https://kbucket.flatironinstitute.org';
 const KBUCKET_SHARE_PROTOCOL='http'; //todo: support https
@@ -32,8 +35,6 @@ if (!fs.statSync(share_directory).isDirectory()) {
   process.exit(-1);
 }
 
-var KBSC=new KBShareConfig(share_directory);
-
 // Set environment variable DEBUG=true to get some debugging console output
 const debugging=(process.env.DEBUG=='true');
 
@@ -46,9 +47,17 @@ Using the following:
   debugging=${debugging}
 
 Sharing directory: ${share_directory}
-Share key: ${KBSC.shareKey()}
 
 `);
+
+var KBSC=new KBShareConfig(share_directory);
+KBSC.initialize(function() {
+  console.log (`Share key: ${KBSC.kbShareId()}`);
+  setTimeout(function() {
+    start_server();
+  },100);
+});
+
 
 // ===================================================== //
 
@@ -56,35 +65,35 @@ const app = express();
 app.set('json spaces', 4); // when we respond with json, this is how it will be formatted
 
 // API readdir
-app.get('/:share_key/api/readdir/:subdirectory(*)',function(req,res) {
-  if (!check_share_key(req,res)) return;
+app.get('/:kbshare_id/api/readdir/:subdirectory(*)',function(req,res) {
+  if (!check_kbshare_id(req,res)) return;
   var params=req.params;
   handle_readdir(params.subdirectory,req,res);
 });
-app.get('/:share_key/api/readdir/',function(req,res) {
-  if (!check_share_key(req,res)) return;
+app.get('/:kbshare_id/api/readdir/',function(req,res) {
+  if (!check_kbshare_id(req,res)) return;
   var params=req.params;
   handle_readdir('',req,res);
 });
 
 // API download
-app.get('/:share_key/download/:filename(*)',function(req,res) {
-  if (!check_share_key(req,res)) return;
+app.get('/:kbshare_id/download/:filename(*)',function(req,res) {
+  if (!check_kbshare_id(req,res)) return;
   var params=req.params;
   handle_download(params.filename,req,res);
 });
 
 // API web
 // don't really need to check the share key here because we won't be able to get anything except in the web/ directory
-app.use('/:share_key/web', express.static(__dirname+'/web'));
+app.use('/:kbshare_id/web', express.static(__dirname+'/web'));
 
 // ===================================================== //
 
 
-function check_share_key(req,res) {
+function check_kbshare_id(req,res) {
   var params=req.params;
-  if (params.share_key!=KBSC.shareKey()) {
-    var errstr=`Incorrect kbucket share key: ${params.share_key}`;
+  if (params.kbshare_id!=KBSC.kbShareId()) {
+    var errstr=`Incorrect kbucket share key: ${params.kbshare_id}`;
     console.error(errstr);
     res.status(500).send({error:errstr});
     return false;
@@ -122,9 +131,11 @@ function handle_readdir(subdirectory,req,res) {
           });
         }
         else if (stat0.isDirectory()) {
-          dirs.push({
-            name:item
-          });
+          if (!is_excluded_directory_name(item)) {
+            dirs.push({
+              name:item
+            });
+          }
         }
         cb();
       });
@@ -168,7 +179,7 @@ function start_server(callback) {
     KBUCKET_SHARE_PORT=port;
     app.listen(KBUCKET_SHARE_PORT, function() {
       console.log (`Listening on port ${KBUCKET_SHARE_PORT}`);
-      console.log (`Web interface: ${KBUCKET_SHARE_PROTOCOL}://${KBUCKET_SHARE_HOST}:${KBUCKET_SHARE_PORT}/${KBSC.shareKey()}/web`)
+      console.log (`Web interface: ${KBUCKET_SHARE_PROTOCOL}://${KBUCKET_SHARE_HOST}:${KBUCKET_SHARE_PORT}/${KBSC.kbShareId()}/web`)
       connect_to_websocket();
     });
   });
@@ -239,7 +250,6 @@ function HttpRequest(on_message_handler) {
       headers:msg.headers,
       followRedirect:false // important because we want the proxy server to handle it instead
     }
-    console.log('request',opts);
     m_request=request(opts);
     m_request.on('response',function(resp) {
       on_message_handler({command:'http_set_response_headers',status:resp.statusCode,status_message:resp.statusMessage,headers:resp.headers});
@@ -293,7 +303,7 @@ function connect_to_websocket() {
   if (KBUCKET_HUB_URL) {
     var URL=require('url').URL;
     var url=new URL(KBUCKET_HUB_URL);
-    if (url.protocol=='http')
+    if (url.protocol=='http:')
       url.protocol='ws';
     else
       url.protocol='wss';
@@ -377,6 +387,72 @@ function connect_to_websocket() {
       });
     }
 
+    var queued_files_for_indexing={};
+    var indexed_files={};
+    start_indexing_queued_files();
+    function start_indexing_queued_files() {
+      var num_before=Object.keys(queued_files_for_indexing).length;
+      index_queued_files(function() {
+        setTimeout(function() {
+          var num_after=Object.keys(queued_files_for_indexing).length;
+          if ((num_before>0)&&(num_after==0)) {
+            console.log (`Done indexing ${Object.keys(indexed_files).length} files.`);
+          }
+          start_indexing_queued_files();
+        },100);
+      });
+    }
+    function index_queued_files(callback) {
+      var keys=Object.keys(queued_files_for_indexing);
+      async.eachSeries(keys,function(key,cb) {
+        index_queued_file(key,function() {
+          cb();
+        });
+      },function() {
+        callback();
+      });
+    }
+    function index_queued_file(key,callback) {
+      if (!(key in queued_files_for_indexing)) {
+        callback();
+        return;
+      }
+      var relfilepath=key;
+      delete queued_files_for_indexing[key];
+      if (!require('fs').existsSync(share_directory+'/'+relfilepath)) {
+        console.log ('File no longer exists: '+relfilepath);
+        send_message_to_hub({command:'set_file_info',path:relfilepath,prv:undefined});
+        if (relfilepath in indexed_files)
+          delete indexed_files[relfilepath];
+        callback();
+        return;
+      }
+      console.log (`Computing prv for: ${relfilepath}...`);
+      compute_prv(relfilepath,function(err,prv) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        send_message_to_hub({command:'set_file_info',path:relfilepath,prv:prv});
+        indexed_files[relfilepath]=true;
+        callback();
+      });
+    }
+    watcher.watch(share_directory,{ignoreInitial:true}).on('all',function(evt,path) {
+      if (!path.startsWith(share_directory+'/')) {
+        console.warn('Watched file does not start with expected directory',path,share_directory);
+        return;
+      }
+      var relpath=path.slice((share_directory+'/').length);
+      if (relpath.startsWith('.kbucket')) {
+        return;
+      }
+      if (is_indexable(relpath)) {
+        queued_files_for_indexing[relpath]=true;
+      }
+    });
+
+
     function index_files_in_subdirectory(subdirectory,callback) {
       var path0=require('path').join(share_directory,subdirectory);
       fs.readdir(path0,function(err,list) {
@@ -384,7 +460,7 @@ function connect_to_websocket() {
           callback(err.message);
           return;
         }
-        var filepaths=[],dirpaths=[];
+        var relfilepaths=[],reldirpaths=[];
         async.eachSeries(list,function(item,cb) {
           if ((item=='.')||(item=='..')||(item=='.kbucket')) {
             cb();
@@ -396,54 +472,51 @@ function connect_to_websocket() {
               return;
             }
             if (stat0.isFile()) {
-              filepaths.push(require('path').join(subdirectory,item));
+              relfilepaths.push(require('path').join(subdirectory,item));
             }
             else if (stat0.isDirectory()) {
-              dirpaths.push(require('path').join(subdirectory,item));
+              if (!is_excluded_directory_name(item)) {
+                reldirpaths.push(require('path').join(subdirectory,item));
+              }
             }
             cb();
           });
         },function() {
-          index_files_list(filepaths,function(err) {
-            if (err) {
-              callback(err);
-              return;
+          for (var i in relfilepaths) {
+            if (is_indexable(relfilepaths[i])) {
+              queued_files_for_indexing[relfilepaths[i]]=true;
             }
-            async.eachSeries(dirpaths,function(dirpath,cb) {
-              index_files_in_subdirectory(dirpath,function(err) {
-                if (err) {
-                  callback(err);
-                  return;
-                }
-                cb();
-              });
-            },function() {
-              callback(null);
+          }
+          async.eachSeries(reldirpaths,function(reldirpath,cb) {
+            index_files_in_subdirectory(reldirpath,function(err) {
+              if (err) {
+                callback(err);
+                return;
+              }
+              cb();
             });
+          },function() {
+            callback(null);
           });
         });
       });
     }
 
-    function index_files_list(filepaths,callback) {
-      async.eachSeries(filepaths,function(filepath,cb) {
-        var path0=require('path').join(share_directory,filepath);
-        console.log (`Computing prv for: ${filepath}...`);
-        compute_prv(path0,function(err,prv) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          send_message_to_hub({command:'set_file_info',path:filepath,prv:prv});
-          cb();
-        });
-      },function() {
-        callback(null);
-      });
+
+
+    function filter_file_name_for_cmd(fname) {
+      fname=fname.split(' ').join('\\ ');
+      fname=fname.split('$').join('\\$');
+      return fname;
     }
 
-    function compute_prv(path,callback) {
-      var cmd=`ml-prv-stat ${path}`;
+    function compute_prv(relpath,callback) {
+      var prv_obj=KBSC.getPrvFromCache(relpath);
+      if (prv_obj) {
+        callback(null,prv_obj);
+        return;
+      }
+      var cmd=`ml-prv-stat ${filter_file_name_for_cmd(share_directory+'/'+relpath)}`;
       run_command_and_read_stdout(cmd,function(err,txt) {
         if (err) {
           callback(err);
@@ -451,16 +524,18 @@ function connect_to_websocket() {
         }
         var obj=parse_json(txt.trim());
         if (!obj) {
-          callback(`Error parsing json output in compute_prv for file: ${path}`);
+          callback(`Error parsing json output in compute_prv for file: ${relpath}`);
           return;
         }
+        KBSC.savePrvToCache(relpath,obj);
         callback(null,obj);
       });
     }
 
-
     function send_message_to_hub(obj) {
-      obj.share_key=KBSC.shareKey();
+      //note we send both of these for now, but in future, we need to just send kbshare_id
+      obj.share_key=KBSC.kbShareId();
+      obj.kbshare_id=KBSC.kbShareId();
       send_json_message(obj);
     }
     function send_json_message(obj) {
@@ -476,11 +551,11 @@ function connect_to_websocket() {
   }
 }
 
-start_server();
-
 function KBShareConfig(share_directory) {
-
-  this.shareKey=function() {return shareKey();};
+  this.initialize=function(callback) {initialize(callback);};
+  this.kbShareId=function() {return kbShareId();};
+  this.getPrvFromCache=function(relpath) {return get_prv_from_cache(relpath);};
+  this.savePrvToCache=function(relpath,prv) {return save_prv_to_cache(relpath,prv);};
 
   var m_config_dir=share_directory+'/.kbucket';
   var m_config_file_path=m_config_dir+'/kbshare.json';
@@ -488,12 +563,45 @@ function KBShareConfig(share_directory) {
   if (!require('fs').existsSync(m_config_dir)) {
     require('fs').mkdirSync(m_config_dir);
   }
-  if (!get_config('share_key')) {
-    set_config('share_key',make_random_id(12));
+  if (!require('fs').existsSync(m_config_dir+'/prv_cache')) {
+    require('fs').mkdirSync(m_config_dir+'/prv_cache');
   }
 
-  function shareKey() {
-    return get_config('share_key');
+  function initialize(callback) {
+    async.series([init_step1,init_step2],
+      function() {
+        callback(null);
+      }
+    );
+    function init_step1(cb) {
+      if (get_config('kbshare_id')) {
+        cb();
+        return;
+      }
+      generate_pem_files_and_kbshare_id(function() {
+        callback();
+      });
+    }
+    function init_step2(cb) {
+      start_the_cleaner();
+      cb();
+    }
+  }
+
+  function generate_pem_files_and_kbshare_id(callback) {
+    var pair = keypair();
+    var private_key=pair.public;
+    var public_key=pair.public;
+    write_text_file(m_config_dir+'/private.pem',private_key);
+    write_text_file(m_config_dir+'/public.pem',public_key);
+    var list=public_key.split('\n');
+    var share_id=list[1].slice(0,10); //important
+    set_config('kbshare_id',share_id);
+    callback();
+  }
+
+  function kbShareId() {
+    return get_config('kbshare_id');
   }
 
   function get_config(key) {
@@ -507,6 +615,120 @@ function KBShareConfig(share_directory) {
       console.error('Unable to write to file: '+m_config_file_path+'. Aborting.');
       process.exit(-1);
     }
+  }
+
+  function get_prv_cache_fname(path) {
+    if (!path) return '';
+    return m_config_dir+'/prv_cache/'+sha1(path).slice(0,10)+'.json';
+  }
+
+  function get_prv_from_cache(relpath) {
+    var cache_fname=get_prv_cache_fname(relpath);
+    if (!require('fs').existsSync(cache_fname)) {
+      return null;
+    }
+    var obj=read_json_file(cache_fname);
+    if (!obj) return null;
+    if (!prv_cache_object_matches_file(obj,share_directory+'/'+relpath)) {
+      return null;
+    }
+    return obj.prv;
+  }
+  function prv_cache_object_matches_file(obj,path) {
+    if (!obj) return false;
+    try {
+      var stat0=require('fs').statSync(path);
+    }
+    catch(err) {
+      return false;
+    }
+    if (stat0.size!=obj.size) {
+      return false;
+    }
+    if (stat0.mtime+''!=obj.mtime) {
+      return false;
+    }
+    if (!obj.prv) return false;
+    return true;
+  }
+
+  function save_prv_to_cache(relpath,prv) {
+    var cache_fname=get_prv_cache_fname(relpath);
+    var stat0=require('fs').statSync(share_directory+'/'+relpath);
+    var obj={};
+    obj.path=relpath;
+    obj.size=stat0.size;
+    obj.mtime=stat0.mtime+'';
+    obj.prv=prv;
+    write_json_file(cache_fname,obj);
+  }
+
+  function start_the_cleaner() {
+    cleanup(function(err) {
+      if (err) {
+        console.error(err);
+        console.error('Aborting');
+        process.exit(-1);
+        return;
+      }
+      setTimeout(start_the_cleaner,1000);
+    });
+  }
+  function cleanup(callback) {
+    cleanup_prv_cache(function(err) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      callback(null);
+    });
+  }
+  function cleanup_prv_cache(callback) {
+    var prv_cache_dir=m_config_dir+'/prv_cache';
+    require('fs').readdir(prv_cache_dir,function(err,files) {
+      if (err) {
+        callback('Error in cleanup_prv_cache:readdir: '+err.message);
+        return;
+      }
+      async.eachSeries(files,function(file,cb) {
+        cleanup_prv_cache_file(prv_cache_dir+'/'+file,function(err) {
+          if (err) {
+            callback(err);
+            return;
+          }
+          cb();
+        });
+      });
+    });
+  }
+  function cleanup_prv_cache_file(cache_filepath,callback) {
+    var obj=read_json_file(cache_filepath);
+    if (!obj) {
+      safe_remove_file(cache_filepath);
+      callback(null);
+      return;
+    }
+    var relpath1=obj.path;
+    if (!is_indexable(relpath1)) {
+      safe_remove_file(cache_filepath);
+      callback(null);
+      return;
+    }
+    if (get_prv_cache_fname(relpath1)!=cache_filepath) {
+      safe_remove_file(cache_filepath);
+      callback(null);
+      return;  
+    }
+    if (!prv_cache_object_matches_file(obj,share_directory+'/'+relpath1)) {
+      safe_remove_file(cache_filepath);
+      callback(null);
+      return;
+    }
+    callback(null);
+  }
+  function safe_remove_file(cache_filepath) {
+    require('fs').unlink(cache_filepath,function(err) {
+    });
   }
 }
 
@@ -623,4 +845,18 @@ function write_text_file(fname,txt) {
   catch(err) {
     return false;
   }
+}
+
+function is_indexable(relpath) {
+  var list=relpath.split('.');
+  for (var i=0; i<list.length-1; i++) {
+    if (is_excluded_directory_name(list[i]))
+      return false;
+  }
+  return true;
+}
+
+function is_excluded_directory_name(name) {
+  var to_exclude=['node_modules','.git','.kbucket'];
+  return (to_exclude.indexOf(name)>=0);
 }

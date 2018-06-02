@@ -74,7 +74,6 @@ function KBucketClient() {
 					callback(null,{found:false});
 					return;
 				}
-				console.log('Using url: '+url);
 				var info0={
 					found:true,
 					url:url,

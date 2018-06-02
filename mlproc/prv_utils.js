@@ -212,7 +212,6 @@ function prv_download(prv_fname,opts,callback) {
 						callback('Error copying: '+err);
 						return;
 					}
-					console.log('Done.');
 					callback(null,opts.output);
 				});
 				return;
@@ -233,7 +232,7 @@ function prv_download(prv_fname,opts,callback) {
 						callback(`SHA-1 of downloaded file does not match expected. ${sha1} <> ${obj.original_checksum}`);
 						return;
 					}
-					console.log('Done.');
+					console.log ('Done.');
 					callback(null,opts.output);
 				})
 			});
@@ -566,6 +565,11 @@ sumit.compute_file_sha1=function(path,callback) {
 		callback('Not file type: '+path,'');
 		return;
 	}
+	var is_small_file=(stat0.size<1000);
+	if  (is_small_file) {
+		do_compute_sha1();
+		return;
+	}
 	sumit.find_doc_by_path(path,function(err,doc0) {
 		if (err) {
 			callback(err);
@@ -575,6 +579,9 @@ sumit.compute_file_sha1=function(path,callback) {
 			callback(null,doc0.sha1);
 			return;
 		}
+		do_compute_sha1();
+	});
+	function do_compute_sha1() {
 		var stream = require('fs').createReadStream(path);
 		sha1(stream,function(err,hash) {
 			if (err) {
@@ -590,15 +597,20 @@ sumit.compute_file_sha1=function(path,callback) {
 				mtime:stat0.mtime.toISOString(),
 				ino:stat0.ino
 			};
-			db_utils.saveDocument('sumit',doc0,function(err) {
-				if (err) {
-					callback(err);
-					return;
-				}
+			if (is_small_file) {
 				callback('',doc0.sha1);
-			});
+			}
+			else {
+				db_utils.saveDocument('sumit',doc0,function(err) {
+					if (err) {
+						callback(err);
+						return;
+					}
+					callback('',doc0.sha1);
+				});
+			}
 		});
-	});
+	}
 	
 }
 function compute_file_sha1(path,callback) {
