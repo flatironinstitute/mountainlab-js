@@ -31,7 +31,7 @@ Alex Morley has a project and vision for applying continuous integration princip
 
 Using Linux is recommended.
 
-This should also work on Mac OS X, but has not been very well tested. See [notes on OS X](./docs/notes_on_osx.md).
+This should also work on Mac OS X, but has not been very well tested. See [notes on OS X](./docs/docs_editable/notes_on_osx.md).
 
 At some point, this may run on windows.
 
@@ -40,9 +40,9 @@ Note: If you have a prior version of MountainLab installed, then you may want to
 
 ### Step 1: Install the prerequisites
 
-* NodeJS -- you must use a recent version. [Details.](./docs/prerequisites.md)
-* MongoDB -- [Details.](./docs/prerequisites.md)
-* Python 3 with pip -- optional but required for most plugin packages. [Details.](./docs/prerequisites.md)
+* NodeJS -- you must use a recent version. [Details.](./docs/docs_editable/prerequisites.md)
+* MongoDB -- [Details.](./docs/docs_editable/prerequisites.md)
+* Python 3 with pip -- optional but required for most plugin packages. [Details.](./docs/docs_editable/prerequisites.md)
 
 ### Step 2: Clone this repository and install using npm (node package manager)
 
@@ -87,7 +87,7 @@ mkdir -p ~/.mountainlab/packages
 
 This is the default location for plugin processor libraries (see the output of the ml-config command).
 
-It is recommend that you use a python virtualenv for what follows. [Details.](./docs/prerequisites.md).
+It is recommend that you use a python virtualenv for what follows. [Details.](./docs/docs_editable/prerequisites.md).
 
 To get started with the examples, clone and install the following two packages. The first is for generic utilities for working with electrophysiology datasets. The second is our spike sorting algorithm, MountainSort v4.
 
@@ -237,8 +237,8 @@ CPU-only octave implementation of [JRCLUST](https://github.com/JaneliaSciComp/JR
 
 
 You can also create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see the above `ml_identity` processors, and 
-[creating custom processor libraries](docs/creating_custom_processor_libraries.md)
+[creating custom processor libraries](docs/docs_editable/creating_custom_processor_libraries.md)
 
 ## Using processing scripts (.ml files)
 
-Since processors can be run individually using system calls, processing pipelines may be formed in many different ways, including bash scripts. However, the preferred way is to use the JavaScript system built in to MountainLab. This allows scripts to be portable and more secure. MountainLab processing scripts can either be run from the command-line or from within a web browser, and can execute jobs on the local machine or on a remote server. Detailed documentation can be found in [processing scripts](docs/processing_scripts.md).
+Since processors can be run individually using system calls, processing pipelines may be formed in many different ways, including bash scripts. However, the preferred way is to use the JavaScript system built in to MountainLab. This allows scripts to be portable and more secure. MountainLab processing scripts can either be run from the command-line or from within a web browser, and can execute jobs on the local machine or on a remote server. Detailed documentation can be found in [processing scripts](docs/docs_editable/processing_scripts.md).

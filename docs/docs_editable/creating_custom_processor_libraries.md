@@ -1,3 +1,11 @@
+---
+layout: page
+title: Creating Custom Processor Libraries
+tagline: .mp files and more
+permalink: /docs/docs_editable/creating_custom_processor_libraries/
+---
+
+
 # Creating custom processor libraries
 
 Below is a description of how to create a processor library.

@@ -1,3 +1,10 @@
+---
+layout: page
+title: The MountainLab Philosophy/Glossary
+tagline: What we're trying to do and why.
+permalink: docs/docs_editable/philosophy-glossary/
+---
+
 ## High-Level Overview
 ** Here we try to descibe the philosophy **
 

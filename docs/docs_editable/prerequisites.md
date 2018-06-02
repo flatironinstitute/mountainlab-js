@@ -1,3 +1,10 @@
+---
+layout: page
+title: Pre-requisites 
+tagline: What you'll need to install first
+permalink: docs/docs_editable/prerequisites/
+---
+
 # Installing prerequisites for MountainLab
 
 ## Installing NodeJS
