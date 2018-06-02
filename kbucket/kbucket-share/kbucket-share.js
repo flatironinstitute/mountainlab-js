@@ -317,7 +317,8 @@ function connect_to_websocket() {
         info:{
           share_protocol:KBUCKET_SHARE_PROTOCOL,
           share_host:KBUCKET_SHARE_HOST,
-          share_port:KBUCKET_SHARE_PORT
+          share_port:KBUCKET_SHARE_PORT,
+          public_key:KBSC.publicKey()
         }
       });
       index_files();
@@ -556,6 +557,7 @@ function KBShareConfig(share_directory) {
   this.kbShareId=function() {return kbShareId();};
   this.getPrvFromCache=function(relpath) {return get_prv_from_cache(relpath);};
   this.savePrvToCache=function(relpath,prv) {return save_prv_to_cache(relpath,prv);};
+  this.publicKey=function() {return publicKey();};
 
   var m_config_dir=share_directory+'/.kbucket';
   var m_config_file_path=m_config_dir+'/kbshare.json';
@@ -615,6 +617,12 @@ function KBShareConfig(share_directory) {
       console.error('Unable to write to file: '+m_config_file_path+'. Aborting.');
       process.exit(-1);
     }
+  }
+
+  function publicKey() {
+    var public_key=read_text_file(m_config_dir+'/public.pem');
+    //var list=public_key.split('\n');
+    return public_key;
   }
 
   function get_prv_cache_fname(path) {
