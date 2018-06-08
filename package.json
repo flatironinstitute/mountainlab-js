@@ -7,7 +7,7 @@
   },
   "main": "",
   "scripts": {
-    "postinstall": "(cd mlproc && npm install && cd ..); (cd lari && npm install && cd ..); (cd system-packages/kbucket_upload && npm install && cd ../..); (cd kbucket/kbucket-share && npm install && cd ../..); (cd kbucket/kbucket-hub && npm install && cd ../..)",
+    "postinstall": "(cd mlproc && npm install && cd ..); (cd lari && npm install && cd ..); (cd system-packages/kbucket_upload && npm install && cd ../..);",
     "test": "test/test.sh"
   },
   "repository": {
