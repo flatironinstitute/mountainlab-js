@@ -1,3 +1,10 @@
+---
+layout: page
+title: Mountain Lab
+tagline: End-to-End Data Processing Pipelines
+description: Details about he Mountain Lab framework
+---
+
 [![Build Status](https://travis-ci.org/flatironinstitute/mountainlab-js.svg?branch=master)](https://travis-ci.org/flatironinstitute/mountainlab-js)
 
 # MountainLab (JavaScript implementation)

@@ -1,3 +1,10 @@
+---
+layout: page
+title: Notes on OSX
+tagline: running mountainlab on Mac/OSX
+permalink: docs/docs_editable/notes_on_osx/
+---
+
 Here are some notes/hints for getting MountainLab to work on OS X. (Thanks to L. Frank for testing)
 
 You should first install homebrew, if not already on your system. 

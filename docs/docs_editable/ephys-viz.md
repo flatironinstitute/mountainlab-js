@@ -1,3 +1,10 @@
+---
+layout: page
+title: Visualising Data with Ephys-Viz
+tagline: Don't let your data hide!
+permalink: docs/docs_editable/ephys-viz
+---
+
 ## Collaborative, browser-based visualization of electrophysiology datasets
 
 Before processing an electrophysiology timeseries it is a good idea to look at it. This can be done using ephys-viz by running, for example,

@@ -1,5 +1,9 @@
 var FileBrowserWidget=require(__dirname+'/filebrowserwidget.js').FileBrowserWidget;
 
+import $ from 'jquery';
+window.jQuery = $;
+window.$ = $;
+
 $(document).ready(function() {
 	var W=new DFSMainWindow();
 	$('#main_window').append(W.element());

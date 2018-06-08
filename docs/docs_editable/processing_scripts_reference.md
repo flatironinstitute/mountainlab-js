@@ -1,3 +1,10 @@
+---
+layouts: page
+title: Processing Scripts Reference
+tagline: What you need to do to make an awesome processing script.
+permalink: docs/docs_editable/processing_scripts_reference
+---
+
 # MountainLab processing scripts reference
 
 MountainLab processor scripts are used to assemble and execute pipelines of individual processor jobs. They can be run either from the command line or via web browser, and can queue jobs either to the local machine or to a remote server.
