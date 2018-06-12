@@ -45,6 +45,9 @@ function connect_to_database_if_needed(callback) {
 	  callback(null);
 	});
 	*/
+	//suppress output from diskdb
+	var hold_console_log=console.log;
+	console.log=function() {};
 	try {
 		mkdir_if_needed(process.env.HOME+'/.mountainlab');
 		var dirpath=process.env.HOME+'/.mountainlab/database';
@@ -52,9 +55,11 @@ function connect_to_database_if_needed(callback) {
 		DATABASE=Client.connect(dirpath,['processor_specs','sumit','processor_jobs','process_cache']);
 	}
 	catch(err) {
+		console.log=hold_console_log;
 		callback('Error connecting to disk database: '+err.message);
 		return;
 	}
+	console.log=hold_console_log;
 	callback(null);
 }
 
