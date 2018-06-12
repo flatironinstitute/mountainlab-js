@@ -248,7 +248,7 @@ function get_spec_from_mp_file(fname,callback) {
 
 function package_search_directories(opts) {
 	var list=[];
-	var ml_packages_path=process.env.ML_PACKAGE_SEARCH_DIRECTORY||(process.env.HOME+'/.mountainlab/packages');
+	var ml_packages_path=process.env.ML_PACKAGE_SEARCH_DIRECTORY||(config_directory()+'/packages');
 	list.push(ml_packages_path);
 	list.push(require('path').resolve(__dirname,'../system-packages'));
 	var ml_additional_packages_paths=(process.env.ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES||'').split(':');
@@ -318,7 +318,11 @@ function prv_search_directories() {
 }
 
 function config_file_path() {
-	return process.env.ML_CONFIG_FILE||(process.env.HOME+'/.mountainlab/mountainlab.env');
+	return process.env.ML_CONFIG_FILE||(config_directory()+'/mountainlab.env');
+}
+
+function config_directory() {
+	return process.env.ML_CONFIG_DIRECTORY||process.env.HOME+'/.mountainlab';
 }
 
 function is_executable(fname) {

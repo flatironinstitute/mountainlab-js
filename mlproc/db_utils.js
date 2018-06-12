@@ -49,8 +49,11 @@ function connect_to_database_if_needed(callback) {
 	var hold_console_log=console.log;
 	console.log=function() {};
 	try {
-		mkdir_if_needed(process.env.HOME+'/.mountainlab');
-		var dirpath=process.env.HOME+'/.mountainlab/database';
+		var dirpath=process.env.ML_DATABASE_DIRECTORY;
+		if (!dirpath) {
+			mkdir_if_needed(config_directory());
+			dirpath=config_directory()+'/database';
+		}
 		mkdir_if_needed(dirpath);
 		DATABASE=Client.connect(dirpath,['processor_specs','sumit','processor_jobs','process_cache']);
 	}
@@ -135,4 +138,8 @@ function mkdir_if_needed(path) {
   }
   catch(err) {
   }
+}
+
+function config_directory() {
+	return process.env.ML_CONFIG_DIRECTORY||process.env.HOME+'/.mountainlab';
 }
