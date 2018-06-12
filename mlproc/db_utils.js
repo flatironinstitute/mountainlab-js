@@ -13,8 +13,10 @@ var DATABASE=null;
 var trying_to_connect=false;
 var connection_error='';
 
-var MongoClient = require('mongodb').MongoClient;
-var mongo_url = "mongodb://localhost:27017/";
+//var Client = require('mongodb').MongoClient;
+//var mongo_url = "mongodb://localhost:27017/";
+
+var Client = require('diskdb');
 
 function connect_to_database_if_needed(callback) {
 	if (DATABASE) {
@@ -32,7 +34,8 @@ function connect_to_database_if_needed(callback) {
 		return;
 	}
 	trying_to_connect=true;
-	MongoClient.connect(mongo_url, function(err, db) {
+	/*
+	Client.connect(mongo_url, function(err, db) {
 	  if (err) {
 	  	connection_error='Error connecting to database: '+err;
 	  	callback(connection_error);
@@ -41,6 +44,18 @@ function connect_to_database_if_needed(callback) {
 	  DATABASE = db.db("mountainlab");
 	  callback(null);
 	});
+	*/
+	try {
+		mkdir_if_needed(process.env.HOME+'/.mountainlab');
+		var dirpath=process.env.HOME+'/.mountainlab/database';
+		mkdir_if_needed(dirpath);
+		DATABASE=Client.connect(dirpath,['processor_specs','sumit','processor_jobs','process_cache']);
+	}
+	catch(err) {
+		callback('Error connecting to disk database: '+err.message);
+		return;
+	}
+	callback(null);
 }
 
 function findDocuments(collection,query,callback) {
@@ -49,9 +64,19 @@ function findDocuments(collection,query,callback) {
 			callback(err);
 			return;
 		}
+		try {
+			var result=DATABASE[collection].find(query);
+		}
+		catch(err) {
+			callback('Error in find: '+err.message);
+			return;
+		}
+		callback(null,result);
+		/*
 		DATABASE.collection(collection).find(query).toArray(function(err,result) {
 			callback(err,result);
 		});
+		*/
 	});
 }
 
@@ -61,9 +86,19 @@ function saveDocument(collection,doc,callback) {
 			callback(err);
 			return;
 		}
+		try {
+			DATABASE[collection].save(doc);
+		}
+		catch(err) {
+			callback('Error in save: '+err.message);
+			return;
+		}
+		callback(null);
+		/*
 		DATABASE.collection(collection).save(doc,function(err) {
 			callback(err);
 		});
+		*/
 	});	
 }
 
@@ -73,8 +108,26 @@ function removeDocuments(collection,query,callback) {
 			callback(err);
 			return;
 		}
+		try {
+			DATABASE[collection].remove(query);
+		}
+		catch(err) {
+			callback('Error in remove: '+err.message);
+			return;
+		}
+		callback(null);
+		/*
 		DATABASE.collection(collection).remove(query,function(err,result) {
 			callback(err);
 		});
+		*/
 	});
+}
+
+function mkdir_if_needed(path) {
+  try {
+    require('fs').mkdirSync(path);
+  }
+  catch(err) {
+  }
 }

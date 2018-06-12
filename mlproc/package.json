@@ -21,6 +21,7 @@
   "dependencies": {
     "async": "^2.6.1",
     "canonical-json": "latest",
+    "diskdb": "^0.1.17",
     "dotenv": "latest",
     "expand-home-dir": "0.0.3",
     "mongodb": "latest",
