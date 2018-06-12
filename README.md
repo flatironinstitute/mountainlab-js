@@ -210,9 +210,12 @@ Some spike sorting examples can be found in the examples/spike_sorting directory
 Here is a list of user-contributed processor packages that we know of.
 You may git clone each of these into your `~/.mountainlab/packages/` directory:
 
-* [`ml_identity`](https://github.com/alexmorley/ml_identity):
-A set of "hello world" processors in python, to show how to make a simple
-processor and do file I/O, by Alex Morley.
+* **Identity processors**
+A set of "hello world" processors, to show how to make a simple processor and do file I/O.
+  - [`ml_identity`](https://github.com/alexmorley/ml_identity):
+  Python version, by Alex Morley.
+  - [`ml_identity_matlab`](https://github.com/tsgouvea/ml_identity_matlab):
+  Matlab version, by Thiago Gouvea.
 
 * [`ddms`](https://github.com/alexmorley/ddms):
 Tools for converting to/from neurosuite format, by Alex Morley.
@@ -225,8 +228,7 @@ CPU-only octave implementation of [JRCLUST](https://github.com/JaneliaSciComp/JR
   - [`franklab_msdrift`](https://bitbucket.org/franklab/franklab_msdrift):
   Modified drift processors that compare both neighbor and non-neighbor epochs for drift tracking, by Mari Sosa.
 
-  - [`franklab_mstaggedcuration`](https://bitbucket.org/franklab/franklab_mstaggedcuration): Tagged curation processors that preserve "rejected" clusters for accurate metrics recalculation, by Anna Gillespie.
-
+  - [`franklab_mstaggedcuration`](https://bitbucket.org/franklab/franklab_mstaggedcuration): Tagged curation processors that preserve "rejected" clusters for accurate metrics recalculation, by Anna Gillespie.  
 
 
 You can also create your own MountainLab processor libraries using any language (python, C/C++, matlab, etc). Processor libraries are simply represented by executable .mp files that provide the specifications (spec) for a collection of processors together with command strings telling MountainLab how to execute those processors using system calls. For details, see the above `ml_identity` processors, and 
