@@ -1,3 +1,3 @@
 #!/bin/sh
-DIR=`dirname $0`
-$DIR/../mlproc/mlproc prv-create $@
+DIR="$(dirname "$(realpath "$0")")"
+$DIR/mlproc prv-create $@

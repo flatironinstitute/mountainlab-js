@@ -27,9 +27,12 @@
     "mongodb": "latest",
     "node-sha1": "latest",
     "request": "^2.85.0",
+      "commander": "latest",
     "url-exists": "^1.0.3"
   },
   "devDependencies": {
-    "commander": "latest"
+  },
+  "bin": {
+    "mlproc": "mlproc"
   }
 }

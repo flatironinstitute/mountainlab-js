@@ -1,3 +1,3 @@
 #!/bin/sh
-DIR=`dirname $0`
-$DIR/../mlproc/mlproc $@
+DIR="$(dirname "$(realpath "$0")")"
+$DIR/../node_modules/.bin/mlproc $@
