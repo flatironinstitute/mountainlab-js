@@ -24,6 +24,7 @@
     "diskdb": "^0.1.17",
     "dotenv": "latest",
     "expand-home-dir": "0.0.3",
+    "matcher": "latest",
     "mongodb": "latest",
     "node-sha1": "latest",
     "request": "^2.85.0",
