@@ -1,3 +1,14 @@
-#!/bin/sh
-DIR=`dirname $0`
-$DIR/../mlproc/mlproc $@
+#!/bin/bash
+case "$OSTYPE" in
+    linux*)   REALPATH="$(readlink -f "$0")" ;;
+    darwin*)  REALPATH="$(realpath "$0")" ;;
+esac
+DIR="$(dirname "$REALPATH")"
+MLPROC=$DIR/../node_modules/.bin/mlproc
+
+if [[ -e "$MLPROC" ]]
+then
+    $MLPROC $@
+else
+    printf "'mlproc' not found at: $MLPROC;\nHave you run npm install (-g) yet?\n"
+fi

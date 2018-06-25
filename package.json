@@ -7,7 +7,6 @@
   },
   "main": "",
   "scripts": {
-    "postinstall": "(cd mlproc && npm install && cd ..); (cd lari && npm install && cd ..); (cd system-packages/kbucket_upload && npm install && cd ../..);",
     "test": "test/test.sh"
   },
   "repository": {
@@ -19,6 +18,20 @@
   ],
   "author": "Jeremy Magland",
   "license": "Apache-2.0",
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "kbucket_upload": "file:./system-packages/kbucket_upload",
+    "lari": "file:./lari",
+    "mlproc": "file:./mlproc",
+    "mlstudy": "file:./mlstudy"
+  },
+  "devDependencies": {},
+  "directories": {
+    "bin": "bin"
+  },
+  "bundledDependencies": [
+    "kbucket_upload",
+    "lari",
+    "mlproc",
+    "mlstudy"
+  ]
 }

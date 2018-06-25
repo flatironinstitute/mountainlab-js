@@ -1,3 +1,8 @@
-#!/bin/sh
-DIR=`dirname $0`
-$DIR/../mlstudy/bin/ml-run-script $@ --mode=queue
+#!/bin/bash
+case "$OSTYPE" in
+    linux*)   REALPATH="$(readlink -f "$0")" ;;
+    darwin*)  REALPATH="$(realpath "$0")" ;;
+esac
+DIR="$(dirname "$REALPATH")"
+
+$DIR/ml-run-script $@ --mode=queue
