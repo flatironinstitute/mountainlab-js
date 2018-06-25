@@ -8,7 +8,7 @@ MountainLab is data processing, sharing and visualization software for scientist
 
 The framework was conceived by and primarily implemented by Jeremy Magland at the Flatiron Institute and is released under the Apache license v2.
 
-The web infrastructure is currently under development by Jeremy Magland and Alex Morley.
+The project is currently being developed and maintained by Jeremy Magland, Alex Morley, and Tom Davidson.
 
 Other key collaborators include members of the numerical algorithms group at Flatiron Institute, including Alex Barnett (group leader), Leslie Greengard, Joakim Anden, Witold Wysota, and James Jun. Dylan Simon has contributed to the web infrastructure.
 
