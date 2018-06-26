@@ -4,9 +4,10 @@ package:
   name: {{data.get('name').lower()}}
   version: {{data.get('version')}}
 build:
-  number: {% block build_number %}9{% endblock %}
+  number: {% block build_number %}10{% endblock %}
   script:
-    - npm --prefix "$PREFIX" install -g $RECIPE_DIR
+    - git clone "$RECIPE_DIR" 
+    - npm --prefix "$PREFIX" install -g mountainlab-js --production
     - echo ls -lat "$PREFIX"/bin; ls -lat "$PREFIX"/bin
     - echo ls -lat "$PREFIX"/lib/node_modules; ls -lat "$PREFIX"/lib/node_modules
     - echo ls -lat "$PREFIX"/lib/node_modules/mountainlab-js; ls -lat "$PREFIX"/lib/node_modules/mountainlab-js
