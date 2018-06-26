@@ -1,5 +1,8 @@
 exports.cmd_run_process=cmd_run_process;
 exports.cleanup=cleanup; //in case process terminated prematurely
+
+const KBClient=require(__dirname+'/kbclient.js').KBClient;
+
 var tempdir_for_cleanup='';
 var keep_tempdir=false;
 var processor_job_id_for_cleanup='';
@@ -622,7 +625,41 @@ function check_inputs_and_substitute_prvs(inputs,prefix,opts,callback) {
 	common.foreach_async(ikeys,function(ii,key,cb) {
 		if (typeof(inputs[key])!='object') {
 			var fname=inputs[key];
-			fname=require('path').resolve(process.cwd(),fname);
+			if ((!fname.startsWith('kbucket://'))&&(!fname.startsWith('sha1://'))&&(!fname.startsWith('http://'))&&(!fname.startsWith('https://')))
+				fname=require('path').resolve(process.cwd(),fname);
+			let KBC=new KBClient();
+			let opts0={
+				download_if_needed:true
+			};
+			if (common.ends_with(fname,'.prv')) {
+				prv_utils.prv_locate(fname,{},function(err,fname2) {
+					if ((err)||(!fname2)||(is_url(fname2))) {
+						try_kbucket();
+						return;
+					}
+					inputs[key]=fname2;
+					cb();
+				});
+			}
+			else {
+				try_kbucket();
+			}
+
+			function try_kbucket() {
+				KBC.realizeFile(fname,opts0,function(err,path_or_url) {
+					if (err) {
+						callback(`Error in input ${(prefix||'')+key}: ${err}`);
+						return;
+					}
+					if (is_url(path_or_url)) {
+						callback(`Error in input ${(prefix||'')+key}: Could not realize file for ${path_or_url}`);
+						return;
+					}
+					inputs[key]=path_or_url;
+					cb();
+				});
+			}
+			/*
 			inputs[key]=fname;
 			if (!require('fs').existsSync(fname)) {
 				callback(`Input file (${(prefix||'')+key}) does not exist: ${fname}`);
@@ -656,12 +693,12 @@ function check_inputs_and_substitute_prvs(inputs,prefix,opts,callback) {
 							cb();
 						});
 					}
-					
 				});
 			}
 			else {
 				cb();
 			}
+			*/
 		}
 		else {
 			check_inputs_and_substitute_prvs(inputs[key],key+'/',function(err) {
