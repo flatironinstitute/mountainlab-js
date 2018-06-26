@@ -1,7 +1,7 @@
 exports.cmd_run_process=cmd_run_process;
 exports.cleanup=cleanup; //in case process terminated prematurely
 
-const KBClient=require(__dirname+'/kbclient.js').KBClient;
+const KBClient=require('kbclient').v1;
 
 var tempdir_for_cleanup='';
 var keep_tempdir=false;
