@@ -1,0 +1,14 @@
+#!/bin/bash
+case "$OSTYPE" in
+    linux*)   REALPATH="$(readlink -f "$0")" ;;
+    darwin*)  REALPATH="$(realpath "$0")" ;;
+esac
+DIR="$(dirname "$REALPATH")"
+LARISERVER=$DIR/../node_modules/.bin/lariserver
+
+if [[ -e "$LARISERVER" ]]
+then
+    $LARISERVER $@
+else
+    printf "'lariserver' not found at: $LARISERVER;\nHave you run 'npm install (-g) mountainlab-js' yet?\n"
+fi

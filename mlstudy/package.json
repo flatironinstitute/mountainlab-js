@@ -8,9 +8,8 @@
   "main": "mlstudyserver.js",
   "scripts": {
     "start": "node mlstudyserver.js",
-    "postinstall": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development",
-    "webpack": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development",
-    "watch": "node --use-strict node_modules/webpack-cli/bin/webpack.js --devtool source-map --mode development --watch",
+    "webpack": "node --use-strict \"`which webpack-cli`\" --devtool source-map --mode development",
+    "watch": "node --use-strict \"`which webpack-cli`\" --devtool source-map --mode development --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,10 +23,13 @@
     "express": "4.15.2"
   },
   "devDependencies": {
+    "webpack": "^4.12.0",
+    "webpack-cli": "^2.1.5",
     "css-loader": "^0.28.10",
     "html-loader": "^0.5.5",
-    "style-loader": "^0.20.2",
-    "webpack": "^4.0.1",
-    "webpack-cli": "^2.0.9"
+    "style-loader": "^0.20.2"
+  },
+  "directories": {
+    "bin": "bin"
   }
 }
