@@ -1,6 +1,11 @@
 exports.KBClient = KBClient;
 
-const fs = require('fs');
+let fs=null;
+try {
+  fs = require('fs');
+}
+catch(err) {
+}
 const axios = require('axios');
 const async = require('async');
 
@@ -14,7 +19,7 @@ function KBClient() {
   this.readBinaryFilePart = function(path, opts, callback) {
     readBinaryFilePart(path, opts, callback);
   };
-  this.realizeFile = function(path, opts, callback) {
+  this.realizeFile = function(path, opts, callback) {-
     realizeFile(path, callback);
   };
 
@@ -91,6 +96,10 @@ function KBClient() {
     if (!callback) {
       callback = opts;
       opts = {};
+    }
+    if (!path) {
+      callback('Path is empty.');
+      return;
     }
     if (path.startsWith('kbucket://')) {
       let str = path.slice(('kbucket://').length);
@@ -257,6 +266,10 @@ function KBClient() {
   }
 
   function resolve_file_path_2(sha1, url, opts, callback) {
+    if (!fs) {
+      callback(null,url);
+      return;
+    }
     let cache_file_path = get_cache_file_path_for_sha1(sha1);
     if (fs.existsSync(cache_file_path)) {
       callback(null, cache_file_path);
