@@ -22,36 +22,29 @@ Alex Morley has a project and vision for applying continuous integration princip
 
 ## Installation
 
-Using Linux is recommended.
-
-This should also work on Mac OS X, but has not been very well tested. See [notes on OS X](./docs/docs_editable/notes_on_osx.md).
+Using Linux is recommended, but it should also work on Mac OS X. See [notes on OS X](./docs/docs_editable/notes_on_osx.md).
 
 At some point, this may run on windows.
 
-Note: If you have a prior version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system, see below).
+Note: If you have a prior (non-js) version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system, see below).
 
 
 ### Step 1: Install the prerequisites
 
 * NodeJS -- you must use a recent version. [Details.](./docs/docs_editable/prerequisites.md)
-* MongoDB -- [Details.](./docs/docs_editable/prerequisites.md)
 * Python 3 with pip -- optional but required for most plugin packages. [Details.](./docs/docs_editable/prerequisites.md)
 
-### Step 2: Clone this repository and install using npm (node package manager)
+### Step 2: Install using npm (node package manager)
 
 
-Open a terminal, ```cd``` to an installation folder, and then run:
+Open a terminal, and run:
 
 ```
-git clone https://github.com/flatironinstitute/mountainlab-js
-cd mountainlab-js
-npm install
+npm install -g mountainlab-js
 ```
-Then, add "mountainlab-js/bin" to your PATH variable. This can be done by adding the following line to your ~/.bashrc file and then opening a new terminal:
 
-```
-export PATH=[your/path/to]/mountainlab-js/bin:$PATH
-```
+If it tries to install in your system directory and you are not an admin user, you should configure npm to install it in a different location.
+
 
 Test the installation by running
 ```
@@ -65,7 +58,7 @@ Further test the installation by running
 ml-list-processors
 ```
 
-This should list the names of the system processors that are distributed with MountainLab-js
+This should list the names of the very few system processors that are distributed with mountainlab-js.
 
 
 ### Step 3: Install plugin processor libraries
