@@ -1,6 +1,6 @@
 {
   "name": "mountainlab-js",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "MountainLab data analysis environment",
   "engines": {
     "node": ">8.0.0"
