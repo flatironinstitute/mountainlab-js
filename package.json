@@ -14,24 +14,29 @@
     "url": "https://github.com/flatironinstitute/mountainlab-js"
   },
   "keywords": [
-    "MountainLab"
+    "mountainlab",
+    "mountainsort",
+    "kbucket"
   ],
   "author": "Jeremy Magland",
   "license": "Apache-2.0",
   "dependencies": {
-    "lari": "file:./lari",
-    "mlproc": "file:./mlproc",
-    "mlstudy": "file:./mlstudy",
-    "mlclient": "file:./mlclient"
+    "async": "^2.6.1",
+    "axios": "^0.18.0",
+    "canonical-json": "latest",
+    "commander": "latest",
+    "diskdb": "^0.1.17",
+    "dotenv": "latest",
+    "expand-home-dir": "0.0.3",
+    "kbclient": "^1.1.0",
+    "matcher": "latest",
+    "mongodb": "latest",
+    "node-sha1": "latest",
+    "request": "^2.85.0",
+    "url-exists": "^1.0.3"
   },
   "devDependencies": {},
   "directories": {
     "bin": "bin"
-  },
-  "bundledDependencies": [
-    "lari",
-    "mlproc",
-    "mlstudy",
-    "mlclient"
-  ]
+  }
 }

@@ -9,10 +9,6 @@ require('dotenv').config({path:ml_config_file});
 
 var program = require('commander');
 
-var package_json = require('./package.json');
-
-var program = require('commander');
-
 var db_utils=require(__dirname+'/db_utils.js');
 
 process.env.KBUCKET_URL=process.env.KBUCKET_URL||'https://kbucket.flatironinstitute.org';
