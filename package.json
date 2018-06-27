@@ -19,7 +19,6 @@
   "author": "Jeremy Magland",
   "license": "Apache-2.0",
   "dependencies": {
-    "kbucket_upload": "file:./system-packages/kbucket_upload",
     "lari": "file:./lari",
     "mlproc": "file:./mlproc",
     "mlstudy": "file:./mlstudy",
@@ -30,7 +29,6 @@
     "bin": "bin"
   },
   "bundledDependencies": [
-    "kbucket_upload",
     "lari",
     "mlproc",
     "mlstudy",
