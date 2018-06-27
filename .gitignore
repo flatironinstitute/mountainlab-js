@@ -8,6 +8,5 @@ npm*.log
 .ipynb*
 __pycache__
 .env
-package-lock.json
 .kbucket
 docs/_site
