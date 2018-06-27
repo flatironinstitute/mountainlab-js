@@ -634,6 +634,9 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
       let opts0 = {
         download_if_needed: true
       };
+      if ((!common.ends_with(fname,'.prv'))&&(!file_exists(fname))&&(file_exists(fname+'.prv'))) {
+      	fname=fname+'.prv';
+      }
       if (common.ends_with(fname, '.prv')) {
         prv_utils.prv_locate(fname, {}, function(err, fname2) {
           if ((err) || (!fname2) || (is_url(fname2))) {
@@ -651,14 +654,14 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
         KBC.realizeFile(fname, opts0)
           .then(function(path_or_url) {
             if (is_url(path_or_url)) {
-              callback(`Error in input ${(prefix||'')+key}: Could not realize file for ${path_or_url}`);
+              callback(`Error in input ${(prefix||'')+key} (${fname}): Could not realize file for ${path_or_url}`);
               return;
             }
             inputs[key] = path_or_url;
             cb();
           })
           .catch(function(err) {
-            callback(`Error in input ${(prefix||'')+key}: ${err}`);
+            callback(`Error in input ${(prefix||'')+key} (${fname}): ${err}`);
           });
       }
       /*
@@ -1018,4 +1021,8 @@ function parse_iop(str, iop_name) {
     }
   }
   return ret;
+}
+
+function file_exists(fname) {
+	return require('fs').existsSync(fname);
 }

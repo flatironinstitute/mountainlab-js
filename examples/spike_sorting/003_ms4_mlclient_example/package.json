@@ -1,0 +1,14 @@
+{
+  "name": "003_ms4_mlclient_example",
+  "version": "1.0.0",
+  "description": "Spike sorting example",
+  "main": "ms4_mlclient_example.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jeremy Magland",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mlclient": "^1.2.0"
+  }
+}
