@@ -1,11 +1,11 @@
 {
   "name": "mountainlab-js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "MountainLab data analysis environment",
   "engines": {
     "node": ">8.0.0"
   },
-  "main": "",
+  "main": "index.js",
   "scripts": {
     "test": "test/test.sh"
   },
@@ -22,7 +22,8 @@
     "kbucket_upload": "file:./system-packages/kbucket_upload",
     "lari": "file:./lari",
     "mlproc": "file:./mlproc",
-    "mlstudy": "file:./mlstudy"
+    "mlstudy": "file:./mlstudy",
+    "mlclient": "file:./mlclient"
   },
   "devDependencies": {},
   "directories": {
@@ -32,6 +33,7 @@
     "kbucket_upload",
     "lari",
     "mlproc",
-    "mlstudy"
+    "mlstudy",
+    "mlclient"
   ]
 }

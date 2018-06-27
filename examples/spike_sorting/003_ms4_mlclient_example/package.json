@@ -9,6 +9,6 @@
   "author": "Jeremy Magland",
   "license": "Apache-2.0",
   "dependencies": {
-    "mlclient": "^1.2.0"
+    "mountainlab-js": "file:../../.."
   }
 }

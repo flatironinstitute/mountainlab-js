@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const MLClient = require('mlclient').v1;
+const MLClient = require('mountainlab-js').MLClient;
 
 try {
   main();
