@@ -4,7 +4,8 @@ case "$OSTYPE" in
     darwin*)  REALPATH="$(realpath "$0")" ;;
 esac
 DIR="$(dirname "$REALPATH")"
-MLPROC=$DIR/../node_modules/.bin/mlproc
+#MLPROC=$DIR/../node_modules/.bin/mlproc
+MLPROC=$DIR/../mlproc/mlproc
 
 if [[ -e "$MLPROC" ]]
 then
