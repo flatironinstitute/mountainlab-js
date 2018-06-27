@@ -9,8 +9,5 @@ env:
   - GLOBAL_INSTALL_FLAG=
 install:
   - npm install $GLOBAL_INSTALL_FLAG
-cache:
-  directories:
-    - "node_modules"
 services:
   - mongodb
