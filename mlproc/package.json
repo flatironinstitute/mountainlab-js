@@ -26,7 +26,7 @@
     "diskdb": "^0.1.17",
     "dotenv": "latest",
     "expand-home-dir": "0.0.3",
-    "kbclient": "^1.0.2",
+    "kbclient": "^1.1.0",
     "matcher": "latest",
     "mongodb": "latest",
     "node-sha1": "latest",

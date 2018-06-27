@@ -4,11 +4,14 @@ exports.stop_all=stop_all;
 var common=require(__dirname+'/common.js');
 
 var all_running_processes={};
-function stop_all() {
+function stop_all(callback) {
 	for (var id in all_running_processes) {
-		console.log ('Terminating process...');
+		console.info(`Terminating process {pid=${all_running_processes[id].pid}}...`);
 		all_running_processes[id].kill();
 	}
+	setTimeout(function() {
+		callback();
+	},500);
 }
 
 function SystemProcess() {
@@ -36,7 +39,8 @@ function SystemProcess() {
 		try {	
 			var env = Object.create( process.env );
 			if (m_tempdir_path) env.ML_PROCESSOR_TEMPDIR = m_tempdir_path;
-			P=require('child_process').spawn(m_command,{env:env,shell:true});
+			let args=m_command.split(' ');
+			P=require('child_process').spawn(args[0],args.slice(1),{env:env,shell:false});
 			all_running_processes[m_id]=P;
 		}
 		catch(err) {

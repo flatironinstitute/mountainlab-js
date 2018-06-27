@@ -21,9 +21,10 @@ process.env.KBUCKET_URL=process.env.KBUCKET_URL||'https://kbucket.flatironinstit
 process.on('SIGTERM', cleanup_and_exit);
 process.on('SIGINT', cleanup_and_exit);
 function cleanup_and_exit() {
-  require(__dirname+'/systemprocess.js').stop_all();
-  require(__dirname+'/run_process.js').cleanup(function() {
-    process.exit("-1");
+  require(__dirname+'/systemprocess.js').stop_all(function() {
+    require(__dirname+'/run_process.js').cleanup(function() {
+      process.exit("-1");
+    });
   });
 }
 
