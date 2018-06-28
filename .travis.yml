@@ -1,13 +1,49 @@
 language: node_js
+
 os:
   - linux
   - osx
+
 node_js:
   - "node"
+
 env:
-  - GLOBAL_INSTALL_FLAG=--global
-  - GLOBAL_INSTALL_FLAG=
+  - INSTALL_TYPE=npm_local  GLOBAL_INSTALL=false
+  - INSTALL_TYPE=npm_global GLOBAL_INSTALL=true
+  - INSTALL_TYPE=conda      GLOBAL_INSTALL=true
+
 install:
-  - npm install $GLOBAL_INSTALL_FLAG
-services:
-  - mongodb
+  - case "$INSTALL_TYPE" in
+      "npm_local" )
+        npm install . ;;
+      "npm_global" )
+        npm install --global . ;;
+      "conda" )
+        if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+          wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+        else
+          wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        fi;
+        bash miniconda.sh -b -p $HOME/miniconda;
+        source $HOME/miniconda/etc/profile.d/conda.sh;
+        hash -r;
+        conda config --set always_yes yes --set changeps1 no --set auto_update_conda no;
+        conda create -n mljs-env conda-build;
+        conda info -a;
+        conda activate mljs-env;
+        conda build conda-recipe;
+        conda_pkg=$(conda build conda-recipe --output);
+        conda install --use-local $conda_pkg ;;
+    esac
+
+script:
+  - if [ "$GLOBAL_INSTALL" = "true" ]; then
+      npm list -g mountainlab-js;
+      echo npm prefix = `npm prefix`;
+    else
+      PATH="$PWD"/bin:"$PATH";
+      echo npm prefix --global npm prefix --global;
+    fi;
+  - which ml-config;
+  - ml-config;
+  - ml-list-processors;
