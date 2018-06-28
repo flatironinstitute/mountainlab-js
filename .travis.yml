@@ -15,12 +15,12 @@ install:
   - case "$INSTALL_TYPE" in
       "npm_local" )
         npm install . ;
-	npm ls ;
-	node_modules/.bin/ml-config;;
+        npm ls ;
+        node_modules/.bin/ml-config;;
       "npm_global" )
         npm install --global . ;
-	npm ls -g --depth=0 ;
-	ml-config ;;
+        npm ls -g --depth=0 ;
+        ml-config ;;
       "conda" )
         if [ "$TRAVIS_OS_NAME" == "osx" ]; then
           wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
@@ -38,6 +38,6 @@ install:
         conda build conda-recipe;
         conda_pkg=$(conda build conda-recipe --output);
         conda install --use-local $conda_pkg;
-	npm ls -g --depth=0;
-	ml-config;;
+        npm ls -g --depth=0;
+        ml-config;;
     esac
