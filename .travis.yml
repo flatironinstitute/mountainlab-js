@@ -1,13 +1,39 @@
 language: node_js
+
 os:
   - linux
   - osx
 node_js:
   - "node"
 env:
-  - GLOBAL_INSTALL_FLAG=--global
-  - GLOBAL_INSTALL_FLAG=
+  - INSTALL_TYPE=npm_local
+  - INSTALL_TYPE=npm_global
+  - INSTALL_TYPE=conda
 install:
-  - npm install $GLOBAL_INSTALL_FLAG
-services:
-  - mongodb
+  - case "$INSTALL_TYPE" in
+      "npm_local" )
+        npm install . ;;
+      "npm_global" )
+        npm install --global . ;;
+      "conda" )
+        if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+          wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
+        else
+          wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        fi;
+        bash miniconda.sh -b -p $HOME/miniconda;
+        source $HOME/miniconda/etc/profile.d/conda.sh;
+        hash -r;
+        conda config --set always_yes yes --set changeps1 no --set auto_update_conda no;
+        conda create -n mljs;
+        conda activate mljs;
+        conda info -a;
+        conda install conda-build;
+	conda build conda-recipe;
+	conda_pkg=$(conda build conda-recipe --output); # get package location
+	conda install --use-local $conda_pkg;
+    esac
+
+script:
+  - npm ls -g --depth=0
+  - ml-config
