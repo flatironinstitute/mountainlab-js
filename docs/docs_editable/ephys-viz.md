@@ -10,7 +10,7 @@ permalink: docs/docs_editable/ephys-viz
 Before processing an electrophysiology timeseries it is a good idea to look at it. This can be done using ephys-viz by running, for example,
 
 ```
-ev-view-timeseries raw.mda --samplerate 30000
+ev-timeseries raw.mda --samplerate 30000
 ```
 
 I often get emails from MountainSort users who want to know if they are using the right sorting parameters or if their input has been prepared correctly. Of course, the first thing I want to do is to look at the raw timeseries data. This is a problem since the data is not on my computer.
@@ -31,7 +31,7 @@ Note: depending on the file size, you may need to email Jeremy with your google 
 
 * Click the icon in the "Labels" column to add the label "timeseries".
 
-If everything worked, you should get a new viewing icon next to the uploaded file that will open a new browser tab with the ev-view-timeseries view.
+If everything worked, you should get a new viewing icon next to the uploaded file that will open a new browser tab with the ev-timeseries view.
 
 * Share the study with me by entering my flatironinstitute email address in the share dialog (see the "Study->Share" menu option)
 

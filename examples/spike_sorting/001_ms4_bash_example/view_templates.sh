@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ev-view-templates output/templates.mda.prv
+ev-templates output/templates.mda.prv

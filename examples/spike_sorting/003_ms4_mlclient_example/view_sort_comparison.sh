@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ev-view-sort-comparison output/comparison.json
+ev-sort-comparison output/comparison.json
