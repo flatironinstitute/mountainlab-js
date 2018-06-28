@@ -2,12 +2,15 @@ language: node_js
 os:
   - linux
   - osx
+
 node_js:
   - "node"
+
 env:
   - INSTALL_TYPE=npm_local
   - INSTALL_TYPE=npm_global
   - INSTALL_TYPE=conda
+
 install:
   - case "$INSTALL_TYPE" in
       "npm_local" )
@@ -29,7 +32,7 @@ install:
         conda info -a;
         conda install conda-build;
         conda build conda-recipe;
-        conda_pkg=$(conda build conda-recipe --output); # get package location
+        conda_pkg=$(conda build conda-recipe --output);
         conda install --use-local $conda_pkg;
     esac
 
