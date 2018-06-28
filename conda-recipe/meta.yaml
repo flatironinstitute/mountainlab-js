@@ -1,0 +1,37 @@
+#Automaticly generating npm conda package
+{% set data = load_npm() %}
+package:
+  name: {{data.get('name').lower()}}
+  version: {{data.get('version')}}
+
+source:
+  git_url: .. # relative to recipe dir
+  git_rev:
+
+build:
+  number: {% block build_number %}1{% endblock %}
+  script:
+    - tgzfile=$(npm pack)
+    - npm install -g $tgzfile
+
+requirements:
+  build:
+    - nodejs
+
+  run:
+    - nodejs
+
+test:
+  commands:
+    - npm list -g mountainlab-js
+    - ml-config
+  requires:
+    - nodejs
+
+about:
+  home: {{data.get('repository').get('url')}}
+  license: {{data.get('license')}}
+
+# See
+# http://docs.continuum.io/conda/build.html for
+# more information about meta.yaml
