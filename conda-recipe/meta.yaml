@@ -1,4 +1,3 @@
-#Automatically generating npm conda package
 {% set data = load_npm() %}
 package:
   name: {{data.get('name').lower()}}
@@ -6,13 +5,16 @@ package:
 
 source:
   git_url: .. # relative to recipe dir
-  git_rev:
+  git_rev: HEAD
 
 build:
-  number: {% block build_number %}1{% endblock %}
+  number: 2
   script:
     - tgzfile=$(npm pack)
     - npm install -g $tgzfile
+    - mkdir -p "$PREFIX"/etc/conda/{de,}activate.d/
+    - cp conda-recipe/mountainlab_activate.sh "$PREFIX"/etc/conda/activate.d/
+    - cp conda-recipe/mountainlab_deactivate.sh "$PREFIX"/etc/conda/deactivate.d/
 
 requirements:
   build:
@@ -32,6 +34,4 @@ about:
   home: {{data.get('repository').get('url')}}
   license: {{data.get('license')}}
 
-# See
-# http://docs.continuum.io/conda/build.html for
-# more information about meta.yaml
+# based on template at https://github.com/conda/conda-build/blob/master/conda_build/templates/npm.yaml
