@@ -8,13 +8,14 @@ source:
   git_rev: HEAD
 
 build:
-  number: 2
+  number: 4
   script:
     - tgzfile=$(npm pack)
     - npm install -g $tgzfile
     - mkdir -p "$PREFIX"/etc/conda/{de,}activate.d/
     - cp conda-recipe/mountainlab_activate.sh "$PREFIX"/etc/conda/activate.d/
     - cp conda-recipe/mountainlab_deactivate.sh "$PREFIX"/etc/conda/deactivate.d/
+    - mkdir -p "$PREFIX"/etc/mountainlab/{packages,database}
 
 requirements:
   build:
@@ -27,6 +28,7 @@ test:
   commands:
     - npm list -g mountainlab-js
     - ml-config
+    - ml-list-processors
   requires:
     - nodejs
 
