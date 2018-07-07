@@ -395,7 +395,7 @@ function read_text_file(fname) {
 
 function write_json_file(fname,obj) {
 	try {
-		require('fs').writeFileSync(fname,JSON.stringify(obj));
+		require('fs').writeFileSync(fname,JSON.stringify(obj,null,4));
 		return true;
 	}
 	catch(err) {

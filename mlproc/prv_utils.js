@@ -491,7 +491,7 @@ function prv_create(fname,callback) {
 }
 
 
-var sumit={}
+var sumit={};
 sumit.file_matches_doc=function(path,doc0) {
 	var stat0=common.stat_file(path);
 	if (stat0) {
@@ -500,7 +500,7 @@ sumit.file_matches_doc=function(path,doc0) {
 		}
 	}
 	return false;
-}
+};
 sumit.find_doc_by_sha1=function(sha1,valid_prv_search_paths,opts,callback) {
 	if (opts.verbose>=1) {
 		console.log (`Finding documents for sha1=${sha1}`);

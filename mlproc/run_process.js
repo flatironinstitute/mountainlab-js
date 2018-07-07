@@ -1,7 +1,10 @@
 exports.cmd_run_process = cmd_run_process;
 exports.cleanup = cleanup; //in case process terminated prematurely
 
-const KBClient = require('kbclient').v1;
+//const KBClient = require('kbclient').v1;
+const KBClient = require('/home/magland/src/kbclient').v1;
+const LariClient = require('lariclient').v1;
+const async = require('async');
 
 var tempdir_for_cleanup = '';
 var keep_tempdir = false;
@@ -17,6 +20,11 @@ var max_num_simultaneous_processor_jobs = 2;
 var canonical_stringify = require('canonical-json');
 
 function cmd_run_process(processor_name, opts, callback) {
+  if (opts.lari_id) {
+    cmd_run_process_lari(processor_name, opts, callback);
+    return;
+  }
+
   console.info('[ Getting processor spec... ]');
   common.get_processor_spec(processor_name, opts, function(err, spec0) {
     if (err) {
@@ -36,6 +44,220 @@ function cmd_run_process(processor_name, opts, callback) {
   });
 }
 
+function LariJob() {
+  this.setLariId = function(id) {
+    m_lari_id = id;
+  };
+  this.runProcess = function(processor_name, inputs, outputs, parameters, opts) {
+    m_processor_name = processor_name;
+    m_outputs = JSON.parse(JSON.stringify(outputs));
+    let outputs2 = {};
+    for (let okey in m_outputs) {
+      let fname = m_outputs[okey];
+      outputs2[okey] = true;
+    }
+    get_prv_objects_for_inputs(inputs, function(err, inputs2) {
+      if (err) {
+        console.error(err);
+        process.exit(-1);
+      }
+      m_client.runProcess(m_lari_id, processor_name, inputs2, outputs2, parameters, opts)
+        .then(function(resp) {
+          if (!resp.success) {
+            console.error('Error running process: ' + resp.error);
+            return;
+          }
+          m_job_id = resp.job_id;
+          setTimeout(function() {
+            probe_process();
+          }, 500);
+        })
+        .catch(function(err) {
+          console.error(err);
+          process.exit(-1);
+        });
+    });
+  };
+  let m_job_id = '';
+  let m_client = new LariClient();
+  let m_processor_name = '';
+  let m_outputs = {};
+
+  // terminal color codes
+  let ccc = {
+    Reset: "\x1b[0m",
+    Bright: "\x1b[1m",
+    Dim: "\x1b[2m",
+    Underscore: "\x1b[4m",
+    Blink: "\x1b[5m",
+    Reverse: "\x1b[7m",
+    Hidden: "\x1b[8m",
+    FgBlack: "\x1b[30m",
+    FgRed: "\x1b[31m",
+    FgGreen: "\x1b[32m",
+    FgYellow: "\x1b[33m",
+    FgBlue: "\x1b[34m",
+    FgMagenta: "\x1b[35m",
+    FgCyan: "\x1b[36m",
+    FgWhite: "\x1b[37m",
+    BgBlack: "\x1b[40m",
+    BgRed: "\x1b[41m",
+    BgGreen: "\x1b[42m",
+    BgYellow: "\x1b[43m",
+    BgBlue: "\x1b[44m",
+    BgMagenta: "\x1b[45m",
+    BgCyan: "\x1b[46m",
+    BgWhite: "\x1b[47m",
+  };
+
+  function probe_process() {
+    m_client.probeProcess(m_lari_id, m_job_id)
+      .then(function(resp) {
+        let msec = 3000;
+        if (resp.console_output) {
+          let lines = resp.console_output.split('\n');
+          for (let i in lines) {
+            console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+          }
+          msec = 1000;
+        }
+        if (resp.is_complete) {
+          let result = resp.result || {};
+          if (!result.success) {
+            console.info(ccc.BgBlack, ccc.FgRed, `${m_processor_name} completed with error: ${result.error}`, ccc.Reset);
+            return;
+          }
+          let output_keys = Object.keys(m_outputs);
+          async.eachSeries(output_keys, function(okey, cb) {
+            let output0 = result.outputs[okey] || null;
+            if (!output0) {
+              console.error(`Unexpected missing output for ${okey}.`);
+              process.exit(-1);
+            }
+            if (!output0.original_checksum) {
+              console.error(`Unexpected format for output ${okey}.`);
+              process.exit(-1);
+            }
+            let fname = m_outputs[okey];
+            if (common.ends_with(fname, '.prv')) {
+              console.info(`Writing output ${okey} to file: ${fname}`);
+              common.write_json_file(fname, output0);
+              cb();
+            } else {
+              if (output0.original_size > 1024 * 1024) {
+                console.error(`Output ${okey} is too large to automatically download. You should use a .prv extension for this output.`);
+                process.exit(-1);
+              }
+              let KBC = new KBClient();
+              KBC.downloadFile('sha1://' + output0.original_checksum, fname, {})
+                .then(function() {
+                  cb();
+                })
+                .catch(function(err) {
+                  console.error(err);
+                  console.error(`Error downloading output ${okey}: ${err.message}`);
+                  process.exit(-1);
+                });;
+            }
+          }, function() {
+            console.info(ccc.BgBlack, ccc.FgGreen, `${m_processor_name} completed successfully.`, ccc.Reset);
+          });
+          return;
+        }
+        setTimeout(function() {
+          probe_process();
+        }, msec);
+      })
+      .catch(function(err) {
+        console.error(err);
+        process.exit(-1);
+      });
+
+  }
+
+  function get_prv_objects_for_inputs(inputs, callback) {
+    let ret = JSON.parse(JSON.stringify(inputs));
+    let ikeys = Object.keys(ret);
+    async.eachSeries(ikeys, function(ikey, cb) {
+      var val = ret[ikey];
+      if (val instanceof Array) {
+        let indices = Object.keys(val);
+        async.eachSeries(indices, function(ii, cb2) {
+          get_prv_object_for_input(val[ii], function(err, obj) {
+            if (err) {
+              callback(`Problem getting prv object for input ${ikey}[${ii}]: ${err}`);
+              return;
+            }
+            val[ii] = obj;
+            cb2();
+          });
+        }, cb);
+      } else {
+        get_prv_object_for_input(val, function(err, obj) {
+          if (err) {
+            callback(`Problem getting prv object for input ${ikey}: ${err}`);
+            return;
+          }
+          ret[ikey] = obj;
+          cb();
+        });
+      }
+    },function() {
+      callback(null,ret);
+    });
+  }
+  function get_prv_object_for_input(input,callback) {
+    if (typeof(input)!='string') {
+      callback('Input is not a string.');
+      return;
+    }
+    if (common.ends_with(input,'.prv')) {
+      let obj=common.read_json_file(input);
+      if (!obj) {
+        callback('Error parsing json in prv file.');
+        return;
+      }
+      callback(null,obj);
+    }
+    else if ((input.startsWith('kbucket://'))||(input.startsWith('sha1://'))) {
+      callback(null,input);
+    }
+    else {
+      prv_utils.compute_prv(input,function(err,obj) {
+        callback(err,obj);
+      });
+    }
+  }
+}
+
+function cmd_run_process_lari(processor_name, opts, callback) {
+  // todo: need to get he spec from the remote server
+  // todo: this functionality is duplicated below, try to combine code
+  var inputs, outputs, parameters;
+  try {
+    inputs = parse_iop(opts.inputs || '', 'input');
+    outputs = parse_iop(opts.outputs || '', 'output');
+    parameters = parse_iop(opts.parameters || '', 'parameter');
+    //let iops = parse_iop(opts.iops || '', 'iop');
+    //separate_iops(inputs, outputs, parameters, iops, spec0.inputs || [], spec0.outputs || [], spec0.parameters || []);
+    //check_iop(inputs, spec0.inputs || [], 'input');
+    //check_iop(outputs, spec0.outputs || [], 'output');
+    //check_iop(parameters, spec0.parameters || [], 'parameter');
+  } catch (err) {
+    console.error(err.stack);
+    callback(err.message);
+    return;
+  }
+  ////////////////////////////////////////////////////////////////
+
+  let LC = new LariClient();
+  let p_opts = {};
+
+  let LJ = new LariJob();
+  LJ.setLariId(opts.lari_id);
+  LJ.runProcess(processor_name, inputs, outputs, parameters, p_opts);
+}
+
 function remove_processor_job_from_database(job_id, callback) {
   db_utils.removeDocuments('processor_jobs', {
     _id: job_id
@@ -45,12 +267,12 @@ function remove_processor_job_from_database(job_id, callback) {
 }
 
 function run_process_2(processor_name, opts, spec0, callback) {
-  var inputs, outputs, parameters, iops;
+  var inputs, outputs, parameters;
   try {
     inputs = parse_iop(opts.inputs || '', 'input');
     outputs = parse_iop(opts.outputs || '', 'output');
     parameters = parse_iop(opts.parameters || '', 'parameter');
-    iops = parse_iop(opts.iops || '', 'iop');
+    let iops = parse_iop(opts.iops || '', 'iop');
     separate_iops(inputs, outputs, parameters, iops, spec0.inputs || [], spec0.outputs || [], spec0.parameters || []);
     check_iop(inputs, spec0.inputs || [], 'input');
     check_iop(outputs, spec0.outputs || [], 'output');
@@ -283,9 +505,8 @@ function cleanup(callback) {
       remove_processor_job_from_database(processor_job_id_for_cleanup, function() {
         cb();
       });
-    }
-    else {
-    	cb();
+    } else {
+      cb();
     }
   }
 }
@@ -634,8 +855,8 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
       let opts0 = {
         download_if_needed: true
       };
-      if ((!common.ends_with(fname,'.prv'))&&(!file_exists(fname))&&(file_exists(fname+'.prv'))) {
-      	fname=fname+'.prv';
+      if ((!common.ends_with(fname, '.prv')) && (!file_exists(fname)) && (file_exists(fname + '.prv'))) {
+        fname = fname + '.prv';
       }
       if (common.ends_with(fname, '.prv')) {
         prv_utils.prv_locate(fname, {}, function(err, fname2) {
@@ -1024,5 +1245,5 @@ function parse_iop(str, iop_name) {
 }
 
 function file_exists(fname) {
-	return require('fs').existsSync(fname);
+  return require('fs').existsSync(fname);
 }

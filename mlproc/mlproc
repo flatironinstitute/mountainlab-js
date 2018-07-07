@@ -62,6 +62,7 @@ program
   .option('-m, --mode [mode]', 'Either run (default), exec, or queue.')
   .option('--locate_remote', 'Search remotely as well as locally for input files, and download them to the temporary directory if needed.')
   .option('--keep_tempdir','Do not remove the temporary directory for this process.')
+  .option('--lari_id [lari_id]','Run the processing on a remote (lari) server')
   .action(function (processor_name, cmd) {
     require(__dirname+'/run_process.js').cmd_run_process(processor_name,cmd,function(err) {
       if (err) {

@@ -1,0 +1,28 @@
+{
+  "name": "lariclient",
+  "version": "1.0.0",
+  "description": "JavaScript client for lari",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/magland/lariclient.git"
+  },
+  "keywords": [
+    "mountainlab",
+    "kbucket",
+    "lari"
+  ],
+  "author": "Jeremy Magland",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/magland/lariclient/issues"
+  },
+  "homepage": "https://github.com/magland/lariclient#readme",
+  "dependencies": {
+    "async": "^2.6.1",
+    "axios": "^0.18.0"
+  }
+}

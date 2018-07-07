@@ -29,6 +29,7 @@
     "dotenv": "latest",
     "expand-home-dir": "0.0.3",
     "kbclient": "^1.1.0",
+    "lariclient": "file:lariclient",
     "matcher": "latest",
     "mongodb": "latest",
     "node-sha1": "latest",
