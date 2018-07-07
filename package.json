@@ -30,7 +30,6 @@
     "expand-home-dir": "0.0.3",
     "kbclient": "^1.1.0",
     "matcher": "latest",
-    "mongodb": "latest",
     "node-sha1": "latest",
     "request": "^2.85.0",
     "url-exists": "^1.0.3"
