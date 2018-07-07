@@ -8,7 +8,7 @@ source:
   git_rev: HEAD
 
 build:
-  number: 4
+  number: 5
   script:
     - tgzfile=$(npm pack)
     - npm install -g $tgzfile
@@ -16,11 +16,12 @@ build:
     - cp conda-recipe/mountainlab_activate.sh "$PREFIX"/etc/conda/activate.d/
     - cp conda-recipe/mountainlab_deactivate.sh "$PREFIX"/etc/conda/deactivate.d/
     - mkdir -p "$PREFIX"/etc/mountainlab/{packages,database}
+    # conda-build doesn't keep empty directories
+    - touch "$PREFIX"/etc/mountainlab/{packages,database}/.conda_keep
 
 requirements:
   build:
     - nodejs
-
   run:
     - nodejs
 
