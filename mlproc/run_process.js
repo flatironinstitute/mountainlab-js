@@ -139,15 +139,17 @@ function LariJob() {
               process.exit(-1);
             }
             let fname = m_outputs[okey];
+            if (!common.ends_with(fname, '.prv')) {
+              if (output0.original_size > 1024 * 1024) {
+                fname += '.prv';
+                console.warn(`Output ${okey} is too large to automatically download. Saving .prv file instead: ${fname}`);
+              }
+            }
             if (common.ends_with(fname, '.prv')) {
               console.info(`Writing output ${okey} to file: ${fname}`);
               common.write_json_file(fname, output0);
               cb();
             } else {
-              if (output0.original_size > 1024 * 1024) {
-                console.error(`Output ${okey} is too large to automatically download. You should use a .prv extension for this output.`);
-                process.exit(-1);
-              }
               let KBC = new KBClient();
               KBC.downloadFile('sha1://' + output0.original_checksum, fname, {})
                 .then(function() {
@@ -212,6 +214,10 @@ function LariJob() {
       callback('Input is not a string.');
       return;
     }
+    if (!common.ends_with(input, '.prv')) {
+      if ((!file_exists(input)) && (file_exists(input + '.prv')))
+        input += '.prv';
+    }
     if (common.ends_with(input, '.prv')) {
       let obj = common.read_json_file(input);
       if (!obj) {
@@ -222,7 +228,7 @@ function LariJob() {
     } else if ((input.startsWith('kbucket://')) || (input.startsWith('sha1://'))) {
       callback(null, input);
     } else {
-      prv_utils.compute_prv(input, function(err, obj) {
+      prv_utils.prv_create(input, function(err, obj) {
         callback(err, obj);
       });
     }
