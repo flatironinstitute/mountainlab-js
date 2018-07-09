@@ -19,6 +19,7 @@ var max_num_simultaneous_processor_jobs = 2;
 var canonical_stringify = require('canonical-json');
 
 function cmd_run_process(processor_name, opts, callback) {
+  opts.lari_id = opts.lari_id || process.env.LARI_ID;
   if (opts.lari_id) {
     cmd_run_process_lari(processor_name, opts, callback);
     return;
@@ -201,29 +202,28 @@ function LariJob() {
           cb();
         });
       }
-    },function() {
-      callback(null,ret);
+    }, function() {
+      callback(null, ret);
     });
   }
-  function get_prv_object_for_input(input,callback) {
-    if (typeof(input)!='string') {
+
+  function get_prv_object_for_input(input, callback) {
+    if (typeof(input) != 'string') {
       callback('Input is not a string.');
       return;
     }
-    if (common.ends_with(input,'.prv')) {
-      let obj=common.read_json_file(input);
+    if (common.ends_with(input, '.prv')) {
+      let obj = common.read_json_file(input);
       if (!obj) {
         callback('Error parsing json in prv file.');
         return;
       }
-      callback(null,obj);
-    }
-    else if ((input.startsWith('kbucket://'))||(input.startsWith('sha1://'))) {
-      callback(null,input);
-    }
-    else {
-      prv_utils.compute_prv(input,function(err,obj) {
-        callback(err,obj);
+      callback(null, obj);
+    } else if ((input.startsWith('kbucket://')) || (input.startsWith('sha1://'))) {
+      callback(null, input);
+    } else {
+      prv_utils.compute_prv(input, function(err, obj) {
+        callback(err, obj);
       });
     }
   }
