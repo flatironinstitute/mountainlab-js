@@ -872,7 +872,6 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
       }
 
       function try_kbucket() {
-        console.info(`Checking kbucket for ${fname} ...`);
         KBC.realizeFile(fname, opts0)
           .then(function(path_or_url) {
             if (is_url(path_or_url)) {
