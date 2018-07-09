@@ -1,8 +1,7 @@
 exports.cmd_run_process = cmd_run_process;
 exports.cleanup = cleanup; //in case process terminated prematurely
 
-//const KBClient = require('kbclient').v1;
-const KBClient = require('/home/magland/src/kbclient').v1;
+const KBClient = require('kbclient').v1;
 const LariClient = require('lariclient').v1;
 const async = require('async');
 
