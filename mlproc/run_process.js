@@ -156,7 +156,7 @@ function LariJob() {
                   console.error(err);
                   console.error(`Error downloading output ${okey}: ${err.message}`);
                   process.exit(-1);
-                });;
+                });
             }
           }, function() {
             console.info(ccc.BgBlack, ccc.FgGreen, `${m_processor_name} completed successfully.`, ccc.Reset);
