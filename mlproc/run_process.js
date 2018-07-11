@@ -19,6 +19,18 @@ var max_num_simultaneous_processor_jobs = 2;
 var canonical_stringify = require('canonical-json');
 
 function cmd_run_process(processor_name, opts, callback) {
+
+  if (opts.verbose=='minimal') {
+    console.info=function() {};
+    console.log=function() {};
+  }
+  if (opts.verbose=='none') {
+    console.info=function() {};
+    console.log=function() {};
+    console.warn=function() {};
+    console.error=function() {};
+  }
+  
   opts.lari_id = opts.lari_id || process.env.LARI_ID;
   if (opts.lari_id) {
     cmd_run_process_lari(processor_name, opts, callback);
