@@ -932,7 +932,7 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
       }
       */
     } else {
-      check_inputs_and_substitute_prvs(inputs[key], key + '/', function(err) {
+      check_inputs_and_substitute_prvs(inputs[key], key + '/', opts, function(err) {
         if (err) {
           callback(err);
           return;

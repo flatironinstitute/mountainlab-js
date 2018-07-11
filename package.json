@@ -28,7 +28,7 @@
     "diskdb": "^0.1.17",
     "dotenv": "^6.0.0",
     "expand-home-dir": "0.0.3",
-    "kbclient": "latest",
+    "kbclient": "^1.5.0",
     "lariclient": "file:lariclient",
     "matcher": "latest",
     "mlclient": "latest",
