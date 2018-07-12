@@ -82,14 +82,14 @@ For users following the recommended python installation (using apt-get)
 cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ephys
 cd ml_ephys
-pip3 install --upgrade -r requirements.txt
+pip3 install --upgrade .
 ```
 
 ```
 cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ms4alg
 cd ml_ms4alg
-pip3 install --upgrade -r requirements.txt
+pip3 install --upgrade .
 ```
 
 For anaconda users:
@@ -97,7 +97,7 @@ For anaconda users:
 cd ~/.mountainlab/packages
 git clone https://github.com/magland/ml_ephys
 cd ml_ephys
-pip install --upgrade -r requirements.txt
+pip install --upgrade .
 ```
 Some of the requirements may not be found in within the default conda libraries, and may have to be installed directly from conda-forge, such as deepdish:
 ```
