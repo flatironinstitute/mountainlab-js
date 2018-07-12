@@ -61,7 +61,7 @@ def sort_dataset(*,dataset_dir,output_dir,freq_min=300,freq_max=6000,adjacency_r
     )
     
 def read_dataset_params(dsdir):
-    params_fname=dsdir+'/params.json'
+    params_fname=mlp.realizeFile(dsdir+'/params.json')
     if not os.path.exists(params_fname):
         raise Exception('Dataset parameter file does not exist: '+params_fname)
     with open(params_fname) as f:

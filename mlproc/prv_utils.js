@@ -297,6 +297,34 @@ function prv_locate(prv_fname, opts, callback) {
   // Locate file corresponding to prv file or object
   opts = opts || {};
 
+  if ((prv_fname.startsWith('kbucket://'))||(prv_fname.startsWith('sha1://'))) {
+  	let KBC = new KBClient();
+  	if ('download' in opts) {
+      supress_console_info();
+      KBC.realizeFile(prv_fname, {})
+        .then(function(url2) {
+          restore_console_info();
+          callback(null, url2, null);
+        })
+        .catch(function(err) {
+          restore_console_info();
+          callback('Error searching kbucket: ' + err.message);
+        });
+    } else {
+    	supress_console_info();
+      KBC.locateFile(prv_fname, {})
+        .then(function(url2) {
+        	restore_console_info();
+          callback(null, url2, null);
+        })
+        .catch(function(err) {
+        	restore_console_info();
+          callback('Error searching kbucket: ' + err.message);
+        });
+    }
+  	return;
+  }
+
   if (('local' in opts) && ('remote' in opts)) {
     // if both local and remote options are specified, then let's search local first, then remote
     delete opts['remote'];
@@ -358,11 +386,14 @@ function prv_locate(prv_fname, opts, callback) {
           callback('Error checking on kbucket: ' + err.message);
         });
     } else {
+    	supress_console_info();
       KBC.locateFile('sha1://' + obj.original_checksum, {})
         .then(function(url2) {
+        	restore_console_info();
           callback(null, url2, obj);
         })
         .catch(function(err) {
+        	restore_console_info();
           callback('Error checking on kbucket: ' + err.message);
         });
     }
