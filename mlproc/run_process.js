@@ -153,6 +153,8 @@ function LariJob() {
             let fname = m_outputs[okey];
             if (!common.ends_with(fname, '.prv')) {
               if (output0.original_size > 1024 * 1024) {
+                if (require('fs').existsSync(fname))
+                  require('fs').unlinkSync(fname); // there can be trouble if we don't delete fname
                 fname += '.prv';
                 console.warn(`Output ${okey} is too large to automatically download. Saving .prv file instead: ${fname}`);
               }
