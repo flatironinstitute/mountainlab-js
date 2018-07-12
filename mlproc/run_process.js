@@ -30,7 +30,7 @@ function cmd_run_process(processor_name, opts, callback) {
     console.warn=function() {};
     console.error=function() {};
   }
-  
+
   opts.lari_id = opts.lari_id || process.env.LARI_ID;
   if (opts.lari_id) {
     cmd_run_process_lari(processor_name, opts, callback);
@@ -77,7 +77,7 @@ function LariJob() {
         .then(function(resp) {
           if (!resp.success) {
             console.error('Error running process: ' + resp.error);
-            return;
+            process.exit(-1);
           }
           m_job_id = resp.job_id;
           setTimeout(function() {
@@ -137,7 +137,7 @@ function LariJob() {
           let result = resp.result || {};
           if (!result.success) {
             console.info(ccc.BgBlack, ccc.FgRed, `${m_processor_name} completed with error: ${result.error}`, ccc.Reset);
-            return;
+            process.exit(-1);
           }
           let output_keys = Object.keys(m_outputs);
           async.eachSeries(output_keys, function(okey, cb) {
@@ -175,6 +175,7 @@ function LariJob() {
             }
           }, function() {
             console.info(ccc.BgBlack, ccc.FgGreen, `${m_processor_name} completed successfully.`, ccc.Reset);
+            process.exit(0);
           });
           return;
         }
@@ -409,6 +410,24 @@ function run_process_2(processor_name, opts, spec0, callback) {
     cb();
   });
 
+  // Make temporary outputs
+  steps.push(function(cb) {
+    if (already_completed) {
+      cb();
+      return;
+    }
+    console.info('[ Preparing temporary outputs... ]');
+    make_temporary_outputs(outputs, process_signature, {
+      tempdir_path: tempdir_path
+    },function(err, tmp) {
+      if (err) {
+        finalize(err);
+        return;
+      }
+      temporary_outputs = tmp.temporary_outputs;
+      cb();
+    });
+  });
 
   // Run the process
   steps.push(function(cb) {
@@ -417,7 +436,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
       return;
     }
     console.info('[ Initializing process ... ]');
-    do_run_process(spec0, inputs, outputs, parameters, {
+    do_run_process(spec0, inputs, outputs, temporary_outputs, parameters, {
       tempdir_path: tempdir_path,
       queued_processor_job_id: queued_processor_job_id
     }, function(err) {
@@ -492,11 +511,37 @@ function run_process_2(processor_name, opts, spec0, callback) {
         console.warn('Error removing temporary directory (' + tempdir_path + '): ' + err);
       }
       if (!err00) {
-        console.info('[ Done. ]')
+        console.info('[ Done. ]');
       }
       callback(err00);
     });
   }
+}
+
+function move_file(srcpath,dstpath,callback) {
+  require('fs').rename(srcpath,dstpath,function(err) {
+    if (err) {
+      callback(`Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`);
+      return;
+    }
+    callback(null);
+  });
+}
+
+function move_outputs(src_outputs,dst_outputs,callback) {
+  let output_keys = Object.keys(src_outputs);
+  async.eachSeries(output_keys,function(key,cb) {
+    console.info(`Finalizing output ${key}`);
+    move_file(src_outputs[key],dst_outputs[key],function(err) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      cb();
+    });
+  },function() {
+    callback(null);
+  });
 }
 
 function cleanup(callback) {
@@ -780,9 +825,9 @@ function erase_output_files(outputs) {
   }
 }
 
-function do_run_process(spec0, inputs, outputs, parameters, info, callback) {
+function do_run_process(spec0, inputs, outputs, temporary_outputs, parameters, info, callback) {
   erase_output_files(outputs);
-  var cmd = filter_exe_command(spec0.exe_command, spec0, inputs, outputs, info, parameters);
+  var cmd = filter_exe_command(spec0.exe_command, spec0, inputs, temporary_outputs, info, parameters);
   console.info('[ Running ... ] ' + cmd);
   var timer = new Date();
   var P = new SystemProcess();
@@ -792,11 +837,21 @@ function do_run_process(spec0, inputs, outputs, parameters, info, callback) {
     P.setConsoleOutFile(outputs['console_out']);
   }
   P.onFinished(function() {
+    if (P.error()) {
+      callback(P.error());
+      return;
+    }
     if (!P.error()) {
       var elapsed = (new Date()) - timer;
       console.info(`Elapsed time for processor ${spec0.name}: ${elapsed/1000} sec`);
     }
-    callback(P.error());
+    move_outputs(temporary_outputs,outputs,function(err) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      callback(null);
+    });
   });
   P.start();
 }
@@ -971,6 +1026,16 @@ function get_file_extension_for_prv_file_including_dot(prv_fname) {
   }
 }
 
+function get_file_extension_including_dot(fname) {
+  var list1 = fname.split('/');
+  var list2 = list1[list1.length - 1].split('.');
+  if (list2.length >= 2) { //important: must have length at least 2, otherwise extension is empty
+    return '.' + list2[list2.length - 1];
+  } else {
+    return '';
+  }
+}
+
 function check_outputs_and_substitute_prvs(outputs, process_signature, callback) {
   var pending_output_prvs = [];
   var okeys = Object.keys(outputs);
@@ -980,21 +1045,36 @@ function check_outputs_and_substitute_prvs(outputs, process_signature, callback)
     fname = require('path').resolve(process.cwd(), fname);
     outputs[key] = fname;
     if (common.ends_with(fname, '.prv')) {
-      var file_extension_including_dot = get_file_extension_for_prv_file_including_dot(fname);
-      var fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
+      let file_extension_including_dot = get_file_extension_for_prv_file_including_dot(fname);
+      let fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
       pending_output_prvs.push({
         name: key,
         prv_fname: fname,
         output_fname: fname2
       });
       outputs[key] = fname2;
-      cb();
-    } else {
-      cb();
     }
+    cb();
   }, function() {
     callback(null, {
       pending_output_prvs: pending_output_prvs
+    });
+  });
+}
+
+function make_temporary_outputs(outputs, process_signature, info, callback) {
+  var temporary_outputs = {};
+  var okeys = Object.keys(outputs);
+  var tmp_dir = common.temporary_directory();
+  common.foreach_async(okeys, function(ii, key, cb) {
+    var fname = outputs[key];
+    fname = require('path').resolve(process.cwd(), fname);
+    let file_extension_including_dot = get_file_extension_including_dot(fname);
+    temporary_outputs[key] = info.tempdir_path+`/output_${key}${file_extension_including_dot}`;
+    cb();
+  }, function() {
+    callback(null, {
+      temporary_outputs: temporary_outputs
     });
   });
 }

@@ -23,7 +23,7 @@ function cmd_prv_locate(prv_fname, opts, callback) {
       return;
     }
     if (path) {
-      console.log(path);
+    	console.info(path);
       callback('', path);
       return;
     } else {
