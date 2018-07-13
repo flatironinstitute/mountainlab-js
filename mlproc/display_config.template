@@ -1,8 +1,11 @@
 -----------------------------------------------------------
 
 Using configuration from: $configuration_file$
-To change this, set the ML_CONFIG_FILE environment
-variable.
+To change this, set either the
+ML_CONFIG_DIRECTORY
+or
+ML_CONFIG_FILE
+environment variable.
 
 The following environment variables are being used.
 They can be set in the configuration file (see above),

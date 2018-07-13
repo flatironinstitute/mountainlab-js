@@ -32,6 +32,7 @@ function cmd_run_process(processor_name, opts, callback) {
   }
 
   opts.lari_id = opts.lari_id || process.env.LARI_ID;
+  opts.lari_passcode = opts.lari_passcode || process.env.LARI_PASSCODE;
   if (opts.lari_id) {
     cmd_run_process_lari(processor_name, opts, callback);
     return;
@@ -57,8 +58,9 @@ function cmd_run_process(processor_name, opts, callback) {
 }
 
 function LariJob() {
-  this.setLariId = function(id) {
+  this.setLariId = function(id, passcode) {
     m_lari_id = id;
+    m_lari_passcode=passcode||'';
   };
   this.runProcess = function(processor_name, inputs, outputs, parameters, opts) {
     m_processor_name = processor_name;
@@ -90,6 +92,8 @@ function LariJob() {
         });
     });
   };
+  let m_lari_id = '';
+  let m_lari_passcode = '';
   let m_job_id = '';
   let m_client = new LariClient();
   let m_processor_name = '';
@@ -123,7 +127,7 @@ function LariJob() {
   };
 
   function probe_process() {
-    m_client.probeProcess(m_lari_id, m_job_id)
+    m_client.probeProcess(m_lari_id, m_job_id, {passcode:m_lari_passcode})
       .then(function(resp) {
         let msec = 3000;
         if (resp.console_output) {
@@ -274,7 +278,7 @@ function cmd_run_process_lari(processor_name, opts, callback) {
   let p_opts = {};
 
   let LJ = new LariJob();
-  LJ.setLariId(opts.lari_id);
+  LJ.setLariId(opts.lari_id, opts.lari_passcode);
   LJ.runProcess(processor_name, inputs, outputs, parameters, p_opts);
 }
 
