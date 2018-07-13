@@ -20,15 +20,15 @@ var canonical_stringify = require('canonical-json');
 
 function cmd_run_process(processor_name, opts, callback) {
 
-  if (opts.verbose=='minimal') {
-    console.info=function() {};
-    console.log=function() {};
+  if (opts.verbose == 'minimal') {
+    console.info = function() {};
+    console.log = function() {};
   }
-  if (opts.verbose=='none') {
-    console.info=function() {};
-    console.log=function() {};
-    console.warn=function() {};
-    console.error=function() {};
+  if (opts.verbose == 'none') {
+    console.info = function() {};
+    console.log = function() {};
+    console.warn = function() {};
+    console.error = function() {};
   }
 
   opts.lari_id = opts.lari_id || process.env.LARI_ID;
@@ -60,7 +60,7 @@ function cmd_run_process(processor_name, opts, callback) {
 function LariJob() {
   this.setLariId = function(id, passcode) {
     m_lari_id = id;
-    m_lari_passcode=passcode||'';
+    m_lari_passcode = passcode || '';
   };
   this.runProcess = function(processor_name, inputs, outputs, parameters, opts) {
     m_processor_name = processor_name;
@@ -75,7 +75,7 @@ function LariJob() {
         console.error(err);
         process.exit(-1);
       }
-      opts.lari_passcode=m_lari_passcode;
+      opts.lari_passcode = m_lari_passcode;
       m_client.runProcess(m_lari_id, processor_name, inputs2, outputs2, parameters, opts)
         .then(function(resp) {
           if (!resp.success) {
@@ -128,7 +128,9 @@ function LariJob() {
   };
 
   function probe_process() {
-    m_client.probeProcess(m_lari_id, m_job_id, {lari_passcode:m_lari_passcode})
+    m_client.probeProcess(m_lari_id, m_job_id, {
+        lari_passcode: m_lari_passcode
+      })
       .then(function(resp) {
         let msec = 3000;
         if (resp.console_output) {
@@ -277,6 +279,7 @@ function cmd_run_process_lari(processor_name, opts, callback) {
 
   let LC = new LariClient();
   let p_opts = {};
+  // important -- do not pass through the opts here, because there would be security concerns. Keep the interface minimal. For example, processor_command_prefix should be configured on the server side.
 
   let LJ = new LariJob();
   LJ.setLariId(opts.lari_id, opts.lari_passcode);
@@ -426,7 +429,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
     console.info('[ Preparing temporary outputs... ]');
     make_temporary_outputs(outputs, process_signature, {
       tempdir_path: tempdir_path
-    },function(err, tmp) {
+    }, function(err, tmp) {
       if (err) {
         finalize(err);
         return;
@@ -445,7 +448,8 @@ function run_process_2(processor_name, opts, spec0, callback) {
     console.info('[ Initializing process ... ]');
     do_run_process(spec0, inputs, outputs, temporary_outputs, parameters, {
       tempdir_path: tempdir_path,
-      queued_processor_job_id: queued_processor_job_id
+      queued_processor_job_id: queued_processor_job_id,
+      processor_command_prefix: opts.processor_command_prefix || ''
     }, function(err) {
       if (err) {
         finalize(err);
@@ -525,8 +529,8 @@ function run_process_2(processor_name, opts, spec0, callback) {
   }
 }
 
-function move_file(srcpath,dstpath,callback) {
-  require('fs').rename(srcpath,dstpath,function(err) {
+function move_file(srcpath, dstpath, callback) {
+  require('fs').rename(srcpath, dstpath, function(err) {
     if (err) {
       callback(`Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`);
       return;
@@ -535,18 +539,18 @@ function move_file(srcpath,dstpath,callback) {
   });
 }
 
-function move_outputs(src_outputs,dst_outputs,callback) {
+function move_outputs(src_outputs, dst_outputs, callback) {
   let output_keys = Object.keys(src_outputs);
-  async.eachSeries(output_keys,function(key,cb) {
+  async.eachSeries(output_keys, function(key, cb) {
     console.info(`Finalizing output ${key}`);
-    move_file(src_outputs[key],dst_outputs[key],function(err) {
+    move_file(src_outputs[key], dst_outputs[key], function(err) {
       if (err) {
         callback(err);
         return;
       }
       cb();
     });
-  },function() {
+  }, function() {
     callback(null);
   });
 }
@@ -835,6 +839,8 @@ function erase_output_files(outputs) {
 function do_run_process(spec0, inputs, outputs, temporary_outputs, parameters, info, callback) {
   erase_output_files(outputs);
   var cmd = filter_exe_command(spec0.exe_command, spec0, inputs, temporary_outputs, info, parameters);
+  if (info.processor_command_prefix)
+    cmd = info.processor_command_prefix + ' ' + cmd;
   console.info('[ Running ... ] ' + cmd);
   var timer = new Date();
   var P = new SystemProcess();
@@ -852,7 +858,7 @@ function do_run_process(spec0, inputs, outputs, temporary_outputs, parameters, i
       var elapsed = (new Date()) - timer;
       console.info(`Elapsed time for processor ${spec0.name}: ${elapsed/1000} sec`);
     }
-    move_outputs(temporary_outputs,outputs,function(err) {
+    move_outputs(temporary_outputs, outputs, function(err) {
       if (err) {
         callback(err);
         return;
@@ -1077,7 +1083,7 @@ function make_temporary_outputs(outputs, process_signature, info, callback) {
     var fname = outputs[key];
     fname = require('path').resolve(process.cwd(), fname);
     let file_extension_including_dot = get_file_extension_including_dot(fname);
-    temporary_outputs[key] = info.tempdir_path+`/output_${key}${file_extension_including_dot}`;
+    temporary_outputs[key] = info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
     cb();
   }, function() {
     callback(null, {
