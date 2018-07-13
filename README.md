@@ -40,7 +40,7 @@ Note: If you have a prior (non-js) version of MountainLab installed, then you ma
 Open a terminal, and run:
 
 ```
-npm install -g mountainlab-js
+npm install -g mountainlab
 ```
 
 If it tries to install in your system directory and you are not an admin user, you should configure npm to install it in a different location.
