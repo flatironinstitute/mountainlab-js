@@ -75,6 +75,7 @@ function LariJob() {
         console.error(err);
         process.exit(-1);
       }
+      opts.lari_passcode=m_lari_passcode;
       m_client.runProcess(m_lari_id, processor_name, inputs2, outputs2, parameters, opts)
         .then(function(resp) {
           if (!resp.success) {
@@ -127,7 +128,7 @@ function LariJob() {
   };
 
   function probe_process() {
-    m_client.probeProcess(m_lari_id, m_job_id, {passcode:m_lari_passcode})
+    m_client.probeProcess(m_lari_id, m_job_id, {lari_passcode:m_lari_passcode})
       .then(function(resp) {
         let msec = 3000;
         if (resp.console_output) {

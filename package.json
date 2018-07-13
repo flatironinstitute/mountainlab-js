@@ -29,7 +29,7 @@
     "dotenv": "^6.0.0",
     "expand-home-dir": "0.0.3",
     "kbclient": "latest",
-    "lariclient": "latest",
+    "lariclient": "^1.3.2",
     "matcher": "latest",
     "mlclient": "latest",
     "mongodb": "latest",

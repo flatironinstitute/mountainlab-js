@@ -63,6 +63,7 @@ program
   .option('--locate_remote', 'Search remotely as well as locally for input files, and download them to the temporary directory if needed.')
   .option('--keep_tempdir','Do not remove the temporary directory for this process.')
   .option('--lari_id [lari_id]','Run the processing on a remote (lari) server')
+  .option('--lari_passcode [lari_passcode]','Used with --lari_id')
   .option('-v, --verbose [level]','Level of verbosity / console output (normal, minimal, none)')
   .action(function (processor_name, cmd) {
     require(__dirname+'/run_process.js').cmd_run_process(processor_name,cmd,function(err) {
