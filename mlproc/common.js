@@ -19,6 +19,8 @@ exports.prv_search_directories=prv_search_directories;
 exports.package_search_directories=package_search_directories;
 exports.config_file_path=config_file_path;
 
+const LariClient=require('lariclient').v1;
+
 var sha1 = require('node-sha1');
 var db_utils=require(__dirname+'/db_utils.js');
 
@@ -55,6 +57,17 @@ function get_processor_specs(opts,callback) {
 }
 
 function get_processor_spec(processor_name,opts,callback) {
+	if (opts.lari_id) {
+		let LC=new LariClient();
+		LC.getProcessorSpec(opts.lari_id,processor_name,opts)
+			.then(function(spec) {
+				callback(null,spec);
+			})
+			.catch(function(err) {
+				callback(err.message);
+			});
+		return;
+	}
 	get_processor_mp_file_hint(processor_name,function(hint_fname) {
 		if (!hint_fname) {
 			step2();

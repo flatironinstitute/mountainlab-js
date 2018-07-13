@@ -33,19 +33,23 @@ function cmd_run_process(processor_name, opts, callback) {
 
   opts.lari_id = opts.lari_id || process.env.LARI_ID;
   opts.lari_passcode = opts.lari_passcode || process.env.LARI_PASSCODE;
-  if (opts.lari_id) {
-    cmd_run_process_lari(processor_name, opts, callback);
-    return;
-  }
 
   console.info('[ Getting processor spec... ]');
-  common.get_processor_spec(processor_name, opts, function(err, spec0) {
+  let spec_opts={
+    lari_id:opts.lari_id,
+    lari_passcode:opts.lari_passcode
+  };
+  common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {
     if (err) {
       callback(err);
       return;
     }
     if (!spec0) {
       callback(`Processor not found: ${processor_name}`);
+      return;
+    }
+    if (opts.lari_id) {
+      cmd_run_process_lari(processor_name, spec0, opts, callback);
       return;
     }
     spec0.outputs = spec0.outputs || [];
@@ -257,19 +261,18 @@ function LariJob() {
   }
 }
 
-function cmd_run_process_lari(processor_name, opts, callback) {
-  // todo: need to get he spec from the remote server
+function cmd_run_process_lari(processor_name, spec0, opts, callback) {
   // todo: this functionality is duplicated below, try to combine code
   var inputs, outputs, parameters;
   try {
     inputs = parse_iop(opts.inputs || '', 'input');
     outputs = parse_iop(opts.outputs || '', 'output');
     parameters = parse_iop(opts.parameters || '', 'parameter');
-    //let iops = parse_iop(opts.iops || '', 'iop');
-    //separate_iops(inputs, outputs, parameters, iops, spec0.inputs || [], spec0.outputs || [], spec0.parameters || []);
-    //check_iop(inputs, spec0.inputs || [], 'input');
-    //check_iop(outputs, spec0.outputs || [], 'output');
-    //check_iop(parameters, spec0.parameters || [], 'parameter');
+    let iops = parse_iop(opts.iops || '', 'iop');
+    separate_iops(inputs, outputs, parameters, iops, spec0.inputs || [], spec0.outputs || [], spec0.parameters || []);
+    check_iop(inputs, spec0.inputs || [], 'input');
+    check_iop(outputs, spec0.outputs || [], 'output');
+    check_iop(parameters, spec0.parameters || [], 'parameter');
   } catch (err) {
     console.error(err.stack);
     callback(err.message);
