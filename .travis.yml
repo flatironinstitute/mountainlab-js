@@ -9,8 +9,6 @@ env:
 - GLOBAL_INSTALL_FLAG=
 install:
 - npm install $GLOBAL_INSTALL_FLAG
-services:
-- mongodb
 deploy:
   provider: npm
   email: jmagland@flatironinstitute.org

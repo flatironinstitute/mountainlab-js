@@ -29,10 +29,9 @@
     "dotenv": "^6.0.0",
     "expand-home-dir": "0.0.3",
     "kbclient": "latest",
-    "lariclient": "^1.4.0",
+    "lariclient": "latest",
     "matcher": "latest",
     "mlclient": "latest",
-    "mongodb": "latest",
     "node-sha1": "^1.0.1",
     "request": "^2.85.0",
     "url-exists": "^1.0.3"
