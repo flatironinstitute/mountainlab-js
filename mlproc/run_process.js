@@ -367,7 +367,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
 
   // Check process cache
   steps.push(function(cb) {
-    if (mode == 'exec') {
+    if ((mode == 'exec')||(opts.force_run)) {
       cb();
       return;
     }
