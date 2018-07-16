@@ -35,9 +35,9 @@ function cmd_run_process(processor_name, opts, callback) {
   opts.lari_passcode = opts.lari_passcode || process.env.LARI_PASSCODE;
 
   console.info('[ Getting processor spec... ]');
-  let spec_opts={
-    lari_id:opts.lari_id,
-    lari_passcode:opts.lari_passcode
+  let spec_opts = {
+    lari_id: opts.lari_id,
+    lari_passcode: opts.lari_passcode
   };
   common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {
     if (err) {
@@ -367,7 +367,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
 
   // Check process cache
   steps.push(function(cb) {
-    if ((mode == 'exec')||(opts.force_run)) {
+    if ((mode == 'exec') || (opts.force_run)) {
       cb();
       return;
     }
@@ -535,10 +535,21 @@ function run_process_2(processor_name, opts, spec0, callback) {
 function move_file(srcpath, dstpath, callback) {
   require('fs').rename(srcpath, dstpath, function(err) {
     if (err) {
-      callback(`Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`);
-      return;
+      console.warn(`Warning: unable to rename file ${srcpath} -> ${dstpath} . Perhaps temporary directory is not on the same device as the output file directory.`);
+      require('fs').copy(srcpath, dstpath, function(err) {
+        if (err) {
+          callback(`Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`);
+          return;
+        }
+        require('fs').unlink(srcpath, function(err) {
+          if (err) {
+            callback(`Error removing file after copy... ${srcpath}: ${err.message}`);
+            return;
+          }
+          callback(null);
+        });
+      });
     }
-    callback(null);
   });
 }
 
