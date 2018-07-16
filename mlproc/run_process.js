@@ -536,7 +536,7 @@ function move_file(srcpath, dstpath, callback) {
   require('fs').rename(srcpath, dstpath, function(err) {
     if (err) {
       console.warn(`Warning: unable to rename file ${srcpath} -> ${dstpath} . Perhaps temporary directory is not on the same device as the output file directory.`);
-      require('fs').copy(srcpath, dstpath, function(err) {
+      require('fs').copyFile(srcpath, dstpath, function(err) {
         if (err) {
           callback(`Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`);
           return;
