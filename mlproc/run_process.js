@@ -549,7 +549,9 @@ function move_file(srcpath, dstpath, callback) {
           callback(null);
         });
       });
+      return;
     }
+    callback(null);
   });
 }
 
