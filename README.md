@@ -8,9 +8,14 @@ MountainLab is data processing, sharing and visualization software for scientist
 
 The framework was conceived by and primarily implemented by Jeremy Magland at the Flatiron Institute and is released under the Apache license v2.
 
-The project is currently being developed and maintained by Jeremy Magland, Alex Morley, and Tom Davidson.
+The project is currently being developed and maintained by:
 
-Other key collaborators include members of the numerical algorithms group at Flatiron Institute, including Alex Barnett (group leader), Leslie Greengard, Joakim Anden, Witold Wysota, and James Jun. Dylan Simon has contributed to the web infrastructure.
+* Jeremy Magland
+* Tom Davidson
+* Alex Morley
+* Witold Wysota
+
+Other key collaborators include folks at Flatiron Institute, including Alex Barnett, Dylan Simon, Leslie Greengard, Joakim Anden, and James Jun.
 
 Jason Chung, Loren Frank, Leslie Greengard and Alex Barnett are direct collaborators in our spike sorting efforts and have therefore contributed to MountainLab, which has a broader scope. Other MountainSort users have contributed invaluable feedback, particularly investigators at UCSF (Mari Sosa has contributed code to the project).
 
