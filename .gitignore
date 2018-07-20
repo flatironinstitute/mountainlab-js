@@ -10,3 +10,4 @@ __pycache__
 .env
 .kbucket
 docs/_site
+package-lock.json

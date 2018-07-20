@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+const KBClient=require('kbclient').v1;
+
+function print_usage() {
+    console.info('Usage:');
+    console.info('mda-info [filename.mda]');
+}
+CLP = new CLParams(process.argv);
+let arg1 = CLP.unnamedParameters[0];
+if (!arg1) {
+    print_usage();
+    return;
+}
+
+let hold_console_info=console.info;
+console.info=function() {};
+
+let KBC = new KBClient();
+KBC.readBinaryFilePart(arg1, {
+    start: 0,
+    end: 64
+}).then(function(buf) {
+	console.info=hold_console_info;
+    try {
+        let header = get_header_from_buffer(buf);
+        console.info(JSON.stringify(header, null, 4));
+    } catch (err) {
+        console.error(err.message);
+    }
+}).catch(function(err) {
+    console.error(err.message);
+});
+
+function get_header_from_buffer(buf) {
+	let header = {};
+    let X = new Int32Array(buf);
+    header.num_bytes_per_entry = X[1];
+    header.num_dims = X[2];
+    header.dims = [];
+    if ((header.num_dims < 2) || (header.num_dims > 5)) {
+      throw new Error('Invalid number of dimensions **: ' + header.num_dims);
+      return;
+    }
+    for (var i = 0; i < header.num_dims; i++) {
+      header.dims.push(X[3 + i]);
+    }
+    header.dtype = get_dtype_string(X[0]);
+    header.header_size = (header.num_dims + 3) * 4;
+
+    return header;
+}
+
+function get_dtype_string(num) {
+    if (num == -2) return 'byte';
+    if (num == -3) return 'float32';
+    if (num == -4) return 'int16';
+    if (num == -5) return 'int32';
+    if (num == -6) return 'uint16';
+    if (num == -7) return 'float64';
+    return '';
+}
+
+function CLParams(argv) {
+    this.unnamedParameters = [];
+    this.namedParameters = {};
+
+    var args = argv.slice(2);
+    for (var i = 0; i < args.length; i++) {
+        var arg0 = args[i];
+        if (arg0.indexOf('--') === 0) {
+            arg0 = arg0.slice(2);
+            var ind = arg0.indexOf('=');
+            if (ind >= 0) {
+                this.namedParameters[arg0.slice(0, ind)] = arg0.slice(ind + 1);
+            } else {
+                this.namedParameters[arg0] = '';
+                if (i + 1 < args.length) {
+                    var str = args[i + 1];
+                    if (str.indexOf('-') != 0) {
+                        this.namedParameters[arg0] = str;
+                        i++;
+                    }
+                }
+            }
+        } else if (arg0.indexOf('-') === 0) {
+            arg0 = arg0.slice(1);
+            this.namedParameters[arg0] = '';
+        } else {
+            this.unnamedParameters.push(arg0);
+        }
+    }
+};
