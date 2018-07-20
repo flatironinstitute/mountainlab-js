@@ -48,6 +48,10 @@ program
   .option('--package_uri [package-uri]', 'Specify ML processor package by URI')
   .action(function (processor_name, cmd) {
     require(__dirname+'/spec.js').cmd_spec(processor_name,cmd,function(err) {
+      if (err) {
+        process.exit(-1);
+        return; 
+      }
       process.exit(0);
     });
   });
