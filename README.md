@@ -235,3 +235,8 @@ You can also create your own MountainLab processor libraries using any language 
 ## Using processing scripts (.ml files)
 
 Since processors can be run individually using system calls, processing pipelines may be formed in many different ways, including bash scripts. However, the preferred way is to use the JavaScript system built in to MountainLab. This allows scripts to be portable and more secure. MountainLab processing scripts can either be run from the command-line or from within a web browser, and can execute jobs on the local machine or on a remote server. Detailed documentation can be found in [processing scripts](docs/docs_editable/processing_scripts.md).
+
+## Related Projects / Components
+[KBucket](https://github.com/flatironinstitute/kbucket) & [kbclient](https://github.com/magland/kbclient) - Distributed Data Access  
+[MountainView](https://github.com/flatironinstitute/qt-mountainview) & [EPhys-Viz](https://github.com/flatironinstitute/ephys-viz) (WIP) - Visualisation  
+[MountainLab PyTools](https://github.com/magland/mountainlab_pytools) - Python Tools  
