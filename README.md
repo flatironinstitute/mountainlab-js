@@ -2,7 +2,7 @@
 
 # MountainLab
 
-MountainLab is data processing, sharing and visualization software for scientists. It is built around MountainSort, spike sorting software, but is designed to be much more generally applicable.
+MountainLab is data processing, sharing and visualization software for scientists. It was built to support MountainSort, spike sorting software, but is designed to be much more generally applicable.
 
 # Credits and acknowledgements
 
@@ -29,16 +29,16 @@ Alex Morley has a project and vision for applying continuous integration princip
 
 Mountainlab and associated plugins and helper code are available for Linux and MacOS. At some point, this may run on Windows.
 
-If you are an end user of the software, it is recommended to follow the instructions below to install Mountainlab using [Conda](https://conda.io), an open-source, cross-platform, multi-language package manager. If you already use conda (e.g. if you use the Anaconda python distribution), you can skip the first section.
+If you are an end user of the software, it is recommended to follow the instructions below to install Mountainlab using [Conda](https://conda.io), an open-source, cross-platform, multi-language package manager. If you already use conda (e.g. if you use the Anaconda python distribution), you can skip to step 2.
 
-If you are a developer, or want to hack on the latest versions of the code, please see [Developer install instructions](./docs/docs_editable/developer_install_instructions.md)
+If you are a developer, or just want to hack on the latest versions of the code, please see [Developer install instructions](./docs/docs_editable/developer_install_instructions.md)
 
-Note: If you have a prior (non-js) version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via apt-get remove or by removing mountainlab/bin from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system, see below).
+Note: If you have a prior (non-js) version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via `apt-get remove` or by removing the mountainlab binaries from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system). The default package search path has changed, though, so you will need to copy or link your processor packages to the new location (see below).
 
 ### Step 0: Background
-Conda manages software dependencies across multiple programming languages (like 'apt' on Ubuntu, or 'homebrew' on Mac), and installs software into isolated 'environments' (like 'virtualenv' for Python). Packages are available for Linux and MacOS; apart from the first download step, the instructions are identical for these two OS's.
+Conda manages software dependencies across multiple programming languages (like 'apt' on Ubuntu, or 'homebrew' on Mac), and installs software into isolated 'environments' (like 'virtualenv' for Python). MountainLab packages are available for Linux and MacOS; apart from the first download step, the instructions are identical for these two operating systems.
 
-The steps below assume you are using `bash` as your shell (default on Linux and MacOS), and that you want to install conda and all of its files to `~/conda`
+The steps below assume you are using `bash` as your shell (the default on Linux and MacOS), and that you want to install conda and all of its files to `~/conda`
 
 ### Step 1: Install Conda
 
@@ -73,7 +73,11 @@ conda update conda
 conda config --set max_shlvl 1
 ```
 
-### Step 2: Install Mountainlab, Mountainsort plugins, and all dependencies
+For more documentation of the conda install process, refer to the [conda docs](https://conda.io/docs/user-guide/install/index.html).
+
+
+
+### Step 2: Install MountainLab, Mountainsort plugins, and all dependencies
 
 ```
 # create a new conda environment and switch to it:
@@ -95,7 +99,7 @@ ml-config
 ```
 The output of this command will explain how to configure MountainLab on your system (it simply involves setting environment variables by editing a .env file). Further information is provided below.
 
-Note that, when installed using conda, mountainlab will default to searching a configuration directory within the current conda env (in this case: `~/conda/envs/mlab/etc/mountainlab/`; more generally, it will be at `$CONDA_PREFIX/etc/mountainlab`). It will *not* search `~/.mountainlab/` by default. Conda will also install all processor plugins in the `packages` subdirectory at that location. This isolation allows users to switch between multiple independent installs of different versions of mountainlab.
+Note that, when installed using conda, MountainLab will default to searching a configuration directory within the current conda env (in this case: `~/conda/envs/mlab/etc/mountainlab/`; more generally, it will be at `$CONDA_PREFIX/etc/mountainlab`). It will *not* search `~/.mountainlab/` by default. Conda will also install all processor plugins in the `packages` subdirectory at that location. This isolation allows users to switch between multiple independent installs of different versions of MountainLab.
 
 
 Further test the installation by running
@@ -103,11 +107,11 @@ Further test the installation by running
 ml-list-processors
 ```
 
-This should list the names of all the available processors. If you only installed `mountainlab`, then it will be just the very few system processors that are distributed with mountainlab. If you installed `mountainsort`, you should see processors in the list beginning with `ml_epyhs` and `ml_ms4alg`, among others.
+This should list the names of all the available processors. If you only installed `mountainlab`, then it will be just the very few system processors that are distributed with MountainLab. If you installed `mountainsort`, you should see processors in the list beginning with `ml_epyhs` and `ml_ms4alg`, among others.
 
 ### Step 4: Configuration
 
-As you will learn from running the ```ml-config``` command, MountainLab can be configured by setting environment variables. Ideally these should should be specified in the `$CONDA_PREFIX/etc/mountainlab/mountainlab.env` file, but those values can also be overridden by setting the variables by command-line in the terminal. You can always check whether these have been successfully set for the current instance of mountainlab by running `ml-config` after making changes.
+As you will learn from running the ```ml-config``` command, MountainLab can be configured by setting environment variables. Ideally these should should be specified in the `$CONDA_PREFIX/etc/mountainlab/mountainlab.env` file, but those values can also be overridden by setting the variables by command-line in the terminal. You can always check whether these have been successfully set for the current instance of MountainLab by running `ml-config` after making changes.
 
 The following are some of the configuration variables (they each have a default value if left empty):
 * `ML_TEMPORARY_DIRECTORY` -- the location where temporary data files are stored (default: /tmp/mountainlab-tmp)
@@ -155,7 +159,7 @@ The following commands are available from any terminal. Use the `--help` flag on
 
 ## Installing processor packages
 
-MountainLab only ships with a few system processors, found in mountainlab-js/system-packages. To install additional processor packages, clone package repositories into the $CONDA_PREFIX/etc/mountainlab/packages directory (or other configured directories). For example, see above for instructions on installing some packages recommended to get started.
+MountainLab only ships with a few system processors (source is located in mountainlab-js/system-packages). To install additional processor packages, clone package repositories into the $CONDA_PREFIX/etc/mountainlab/packages directory (or other configured package search directories). For example, see above for instructions on installing some packages recommended to get started.
 
 MountainLab will recursively search in these locations to find `.mp` files with executable permissions. Each such file provides the spec information for a list of registered processors (see section on creating custom processor packages), and will be included in the output of `ml-list-processors`.
 
@@ -204,7 +208,7 @@ Some spike sorting examples can be found at https://github.com/flatironinstitute
 ## Custom processor libraries
 
 Here is a list of user-contributed processor packages that we know of.
-You may git clone each of these into a working directory, then link them to your mountainlab packages directory `$CONDA_PREFIX/etc/mountainlab/packages` (conda install), or `~/.mountainlab/packages/` (developer install):
+You may git clone each of these into a working directory, then link them to your MountainLab packages directory (typically `$CONDA_PREFIX/etc/mountainlab/packages`; or run `ml-config` to find this location)
 
 * **Identity processors**
 A set of "hello world" processors, to show how to make a simple processor and do file I/O.
