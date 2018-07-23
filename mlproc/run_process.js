@@ -959,74 +959,14 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
       if ((!common.ends_with(fname, '.prv')) && (!file_exists(fname)) && (file_exists(fname + '.prv'))) {
         fname = fname + '.prv';
       }
-      if (common.ends_with(fname, '.prv')) {
-        console.info(`Locating ${fname} ...`);
-        prv_utils.prv_locate(fname, {}, function(err, fname2) {
-          if ((err) || (!fname2) || (is_url(fname2))) {
-            try_kbucket();
-            return;
-          }
-          inputs[key] = fname2;
+      KBC.realizeFile(fname, opts0)
+        .then(function(path) {
+          inputs[key] = path;
           cb();
+        })
+        .catch(function(err) {
+          callback(`Error in input ${(prefix||'')+key} (${fname}): ${err}`);
         });
-      } else {
-        try_kbucket();
-      }
-
-      function try_kbucket() {
-        KBC.realizeFile(fname, opts0)
-          .then(function(path_or_url) {
-            if (is_url(path_or_url)) {
-              callback(`Error in input ${(prefix||'')+key} (${fname}): Could not realize file for ${path_or_url}`);
-              return;
-            }
-            inputs[key] = path_or_url;
-            cb();
-          })
-          .catch(function(err) {
-            callback(`Error in input ${(prefix||'')+key} (${fname}): ${err}`);
-          });
-      }
-      /*
-      inputs[key]=fname;
-      if (!require('fs').existsSync(fname)) {
-      	callback(`Input file (${(prefix||'')+key}) does not exist: ${fname}`);
-      	return;
-      }
-      if (common.ends_with(fname,'.prv')) {
-      	var prv_opts={};
-      	if ('locate_remote' in opts) {
-      		prv_opts['local']=true;
-      		prv_opts['remote']=true;
-      	}
-      	prv_utils.prv_locate(fname,prv_opts,function(err,fname2) {
-      		if (err) {
-      			console.error(err);
-      		}
-      		if (!fname2) {
-      			callback(`Unable to locate file for input prv: ${(prefix||'')+key}`);
-      			return;
-      		}
-      		if (!is_url(fname2)) {
-      			inputs[key]=fname2;
-      			cb();
-      		}
-      		else {
-      			prv_utils.prv_download(fname,prv_opts,function(err,fname3) {
-      				if (err) {
-      					callback(`Error downloading prv: `+err);
-      					return;
-      				}
-      				inputs[key]=fname3;
-      				cb();
-      			});
-      		}
-      	});
-      }
-      else {
-      	cb();
-      }
-      */
     } else {
       check_inputs_and_substitute_prvs(inputs[key], key + '/', opts, function(err) {
         if (err) {

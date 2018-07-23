@@ -64,7 +64,6 @@ program
   .option('-p, --parameters [parameters...]', 'List of named parameters in key:value format.')
   .option('--iops [iops...]', 'List of inputs, outputs, or parameters in key:value format. It is preferred to instead use --inputs, --outputs, or --parameters.')
   .option('-m, --mode [mode]', 'Either run (default), exec, or queue.')
-  .option('--locate_remote', 'Search remotely as well as locally for input files, and download them to the temporary directory if needed.')
   .option('--keep_tempdir','Do not remove the temporary directory for this process.')
   .option('--force_run','Force processor to run even if job was found in cache.')
   .option('--lari_id [lari_id]','Run the processing on a remote (lari) server')
@@ -88,9 +87,7 @@ program
   .option('--size [size]','If prv file is not provided, specify the size.')
   .option('--fcs [fcs]','If prv file is not provided, specify the fcs.')
   .option('--original_path [original_path]','If prv file is not provided, optionally specify the original path.')
-  .option('--remote','Search remotely on kbucket rather than on local disk.')
-  .option('--local','Search locally first, before searching remotely (used in conjunction with --remote).')
-  .option('--download','If found remotely, download to a temporary file (used in conjunction with --remote).')
+  .option('--download','If found remotely, download to a temporary file.')
   .option('--verbose [level]','Level of verbosity for debugging')
   .action(function (prv_file_name, cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_locate(prv_file_name,cmd,function(err) {
