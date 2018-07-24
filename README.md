@@ -35,12 +35,16 @@ If you are a developer, or just want to hack on the latest versions of the code,
 
 Note: If you have a prior (non-js) version of MountainLab installed, then you may want to uninstall it for sanity's sake (either via `apt-get remove` or by removing the mountainlab binaries from your path), although it is possible for them to co-exist since the command-line utilities have different names. Note that the processor plugin libraries work equally well and simultaneously with both (we have *not* changed the .mp spec system). The default package search path has changed, though, so you will need to copy or link your processor packages to the new location (see below).
 
-### Step 0: Background
+### Step 1: Install Conda
+
 Conda manages software dependencies across multiple programming languages (like 'apt' on Ubuntu, or 'homebrew' on Mac), and installs software into isolated 'environments' (like 'virtualenv' for Python). MountainLab packages are available for Linux and MacOS; apart from the first download step, the instructions are identical for these two operating systems.
 
-The steps below assume you are using `bash` as your shell (the default on Linux and MacOS), and that you want to install conda and all of its files to `~/conda`
+<details>
+<summary>
+<i>Click to expand conda install instructions </i>
+</summary>
 
-### Step 1: Install Conda
+The steps below assume you are using `bash` as your shell (the default on Linux and MacOS), and that you want to install conda and all of its files to `~/conda`
 
 On Linux:
 ```
@@ -74,6 +78,8 @@ conda config --set max_shlvl 1
 ```
 
 For more documentation of the conda install process, refer to the [conda docs](https://conda.io/docs/user-guide/install/index.html).
+
+</details>
 
 
 
