@@ -33,6 +33,7 @@
     "matcher": "latest",
     "mlclient": "latest",
     "node-sha1": "^1.0.1",
+    "proper-lockfile": "^3.0.2",
     "request": "^2.85.0",
     "url-exists": "^1.0.3"
   },

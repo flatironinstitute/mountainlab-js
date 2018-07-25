@@ -20,7 +20,7 @@ var canonical_stringify = require('canonical-json');
 
 function cmd_run_process(processor_name, opts, callback) {
 
-  if (opts.verbose == 'minimal') {
+  if ((opts.verbose == 'minimal')||(opts.verbose == 'jupyter')) {
     console.info = function() {};
     console.log = function() {};
   }
@@ -282,6 +282,8 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
 
   let LC = new LariClient();
   let p_opts = {};
+  if ('force_run' in opts)
+    p_opts.force_run = opts.force_run;
   // important -- do not pass through the opts here, because there would be security concerns. Keep the interface minimal. For example, processor_command_prefix should be configured on the server side.
 
   let LJ = new LariJob();

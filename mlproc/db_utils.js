@@ -1,12 +1,74 @@
-//exports.open_collection=open_collection;
+const SafeDatabase=require(__dirname+'/safedatabase.js').SafeDatabase;
+
+let TheSafeDatabase=null;
+function load_database() {
+	if (!TheSafeDatabase) {
+		var dirpath=process.env.ML_DATABASE_DIRECTORY;
+		if (!dirpath) {
+			mkdir_if_needed(config_directory());
+			dirpath=config_directory()+'/database';
+		}
+		mkdir_if_needed(dirpath);
+
+		TheSafeDatabase=new SafeDatabase(dirpath);
+	}
+	return TheSafeDatabase;
+}
+
 exports.findDocuments=function(collection,query,callback) {
-	findDocuments(collection,query,callback);
+	let DB=load_database();
+	if (!DB) {
+		callback('Unable to load database');
+		return;
+	}
+	DB.findDocuments(collection,query)
+		.then(function(docs) {
+			callback(null,docs);
+		})
+		.catch(function(err) {
+			callback(err.message);
+		})
 }
 exports.saveDocument=function(collection,doc,callback) {
-	saveDocument(collection,doc,callback);
+	let DB=load_database();
+	if (!DB) {
+		callback('Unable to load database');
+		return;
+	}
+	DB.saveDocument(collection,doc)
+		.then(function(docs) {
+			callback(null,docs);
+		})
+		.catch(function(err) {
+			callback(err.message);
+		})
 }
 exports.removeDocuments=function(collection,query,callback) {
-	removeDocuments(collection,query,callback);
+	let DB=load_database();
+	if (!DB) {
+		callback('Unable to load database');
+		return;
+	}
+	DB.removeDocuments(collection,query)
+		.then(function(docs) {
+			callback(null,docs);
+		})
+		.catch(function(err) {
+			callback(err.message);
+		})
+}
+
+
+
+//exports.open_collection=open_collection;
+exports.findDocuments_old=function(collection,query,callback) {
+	findDocuments_old(collection,query,callback);
+}
+exports.saveDocument_old=function(collection,doc,callback) {
+	saveDocument(collection,doc,callback);
+}
+exports.removeDocuments_old=function(collection,query,callback) {
+	removeDocuments_old(collection,query,callback);
 }
 
 var DATABASE=null;
@@ -55,7 +117,7 @@ function connect_to_database_if_needed(callback) {
 			dirpath=config_directory()+'/database';
 		}
 		mkdir_if_needed(dirpath);
-		DATABASE=Client.connect(dirpath,['processor_specs','sumit','processor_jobs','process_cache']);
+		DATABASE=Client.connect(dirpath,['sumit']);
 	}
 	catch(err) {
 		console.log=hold_console_log;
@@ -66,7 +128,7 @@ function connect_to_database_if_needed(callback) {
 	callback(null);
 }
 
-function findDocuments(collection,query,callback) {
+function findDocuments_old(collection,query,callback) {
 	connect_to_database_if_needed(function(err) {
 		if (err) {
 			callback(err);
@@ -88,7 +150,7 @@ function findDocuments(collection,query,callback) {
 	});
 }
 
-function saveDocument(collection,doc,callback) {
+function saveDocument_old(collection,doc,callback) {
 	connect_to_database_if_needed(function(err) {
 		if (err) {
 			callback(err);
@@ -110,7 +172,7 @@ function saveDocument(collection,doc,callback) {
 	});	
 }
 
-function removeDocuments(collection,query,callback) {
+function removeDocuments_old(collection,query,callback) {
 	connect_to_database_if_needed(function(err) {
 		if (err) {
 			callback(err);

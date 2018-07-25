@@ -25,40 +25,40 @@ function cmd_spec(processor_name, opts, callback) {
     if (opts.print) {
       print_human_readable_spec(spec0);
     } else {
-      console.log(JSON.stringify(spec0, null, 4));
+      console.info(JSON.stringify(spec0, null, 4));
     }
     callback(null);
   });
 }
 
 function print_human_readable_spec(spec0) {
-  console.log(spec0.name || '');
-  console.log(spec0.description || '');
-  console.log('');
-  console.log('INPUTS');
+  console.info(spec0.name || '');
+  console.info(spec0.description || '');
+  console.info('');
+  console.info('INPUTS');
   var inputs = spec0.inputs || [];
   for (var i in inputs) {
     var X = inputs[i];
     var opt = '';
     if (X.optional) opt = '(optional) ';
-    console.log(`  ${X.name||''} -- ${opt}${X.description||''}`)
+    console.info(`  ${X.name||''} -- ${opt}${X.description||''}`)
   }
-  console.log('');
-  console.log('OUTPUTS');
+  console.info('');
+  console.info('OUTPUTS');
   var outputs = spec0.outputs || [];
   for (var i in outputs) {
     var X = outputs[i];
     var opt = '';
     if (X.optional) opt = '(optional) ';
-    console.log(`  ${X.name||''} -- ${opt}${X.description||''}`)
+    console.info(`  ${X.name||''} -- ${opt}${X.description||''}`)
   }
-  console.log('');
-  console.log('PARAMETERS');
+  console.info('');
+  console.info('PARAMETERS');
   var parameters = spec0.parameters || [];
   for (var i in parameters) {
     var X = parameters[i];
     var opt = '';
     if (X.optional) opt = '(optional) ';
-    console.log(`  ${X.name||''} -- ${opt}${X.description||''}`)
+    console.info(`  ${X.name||''} -- ${opt}${X.description||''}`)
   }
 }
