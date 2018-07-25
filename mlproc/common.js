@@ -34,7 +34,8 @@ function get_processor_specs(opts,callback) {
 		foreach_async_parallel(mp_file_names,function(ii,fname,cb) {
 			get_spec_from_mp_file(fname,function(err,spec0) {
 				if (err) {
-					callback(err);
+					console.warn(`Error extracting processor information from ${fname}. Skipping...`)
+					cb();
 					return;
 				}
 				if (spec0) {
