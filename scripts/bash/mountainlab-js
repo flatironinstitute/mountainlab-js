@@ -1,0 +1,139 @@
+
+_ml_processors() {
+  PROCLIST=$(ml-list-processors 2>/dev/null)
+  COMPREPLY=( $(compgen -W "${PROCLIST}" -- $1) )
+}
+
+_ml_spec_complete()
+{
+  local cur_word prev_word
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+  #PROCLIST=$(ml-list-processors 2>/dev/null)
+  
+  OPTS="-p --print -h --help"
+  
+  if [[ ${cur_word} == -* ]]
+  then
+    COMPREPLY=( $(compgen -W "${OPTS}" -- ${cur_word}) )
+  else
+    _ml_processors "${cur_word}"
+    return 0
+  fi
+  
+  return 0
+}
+
+_ml_config_complete() {
+  local cur_word prev_word
+  _init_completion
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+  if [[ ${cur_word} == -* ]]
+  then
+    COMPREPLY=( $(compgen -W "--format --help -h" -- ${cur_word} ) )
+    return 0
+  fi
+  if [[ ${prev_word} == "--format" || ${prev_word} == "-f" ]]
+  then
+    COMPREPLY=( $(compgen -W "json text" -- ${cur_word} ))
+  fi
+  return 0
+}
+
+_ml_exec_process_complete() {
+  local cur_word prev_word
+  _init_completion
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+  if [[ ${cur_word} == -* ]]
+  then
+    _longopt "$1"
+    return 0
+  fi
+  _ml_processors "${cur_word}"
+}
+
+_ml_prv_create_complete() {
+  local cur_word prev_word
+  _init_completion
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+  if [[ ${cur_word} == -* ]]
+  then
+    COMPREPLY=( $(compgen -W "--stat --sha1 --help -h" -- ${cur_word}))
+    return 0
+  fi
+  COMPREPLY=( $(compgen -f -- ${cur_word}))
+  return 0
+}
+
+_ml_prv_create_index_complete() {
+  local cur_word prev_word
+  _init_completion
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+  if [[ ${cur_word} == -* ]]
+  then
+    COMPREPLY=( $(compgen -W "--help -h" -- ${cur_word}))
+    return 0
+  fi
+  if [[ ${prev_word} != "$1" && ${prev_word} != -* ]]
+  then
+    COMPREPLY=( $(compgen -f -- ${cur_word}))
+    return 0
+  fi
+  COMPREPLY=( $(compgen -d -- ${cur_word}))
+}
+
+_ml_proc_complete() {
+  local cur_word prev_word
+  _init_completion
+  cur_word="${COMP_WORDS[COMP_CWORD]}"
+  prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+  if [[ ${cur_word} == -* ]]
+  then
+    COMPREPLY=( $(compgen -W "--help -h" -- ${cur_word}))
+    return 0
+  fi
+  if [[ ${prev_word} == "$1" ]]
+  then
+    COMPREPLY=( $(compgen -W "list-processors spec run-process prv-locate prv-create prv-create-index prv-download config" -- ${cur_word}))
+    return 0
+  fi
+  COMMAND=${COMP_WORDS[1]}
+  case $COMMAND in
+    spec)
+        COMP_CWORD=$COMP_CWORD-1
+        COMP_WORDS=(${COMP_WORDS[@]:1})
+        _ml_spec_complete $COMMAND
+        ;;
+    config)
+        COMP_CWORD=$COMP_CWORD-1
+        COMP_WORDS=(${COMP_WORDS[@]:1})
+        _ml_config_complete $COMMAND
+        ;;
+    prv-create)
+        COMP_CWORD=$COMP_CWORD-1
+        COMP_WORDS=(${COMP_WORDS[@]:1})
+        _ml_prv_create_complete $COMMAND
+        ;;        
+    prv-create-index)
+        COMP_CWORD=$COMP_CWORD-1
+        COMP_WORDS=(${COMP_WORDS[@]:1})
+        _ml_prv_create_index_complete $COMMAND
+        ;;  
+  esac
+  return 0
+}
+
+
+complete -F _longopt ml-prv-download ml-prv-locate ml-prv-sha1sum ml-prv-stat
+complete -G *.mda mda-info
+
+complete -F _ml_spec_complete ml-spec
+complete -F _ml_config_complete ml-config
+complete -F _ml_exec_process_complete ml-exec-process
+complete -F _ml_prv_create_complete ml-prv-create
+complete -F _ml_prv_create_index_complete ml-prv-create-index
+complete -F _ml_proc_complete mlproc
