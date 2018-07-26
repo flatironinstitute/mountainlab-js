@@ -1,21 +1,22 @@
+# !/bin/bash
 
+# helper function, generates completions from the list of processors available
+# $1 -> word to complete
 _ml_processors() {
   PROCLIST=$(ml-list-processors 2>/dev/null)
   COMPREPLY=( $(compgen -W "${PROCLIST}" -- $1) )
 }
+
 
 _ml_spec_complete()
 {
   local cur_word prev_word
   cur_word="${COMP_WORDS[COMP_CWORD]}"
   prev_word="${COMP_WORDS[COMP_CWORD-1]}"
-  #PROCLIST=$(ml-list-processors 2>/dev/null)
-  
-  OPTS="-p --print -h --help"
   
   if [[ ${cur_word} == -* ]]
   then
-    COMPREPLY=( $(compgen -W "${OPTS}" -- ${cur_word}) )
+    COMPREPLY=( $( compgen -W "$(_parse_help $1)" -- ${cur_word}))
   else
     _ml_processors "${cur_word}"
     return 0
@@ -26,24 +27,26 @@ _ml_spec_complete()
 
 _ml_config_complete() {
   local cur_word prev_word
-  _init_completion
+  _init_completion || return
   cur_word="${COMP_WORDS[COMP_CWORD]}"
   prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+
   if [[ ${cur_word} == -* ]]
   then
-    COMPREPLY=( $(compgen -W "--format --help -h" -- ${cur_word} ) )
+    COMPREPLY=( $( compgen -W "$(_parse_help $1)" -- ${cur_word}))
     return 0
   fi
-  if [[ ${prev_word} == "--format" || ${prev_word} == "-f" ]]
-  then
-    COMPREPLY=( $(compgen -W "json text" -- ${cur_word} ))
-  fi
+  case ${prev_word} in
+    --format|-f)
+        COMPREPLY=( $(compgen -W "json text" -- ${cur_word} ))
+        ;;
+  esac
   return 0
 }
 
 _ml_exec_process_complete() {
   local cur_word prev_word
-  _init_completion
+  _init_completion || return
   cur_word="${COMP_WORDS[COMP_CWORD]}"
   prev_word="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ ${cur_word} == -* ]]
@@ -56,12 +59,12 @@ _ml_exec_process_complete() {
 
 _ml_prv_create_complete() {
   local cur_word prev_word
-  _init_completion
+  _init_completion || return
   cur_word="${COMP_WORDS[COMP_CWORD]}"
   prev_word="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ ${cur_word} == -* ]]
   then
-    COMPREPLY=( $(compgen -W "--stat --sha1 --help -h" -- ${cur_word}))
+    COMPREPLY=( $( compgen -W "$(_parse_help $1)" -- ${cur_word}))
     return 0
   fi
   COMPREPLY=( $(compgen -f -- ${cur_word}))
@@ -70,12 +73,12 @@ _ml_prv_create_complete() {
 
 _ml_prv_create_index_complete() {
   local cur_word prev_word
-  _init_completion
+  _init_completion || return
   cur_word="${COMP_WORDS[COMP_CWORD]}"
   prev_word="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ ${cur_word} == -* ]]
   then
-    COMPREPLY=( $(compgen -W "--help -h" -- ${cur_word}))
+    COMPREPLY=( $( compgen -W "$(_parse_help $1)" -- ${cur_word}))
     return 0
   fi
   if [[ ${prev_word} != "$1" && ${prev_word} != -* ]]
@@ -88,12 +91,12 @@ _ml_prv_create_index_complete() {
 
 _ml_proc_complete() {
   local cur_word prev_word
-  _init_completion
+  _init_completion || return
   cur_word="${COMP_WORDS[COMP_CWORD]}"
   prev_word="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ ${cur_word} == -* ]]
   then
-    COMPREPLY=( $(compgen -W "--help -h" -- ${cur_word}))
+    COMPREPLY=( $( compgen -W "$(_parse_help $1)" -- ${cur_word}))
     return 0
   fi
   if [[ ${prev_word} == "$1" ]]
