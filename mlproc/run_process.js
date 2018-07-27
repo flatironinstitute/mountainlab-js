@@ -5,6 +5,8 @@ const KBClient = require('kbclient').v1;
 const LariClient = require('lariclient').v1;
 const async = require('async');
 
+var DEBUG = true;
+
 var tempdir_for_cleanup = '';
 var keep_tempdir = false;
 var processor_job_id_for_cleanup = '';
@@ -557,11 +559,26 @@ function move_file(srcpath, dstpath, callback) {
   });
 }
 
+function move_file_or_files(srcpath, dstpath, callback) {
+  if (srcpath instanceof Array) {
+    srcpath.forEach(function (cv,i,arr) {
+      move_file(cv, dstpath[i], function (err) {
+        if (err) {
+          callback(err);
+        }
+      });
+    });
+  callback(null);
+  } else {
+    move_file(srcpath, dstpath, callback);
+  }
+}
+
 function move_outputs(src_outputs, dst_outputs, callback) {
   let output_keys = Object.keys(src_outputs);
   async.eachSeries(output_keys, function(key, cb) {
     console.info(`Finalizing output ${key}`);
-    move_file(src_outputs[key], dst_outputs[key], function(err) {
+    move_file_or_files(src_outputs[key], dst_outputs[key], function(err) {
       if (err) {
         callback(err);
         return;
@@ -1009,22 +1026,28 @@ function get_file_extension_including_dot(fname) {
 
 function check_outputs_and_substitute_prvs(outputs, process_signature, callback) {
   var pending_output_prvs = [];
+  if (DEBUG) {
+    console.log(JSON.stringify(outputs));
+  }
   var okeys = Object.keys(outputs);
   var tmp_dir = common.temporary_directory();
   common.foreach_async(okeys, function(ii, key, cb) {
     var fname = outputs[key];
-    fname = require('path').resolve(process.cwd(), fname);
-    outputs[key] = fname;
-    if (common.ends_with(fname, '.prv')) {
-      let file_extension_including_dot = get_file_extension_for_prv_file_including_dot(fname);
-      let fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
-      pending_output_prvs.push({
-        name: key,
-        prv_fname: fname,
-        output_fname: fname2
-      });
-      outputs[key] = fname2;
+    if (DEBUG) {
+      console.log("Processing ouput - "+fname);
+      console.log(fname instanceof Array);
     }
+    if (fname instanceof Array) {
+      console.log("Trying Recursive Resolve");
+      outputs[key] = fname.map(function c(fnm, i) {
+        var tmp = resolve_file(fnm, pending_output_prvs, tmp_dir, key, process_signature);
+        console.log(tmp);
+        return tmp
+      });
+    } else { // Process File
+      outputs[key] = resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature)
+    }
+    console.log(JSON.stringify(outputs));
     cb();
   }, function() {
     callback(null, {
@@ -1033,15 +1056,43 @@ function check_outputs_and_substitute_prvs(outputs, process_signature, callback)
   });
 }
 
+function resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature) {
+  fname = require('path').resolve(process.cwd(), fname);
+  if (common.ends_with(fname, '.prv')) {
+    let file_extension_including_dot = get_file_extension_for_prv_file_including_dot(fname);
+    let fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
+    pending_output_prvs.push({
+    name: key,
+    prv_fname: fname,
+    output_fname: fname2
+  });
+    return fname2
+  }
+  return fname
+}
+
 function make_temporary_outputs(outputs, process_signature, info, callback) {
   var temporary_outputs = {};
   var okeys = Object.keys(outputs);
   var tmp_dir = common.temporary_directory();
   common.foreach_async(okeys, function(ii, key, cb) {
     var fname = outputs[key];
-    fname = require('path').resolve(process.cwd(), fname);
-    let file_extension_including_dot = get_file_extension_including_dot(fname);
-    temporary_outputs[key] = info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
+    if (DEBUG) {
+      console.log("Processing ouput - "+fname);
+      console.log(fname instanceof Array);
+    }
+    if (fname instanceof Array) {
+      temporary_outputs[key] = fname.map(function (fnm,i,arr) {
+        fnm = require('path').resolve(process.cwd(), fnm);
+        let file_extension_including_dot = get_file_extension_including_dot(fnm);
+        return info.tempdir_path + `/output_${key}_${i}${file_extension_including_dot}`
+      });
+    }
+    else {
+      fname = require('path').resolve(process.cwd(), fname);
+      let file_extension_including_dot = get_file_extension_including_dot(fname);
+      temporary_outputs[key] = info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
+    }
     cb();
   }, function() {
     callback(null, {
