@@ -137,13 +137,32 @@ function LariJob() {
       })
       .then(function(resp) {
         let msec = 3000;
-        if (resp.console_output) {
-          let lines = resp.console_output.split('\n');
-          for (let i in lines) {
-            console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+        if (!('stdout' in resp)) {
+          //old system
+          if (resp.console_output) {
+            let lines = resp.console_output.split('\n');
+            for (let i in lines) {
+              console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+            }
+            msec = 1000;
           }
-          msec = 1000;
+        } else {
+          if (resp.stdout) {
+            let lines = resp.stdout.split('\n');
+            for (let i in lines) {
+              console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+            }
+            msec = 1000;
+          }
+          if (resp.stderr) {
+            let lines = resp.stderr.split('\n');
+            for (let i in lines) {
+              console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
+            }
+            msec = 1000;
+          }
         }
+
         if (resp.is_complete) {
           let result = resp.result || {};
           if (!result.success) {

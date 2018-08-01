@@ -54,7 +54,7 @@ function SystemProcess() {
 		});
 		P.stderr.on('data',function(chunk) {
 			m_stderr_txt+=chunk.toString('utf8');
-			console.log (chunk.toString('utf8'));
+			console.error (chunk.toString('utf8'));
 		});
 		P.on('close',function(code) {
 			delete all_running_processes[m_id];
