@@ -40,7 +40,8 @@ function SystemProcess() {
 			var env = Object.create( process.env );
 			if (m_tempdir_path) env.ML_PROCESSOR_TEMPDIR = m_tempdir_path;
 			let args=m_command.split(' ');
-			P=require('child_process').spawn(args[0],args.slice(1),{env:env,shell:false});
+			//P=require('child_process').spawn(args[0],args.slice(1),{env:env,shell:false});
+			P=require('child_process').spawn(args[0],args.slice(1),{env:env,shell:true});
 			all_running_processes[m_id]=P;
 		}
 		catch(err) {

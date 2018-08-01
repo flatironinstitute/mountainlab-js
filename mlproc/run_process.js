@@ -423,6 +423,8 @@ function run_process_2(processor_name, opts, spec0, callback) {
   var tempdir_path = '';
   var queued_processor_job_id = '';
 
+  let original_inputs=JSON.parse(JSON.stringify(inputs));
+
   var steps = [];
 
   // Check inputs, set default parameters and substitute prvs
@@ -533,6 +535,29 @@ function run_process_2(processor_name, opts, spec0, callback) {
     if (opts.keep_tempdir) keep_tempdir = true;
     common.mkdir_if_needed(tempdir_path);
     cb();
+  });
+
+  // Create links to input files
+  steps.push(function(cb) {
+    if (already_completed) {
+      cb();
+      return;
+    }
+    console.info('[ Creating links to input files... ]');
+    link_inputs(
+      inputs,
+      original_inputs,
+      {
+        tempdir_path: tempdir_path
+      },
+      function(err, tmp) {
+        if (err) {
+          finalize(err);
+          return;
+        }
+        cb();
+      }
+    );
   });
 
   // Make temporary outputs
@@ -1178,7 +1203,7 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
           fname = require('path').resolve(process.cwd(), fname);
         let KBC = new KBClient();
         let opts0 = {
-          download_if_needed: true
+          download_if_needed: true,
         };
         if (
           !common.ends_with(fname, '.prv') &&
@@ -1189,7 +1214,7 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
         }
         KBC.realizeFile(fname, opts0)
           .then(function(path) {
-            inputs[key] = path;
+            inputs[key]=path;
             cb();
           })
           .catch(function(err) {
@@ -1221,17 +1246,17 @@ function is_url(path_or_url) {
   );
 }
 
-function get_file_extension_for_prv_file_including_dot(prv_fname) {
-  var list1 = prv_fname.split('/');
-  var list2 = list1[list1.length - 1].split('.');
-  if (list2.length >= 3) {
-    //important: must have length at least 3 for prv file, otherwise extension is empty
-    return '.' + list2[list2.length - 2];
-  } else {
-    return '';
+function get_file_extension_including_dot_ignoring_prv(prv_fname) {
+  let fname=require('path').basename(prv_fname);
+  if (common.ends_with(fname,'.prv')) {
+    fname=fname.slice(0,fname.length-4);
   }
+  let list=fname.split('.');
+  if (list.length==0) return '.';
+  return '.'+(list[list.length-1]||'');
 }
 
+/*
 function get_file_extension_including_dot(fname) {
   var list1 = fname.split('/');
   var list2 = list1[list1.length - 1].split('.');
@@ -1242,6 +1267,7 @@ function get_file_extension_including_dot(fname) {
     return '';
   }
 }
+*/
 
 function check_outputs_and_substitute_prvs(
   outputs,
@@ -1258,9 +1284,10 @@ function check_outputs_and_substitute_prvs(
       fname = require('path').resolve(process.cwd(), fname);
       outputs[key] = fname;
       if (common.ends_with(fname, '.prv')) {
-        let file_extension_including_dot = get_file_extension_for_prv_file_including_dot(
+        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
+        /*get_file_extension_for_prv_file_including_dot(
           fname
-        );
+        );*/
         let fname2 =
           tmp_dir +
           `/output_${process_signature}_${key}${file_extension_including_dot}`;
@@ -1290,9 +1317,10 @@ function make_temporary_outputs(outputs, process_signature, info, callback) {
     function(ii, key, cb) {
       var fname = outputs[key];
       fname = require('path').resolve(process.cwd(), fname);
-      let file_extension_including_dot = get_file_extension_including_dot(
+      let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
+      /*get_file_extension_including_dot(
         fname
-      );
+      );*/
       temporary_outputs[key] =
         info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
       cb();
@@ -1303,6 +1331,63 @@ function make_temporary_outputs(outputs, process_signature, info, callback) {
       });
     }
   );
+}
+
+function link_inputs(inputs, original_inputs, info, callback) {
+  info.key_prefix=info.key_prefix||'';
+  var ikeys = Object.keys(inputs);
+  common.foreach_async(
+    ikeys,
+    function(ii, key, cb) {
+      var fname = inputs[key];
+      if (typeof fname != 'object') {
+        var original_fname = original_inputs[key];
+        fname = require('path').resolve(process.cwd(), fname);
+        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
+        let desired_file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(original_fname);
+        if (file_extension_including_dot==desired_file_extension_including_dot) {
+          cb();
+          return;
+        }
+        /*get_file_extension_including_dot(
+          original_fname
+        );*/
+        let new_fname=info.tempdir_path + `/input_${info.key_prefix}${key}${desired_file_extension_including_dot}`;
+        make_hard_link(fname,new_fname,function(err) {
+          if (err) {
+            callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: `+err);
+            return;
+          }
+          inputs[key] = new_fname;
+          cb();
+        });
+      }
+      else {
+        let info2=JSON.parse(JSON.stringify(info));
+        info2.key_prefix=key+'-';
+        link_inputs(inputs[key],original_inputs[key],info2,function(err) {
+          if (err) {
+            callback(err);
+            return;
+          }
+          cb();
+        });
+      }
+    },
+    function() {
+      callback(null);
+    }
+  );
+}
+
+function make_hard_link(src_fname,dst_fname,callback) {
+  require('fs').link(src_fname,dst_fname,function(err) {
+    if (err) {
+      callback(err.message);
+      return;
+    }
+    callback(null);
+  });
 }
 
 function compute_process_signature(spec0, inputs, parameters, callback) {

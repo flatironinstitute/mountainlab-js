@@ -36,7 +36,7 @@ function cmd_prv_locate(prv_fname, opts, callback) {
 function cmd_prv_create(fname, prv_fname_out, opts, callback) {
   if (!prv_fname_out) prv_fname_out = fname + '.prv';
   if ((!opts.stat) && (!opts.sha1))
-    console.log('Creating prv record for file ... : ' + fname);
+    console.info('Creating prv record for file ... : ' + fname);
   prv_create(fname, function(err, obj) {
     if (err) {
       console.error(err);
@@ -45,18 +45,18 @@ function cmd_prv_create(fname, prv_fname_out, opts, callback) {
     }
     if (obj) {
       if (opts.stat) {
-        console.log(JSON.stringify(obj, null, 4));
+        console.info(JSON.stringify(obj, null, 4));
         callback('', obj);
         return;
       }
       if (opts.sha1) {
-        console.log(obj.original_checksum);
+        console.info(obj.original_checksum);
         callback('', obj.original_checksum);
         return;
       }
-      console.log('Writing prv file ... : ' + prv_fname_out);
+      console.info('Writing prv file ... : ' + prv_fname_out);
       if (common.write_text_file(prv_fname_out, JSON.stringify(obj, null, 4))) {
-        console.log('Done.')
+        console.info('Done.')
       } else {
         var err = 'Unable to write output file.';
         console.error(err);
