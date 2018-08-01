@@ -424,6 +424,8 @@ function run_process_2(processor_name, opts, spec0, callback) {
   var queued_processor_job_id = '';
 
   let original_inputs=JSON.parse(JSON.stringify(inputs));
+  let temporary_outputs=null;
+  let temporary_inputs=null;
 
   var steps = [];
 
@@ -452,6 +454,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
         return;
       }
       process_signature = sig;
+      console.info(`Signature: ${process_signature}`);
       cb();
     });
   });
@@ -555,6 +558,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
           finalize(err);
           return;
         }
+        temporary_inputs=tmp.temporary_inputs;
         cb();
       }
     );
@@ -593,7 +597,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
     console.info('[ Initializing process ... ]');
     do_run_process(
       spec0,
-      inputs,
+      temporary_inputs,
       outputs,
       temporary_outputs,
       parameters,
@@ -1334,6 +1338,9 @@ function make_temporary_outputs(outputs, process_signature, info, callback) {
 }
 
 function link_inputs(inputs, original_inputs, info, callback) {
+  let ret={
+    temporary_inputs:JSON.parse(JSON.stringify(inputs))
+  };
   info.key_prefix=info.key_prefix||'';
   var ikeys = Object.keys(inputs);
   common.foreach_async(
@@ -1358,24 +1365,25 @@ function link_inputs(inputs, original_inputs, info, callback) {
             callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: `+err);
             return;
           }
-          inputs[key] = new_fname;
+          ret.temporary_inputs[key] = new_fname;
           cb();
         });
       }
       else {
         let info2=JSON.parse(JSON.stringify(info));
         info2.key_prefix=key+'-';
-        link_inputs(inputs[key],original_inputs[key],info2,function(err) {
+        link_inputs(inputs[key],original_inputs[key],info2,function(err,tmp) {
           if (err) {
             callback(err);
             return;
           }
+          ret.temporary_inputs[key]=tmp.temporary_inputs;
           cb();
         });
       }
     },
     function() {
-      callback(null);
+      callback(null,ret);
     }
   );
 }
@@ -1445,15 +1453,20 @@ function find_in_process_cache(process_signature, outputs, callback) {
         callback(null, null);
         return;
       }
-      check_outputs_consistent_with_process_cache(outputs, docs[0], function(
-        err,
-        consistent
-      ) {
-        if (consistent) {
-          callback(null, docs[0]);
-        } else {
-          callback(null, null);
-        }
+      async.eachSeries(docs,function(doc,cb) {
+        check_outputs_consistent_with_process_cache(outputs, doc, function(
+          err,
+          consistent,
+          msg
+        ) {
+          if (consistent) {
+            callback(null, doc);
+          } else {
+            cb();
+          }
+        });
+      },function() {
+        callback(null,null);
       });
     }
   );
@@ -1480,20 +1493,20 @@ function check_outputs_consistent_with_process_cache(outputs, doc0, callback) {
     }
     var output0 = doc0.outputs[key] || {};
     if (output0.path != fname) {
-      callback(null, false);
+      callback(null, false, `${output0.path} <> ${fname}`);
       return;
     }
     if (
       output0.size != stat0.size ||
       output0.mtime != stat0.mtime.toISOString() ||
-      output0.ctime != stat0.ctime.toISOString() ||
+      //output0.ctime != stat0.ctime.toISOString() || //not sure why the ctime is having trouble
       output0.ino != stat0.ino
     ) {
-      callback(null, false);
+      callback(null, false, `Stats do not match: ${output0.size} ${stat0.size} ${output0.mtime} ${stat0.mtime.toISOString()} ${output0.ctime} ${stat0.ctime.toISOString()} ${output0.ino} ${stat0.ino} ${fname}`);
       return;
     }
   }
-  callback(null, true);
+  callback(null, true, '');
 }
 
 function save_to_process_cache(
@@ -1575,7 +1588,7 @@ function get_checksums_for_files(inputs, opts, callback) {
               path: val,
               sha1: sha1,
               mtime: stat0.mtime.toISOString(),
-              ctime: stat0.ctime.toISOString(),
+              //ctime: stat0.ctime.toISOString(), //not sure why the ctime is having trouble
               size: stat0.size,
               ino: stat0.ino
             };
