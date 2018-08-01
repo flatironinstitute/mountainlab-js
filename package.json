@@ -1,6 +1,6 @@
 {
   "name": "mountainlab",
-  "version": "0.10.4",
+  "version": "0.13.1",
   "description": "MountainLab data analysis environment",
   "engines": {
     "node": ">8.0.0"
@@ -33,6 +33,7 @@
     "matcher": "latest",
     "mlclient": "latest",
     "node-sha1": "^1.0.1",
+    "proper-lockfile": "^3.0.2",
     "request": "^2.85.0",
     "url-exists": "^1.0.3"
   },

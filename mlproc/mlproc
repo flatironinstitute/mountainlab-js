@@ -48,6 +48,10 @@ program
   .option('--package_uri [package-uri]', 'Specify ML processor package by URI')
   .action(function (processor_name, cmd) {
     require(__dirname+'/spec.js').cmd_spec(processor_name,cmd,function(err) {
+      if (err) {
+        process.exit(-1);
+        return; 
+      }
       process.exit(0);
     });
   });
@@ -60,11 +64,11 @@ program
   .option('-p, --parameters [parameters...]', 'List of named parameters in key:value format.')
   .option('--iops [iops...]', 'List of inputs, outputs, or parameters in key:value format. It is preferred to instead use --inputs, --outputs, or --parameters.')
   .option('-m, --mode [mode]', 'Either run (default), exec, or queue.')
-  .option('--locate_remote', 'Search remotely as well as locally for input files, and download them to the temporary directory if needed.')
   .option('--keep_tempdir','Do not remove the temporary directory for this process.')
   .option('--force_run','Force processor to run even if job was found in cache.')
-  .option('--lari_id [lari_id]','Run the processing on a remote (lari) server')
-  .option('--lari_passcode [lari_passcode]','Used with --lari_id')
+  .option('--lari_id [lari_id]','Run the processing on a remote (lari) server. Alternatively, use environment variable LARI_ID.')
+  .option('--lari_passcode [lari_passcode]','Used with --lari_id. Alternatively, use environment variable LARI_PASSCODE.')
+  .option('--lari_out [outfile.json]','Save lari info to output JSON file. In particular, saves the lari_job_id.')
   .option('--processor_command_prefix [prefix]','For example, srun.')
   .option('-v, --verbose [level]','Level of verbosity / console output (normal, minimal, none)')
   .action(function (processor_name, cmd) {
@@ -84,9 +88,7 @@ program
   .option('--size [size]','If prv file is not provided, specify the size.')
   .option('--fcs [fcs]','If prv file is not provided, specify the fcs.')
   .option('--original_path [original_path]','If prv file is not provided, optionally specify the original path.')
-  .option('--remote','Search remotely on kbucket rather than on local disk.')
-  .option('--local','Search locally first, before searching remotely (used in conjunction with --remote).')
-  .option('--download','If found remotely, download to a temporary file (used in conjunction with --remote).')
+  .option('--download','If found remotely, download to a temporary file.')
   .option('--verbose [level]','Level of verbosity for debugging')
   .action(function (prv_file_name, cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_locate(prv_file_name,cmd,function(err) {
