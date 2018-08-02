@@ -27,8 +27,7 @@ function cleanup_and_exit() {
 program
   .command('list-processors [pattern]')
   .description('List MountainLab processors installed on this machine. Optionally specify a wildcard pattern for filtering the results.')
-  //.option('--package [package-name]', 'Specify ML processor package by name')
-  //.option('--package_uri [package-uri]', 'Specify ML processor package by URI')
+  .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
   .action(function (pattern, cmd) {
     cmd.pattern=pattern;
     require(__dirname+'/list_processors.js').cmd_list_processors(cmd,function(err) {
@@ -44,8 +43,7 @@ program
   .command('spec <processor-name>')
   .description('Show the spec for a specific processor.')
   .option('-p, --print', 'Format output in human-readable syntax')
-  .option('--package [package-name]', 'Specify ML processor package by name')
-  .option('--package_uri [package-uri]', 'Specify ML processor package by URI')
+  .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
   .action(function (processor_name, cmd) {
     require(__dirname+'/spec.js').cmd_spec(processor_name,cmd,function(err) {
       if (err) {
@@ -70,6 +68,7 @@ program
   .option('--lari_passcode [lari_passcode]','Used with --lari_id. Alternatively, use environment variable LARI_PASSCODE.')
   .option('--lari_out [outfile.json]','Save lari info to output JSON file. In particular, saves the lari_job_id.')
   .option('--processor_command_prefix [prefix]','For example, srun.')
+  .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
   .option('-v, --verbose [level]','Level of verbosity / console output (normal, minimal, none)')
   .action(function (processor_name, cmd) {
     require(__dirname+'/run_process.js').cmd_run_process(processor_name,cmd,function(err) {

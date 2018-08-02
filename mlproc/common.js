@@ -111,6 +111,11 @@ function get_processor_spec(processor_name,opts,callback) {
 }
 
 function find_candidate_mp_files(opts,callback) {
+	if (opts.mp_file) {
+		let mp_file=require('path').resolve(process.cwd(), opts.mp_file);
+		callback(null,[mp_file]);
+		return;
+	}
 	var list=[];
 	var paths=package_search_directories(opts);
 	foreach_async_parallel(paths,function(ii,path0,cb) {

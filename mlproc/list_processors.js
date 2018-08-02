@@ -16,16 +16,16 @@ function cmd_list_processors(opts,callback) {
 		for (var i in processor_specs) {
 			var spec0=processor_specs[i];
 			var pname=spec0.name||'';
-			if (pname && opts['pattern']) {
-				if (matcher.isMatch(pname, opts['pattern']))
-					list.push(pname)
+			if (pname && opts.pattern) {
+				if (matcher.isMatch(pname, opts.pattern))
+					list.push(pname);
 			} else if (pname) {
 				list.push(pname);
 			}
 		}
 		list=list.sort();
 		if (list.length>0)
-			console.log (list.join('\n'));
+			console.info(list.join('\n'));
 		callback();
 	});
 	
