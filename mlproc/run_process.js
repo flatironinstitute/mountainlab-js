@@ -6,6 +6,7 @@ const LariClient = require('lariclient').v1;
 const async = require('async');
 
 var tempdir_for_cleanup = '';
+var files_to_cleanup = [];
 var keep_tempdir = false;
 var processor_job_id_for_cleanup = '';
 
@@ -153,10 +154,10 @@ function LariJob() {
     if (!m_lari_out_file) return;
     let obj = {
       lari_id: m_lari_id,
-      lari_job_id : m_job_id
+      lari_job_id: m_job_id
     };
     if (!common.write_json_file(m_lari_out_file, obj)) {
-      console.error('Unable to write lari out file: '+m_lari_out_file+'. Aborting.');
+      console.error('Unable to write lari out file: ' + m_lari_out_file + '. Aborting.');
       process.exit(-1);
     }
   }
@@ -236,10 +237,9 @@ function LariJob() {
               } else {
                 let KBC = new KBClient();
                 KBC.downloadFile(
-                  'sha1://' + output0.original_checksum,
-                  fname,
-                  {}
-                )
+                    'sha1://' + output0.original_checksum,
+                    fname, {}
+                  )
                   .then(function() {
                     cb();
                   })
@@ -381,8 +381,7 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
 
 function remove_processor_job_from_database(job_id, callback) {
   db_utils.removeDocuments(
-    'processor_jobs',
-    {
+    'processor_jobs', {
       _id: job_id
     },
     function(err) {
@@ -423,9 +422,9 @@ function run_process_2(processor_name, opts, spec0, callback) {
   var tempdir_path = '';
   var queued_processor_job_id = '';
 
-  let original_inputs=JSON.parse(JSON.stringify(inputs));
-  let temporary_outputs=null;
-  let temporary_inputs=null;
+  let original_inputs = JSON.parse(JSON.stringify(inputs));
+  let temporary_outputs = null;
+  let temporary_inputs = null;
 
   var steps = [];
 
@@ -549,8 +548,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
     console.info('[ Creating links to input files... ]');
     link_inputs(
       inputs,
-      original_inputs,
-      {
+      original_inputs, {
         tempdir_path: tempdir_path
       },
       function(err, tmp) {
@@ -558,7 +556,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
           finalize(err);
           return;
         }
-        temporary_inputs=tmp.temporary_inputs;
+        temporary_inputs = tmp.temporary_inputs;
         cb();
       }
     );
@@ -573,8 +571,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
     console.info('[ Preparing temporary outputs... ]');
     make_temporary_outputs(
       outputs,
-      process_signature,
-      {
+      process_signature, {
         tempdir_path: tempdir_path
       },
       function(err, tmp) {
@@ -600,8 +597,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
       temporary_inputs,
       outputs,
       temporary_outputs,
-      parameters,
-      {
+      parameters, {
         tempdir_path: tempdir_path,
         queued_processor_job_id: queued_processor_job_id,
         processor_command_prefix: opts.processor_command_prefix || ''
@@ -689,16 +685,21 @@ function run_process_2(processor_name, opts, spec0, callback) {
   );
 
   function finalize(err00) {
-    remove_temporary_directory(tempdir_path, function(err) {
+    remove_temporary_files(files_to_cleanup, function(err) {
       if (err) {
-        console.warn(
-          'Error removing temporary directory (' + tempdir_path + '): ' + err
-        );
+        console.warn('Error removing temporary files: ' + err);
       }
-      if (!err00) {
-        console.info('[ Done. ]');
-      }
-      callback(err00);
+      remove_temporary_directory(tempdir_path, function(err) {
+        if (err) {
+          console.warn(
+            'Error removing temporary directory (' + tempdir_path + '): ' + err
+          );
+        }
+        if (!err00) {
+          console.info('[ Done. ]');
+        }
+        callback(err00);
+      });
     });
   }
 }
@@ -754,11 +755,22 @@ function move_outputs(src_outputs, dst_outputs, callback) {
 
 function cleanup(callback) {
   // only called if process is terminated prematurely
-  cleanup_tempdir(function() {
-    remove_from_database(function() {
-      callback();
+  cleanup_temp_files(function() {
+    cleanup_tempdir(function() {
+      remove_from_database(function() {
+        callback();
+      });
     });
   });
+
+  function cleanup_temp_files(cb) {
+    remove_temporary_files(files_to_cleanup, function(err) {
+      if (err) {
+        console.warn('Error removing temporary files: ' + err);
+      }
+      cb();
+    });
+  }
 
   function cleanup_tempdir(cb) {
     if (tempdir_for_cleanup) {
@@ -782,6 +794,20 @@ function cleanup(callback) {
       cb();
     }
   }
+}
+
+function remove_temporary_files(tmp_files, callback) {
+  async.eachSeries(tmp_files, function(fname, cb) {
+    try {
+      if (require('fs').existsSync(fname))
+        require('fs').unlinkSync(fname);
+    } catch (err) {
+      console.warn('Problem removing temporary file: ' + fname);
+    }
+    cb();
+  }, function() {
+    callback(null);
+  });
 }
 
 function remove_temporary_directory(tempdir_path, callback) {
@@ -953,8 +979,7 @@ function check_queued_job_ready_to_run(job_id, callback) {
             'Removing queued processor job that has not been checked for a while.'
           );
           db_utils.removeDocuments(
-            'processor_jobs',
-            {
+            'processor_jobs', {
               _id: doc0._id
             },
             function(err0) {
@@ -979,7 +1004,7 @@ function check_queued_job_ready_to_run(job_id, callback) {
     if (debugging)
       console.info(
         'max_num_simultaneous_processor_jobs=' +
-          max_num_simultaneous_processor_jobs
+        max_num_simultaneous_processor_jobs
       );
     if (
       num_running < max_num_simultaneous_processor_jobs &&
@@ -1173,8 +1198,7 @@ function filter_exe_command(
     } else {
       cmd = cmd.split('$' + key + '$').join('');
     }
-  }
-  {
+  } {
     arguments.push(`--_tempdir=${info.tempdir_path}`);
     cmd = cmd.split('$(tempdir)').join(info.tempdir_path);
   }
@@ -1198,8 +1222,7 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
     function(ii, key, cb) {
       if (typeof inputs[key] != 'object') {
         var fname = inputs[key];
-        if (
-          !fname.startsWith('kbucket://') &&
+        if (!fname.startsWith('kbucket://') &&
           !fname.startsWith('sha1://') &&
           !fname.startsWith('http://') &&
           !fname.startsWith('https://')
@@ -1209,8 +1232,7 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
         let opts0 = {
           download_if_needed: true,
         };
-        if (
-          !common.ends_with(fname, '.prv') &&
+        if (!common.ends_with(fname, '.prv') &&
           !file_exists(fname) &&
           file_exists(fname + '.prv')
         ) {
@@ -1218,7 +1240,7 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
         }
         KBC.realizeFile(fname, opts0)
           .then(function(path) {
-            inputs[key]=path;
+            inputs[key] = path;
             cb();
           })
           .catch(function(err) {
@@ -1251,13 +1273,13 @@ function is_url(path_or_url) {
 }
 
 function get_file_extension_including_dot_ignoring_prv(prv_fname) {
-  let fname=require('path').basename(prv_fname);
-  if (common.ends_with(fname,'.prv')) {
-    fname=fname.slice(0,fname.length-4);
+  let fname = require('path').basename(prv_fname);
+  if (common.ends_with(fname, '.prv')) {
+    fname = fname.slice(0, fname.length - 4);
   }
-  let list=fname.split('.');
-  if (list.length==0) return '.';
-  return '.'+(list[list.length-1]||'');
+  let list = fname.split('.');
+  if (list.length == 0) return '.';
+  return '.' + (list[list.length - 1] || '');
 }
 
 /*
@@ -1338,10 +1360,10 @@ function make_temporary_outputs(outputs, process_signature, info, callback) {
 }
 
 function link_inputs(inputs, original_inputs, info, callback) {
-  let ret={
-    temporary_inputs:JSON.parse(JSON.stringify(inputs))
+  let ret = {
+    temporary_inputs: JSON.parse(JSON.stringify(inputs))
   };
-  info.key_prefix=info.key_prefix||'';
+  info.key_prefix = info.key_prefix || '';
   var ikeys = Object.keys(inputs);
   common.foreach_async(
     ikeys,
@@ -1352,44 +1374,44 @@ function link_inputs(inputs, original_inputs, info, callback) {
         fname = require('path').resolve(process.cwd(), fname);
         let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
         let desired_file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(original_fname);
-        if (file_extension_including_dot==desired_file_extension_including_dot) {
+        if (file_extension_including_dot == desired_file_extension_including_dot) {
           cb();
           return;
         }
         /*get_file_extension_including_dot(
           original_fname
         );*/
-        let new_fname=info.tempdir_path + `/input_${info.key_prefix}${key}${desired_file_extension_including_dot}`;
-        make_hard_link(fname,new_fname,function(err) {
+        let new_fname = `${fname}.tmplink.${common.make_random_id(8)}${desired_file_extension_including_dot}`;
+        make_hard_link(fname, new_fname, function(err) {
           if (err) {
-            callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: `+err);
+            callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: ` + err);
             return;
           }
           ret.temporary_inputs[key] = new_fname;
+          files_to_cleanup.push(new_fname);
           cb();
         });
-      }
-      else {
-        let info2=JSON.parse(JSON.stringify(info));
-        info2.key_prefix=key+'-';
-        link_inputs(inputs[key],original_inputs[key],info2,function(err,tmp) {
+      } else {
+        let info2 = JSON.parse(JSON.stringify(info));
+        info2.key_prefix = key + '-';
+        link_inputs(inputs[key], original_inputs[key], info2, function(err, tmp) {
           if (err) {
             callback(err);
             return;
           }
-          ret.temporary_inputs[key]=tmp.temporary_inputs;
+          ret.temporary_inputs[key] = tmp.temporary_inputs;
           cb();
         });
       }
     },
     function() {
-      callback(null,ret);
+      callback(null, ret);
     }
   );
 }
 
-function make_hard_link(src_fname,dst_fname,callback) {
-  require('fs').link(src_fname,dst_fname,function(err) {
+function make_hard_link(src_fname, dst_fname, callback) {
+  require('fs').link(src_fname, dst_fname, function(err) {
     if (err) {
       callback(err.message);
       return;
@@ -1430,8 +1452,7 @@ function compute_process_signature_object(spec0, inputs, parameters, callback) {
 function compute_process_signature_object_inputs(inputs, callback) {
   // See the warning for the outputs and file extensions elsewhere in this file
   get_checksums_for_files(
-    inputs,
-    {
+    inputs, {
       mode: 'process_signature'
     },
     callback
@@ -1440,8 +1461,7 @@ function compute_process_signature_object_inputs(inputs, callback) {
 
 function find_in_process_cache(process_signature, outputs, callback) {
   db_utils.findDocuments(
-    'process_cache',
-    {
+    'process_cache', {
       process_signature: process_signature
     },
     function(err, docs) {
@@ -1453,7 +1473,7 @@ function find_in_process_cache(process_signature, outputs, callback) {
         callback(null, null);
         return;
       }
-      async.eachSeries(docs,function(doc,cb) {
+      async.eachSeries(docs, function(doc, cb) {
         check_outputs_consistent_with_process_cache(outputs, doc, function(
           err,
           consistent,
@@ -1465,8 +1485,8 @@ function find_in_process_cache(process_signature, outputs, callback) {
             cb();
           }
         });
-      },function() {
-        callback(null,null);
+      }, function() {
+        callback(null, null);
       });
     }
   );
@@ -1518,8 +1538,7 @@ function save_to_process_cache(
   callback
 ) {
   db_utils.removeDocuments(
-    'process_cache',
-    {
+    'process_cache', {
       process_signature: process_signature
     },
     function(err) {
@@ -1528,8 +1547,7 @@ function save_to_process_cache(
         return;
       }
       get_checksums_for_files(
-        inputs,
-        {
+        inputs, {
           mode: 'process_cache'
         },
         function(err, inputs_with_checksums) {
@@ -1538,8 +1556,7 @@ function save_to_process_cache(
             return;
           }
           get_checksums_for_files(
-            outputs,
-            {
+            outputs, {
               mode: 'process_cache'
             },
             function(err, outputs_with_checksums) {
