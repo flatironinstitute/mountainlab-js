@@ -37,7 +37,8 @@ function cmd_run_process(processor_name, opts, callback) {
   console.info('[ Getting processor spec... ]');
   let spec_opts = {
     lari_id: opts.lari_id,
-    lari_passcode: opts.lari_passcode
+    lari_passcode: opts.lari_passcode,
+    mp_file:opts.mp_file||undefined
   };
   common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {
     if (err) {
@@ -48,7 +49,7 @@ function cmd_run_process(processor_name, opts, callback) {
       callback(`Processor not found: ${processor_name}`);
       return;
     }
-    if (opts.lari_id) {
+    if ((opts.lari_id)&&(!opts.mp_file)) {
       cmd_run_process_lari(processor_name, spec0, opts, callback);
       return;
     }

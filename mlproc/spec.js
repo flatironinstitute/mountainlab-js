@@ -7,7 +7,8 @@ function cmd_spec(processor_name, opts, callback) {
 
   let spec_opts={
   	lari_id:opts.lari_id || process.env.LARI_ID,
-  	lari_passcode:opts.lari_passcode || process.env.LARI_PASSCODE
+  	lari_passcode:opts.lari_passcode || process.env.LARI_PASSCODE,
+    mp_file:opts.mp_file||undefined
   };
   
   common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {

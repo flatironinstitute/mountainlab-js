@@ -34,6 +34,7 @@ function get_processor_specs(opts,callback) {
 		foreach_async_parallel(mp_file_names,function(ii,fname,cb) {
 			get_spec_from_mp_file(fname,function(err,spec0) {
 				if (err) {
+					console.warn(err);
 					console.warn(`Error extracting processor information from ${fname}. Skipping...`)
 					cb();
 					return;
@@ -58,7 +59,7 @@ function get_processor_specs(opts,callback) {
 }
 
 function get_processor_spec(processor_name,opts,callback) {
-	if (opts.lari_id) {
+	if ((opts.lari_id)&&(!opts.mp_file)) {
 		let LC=new LariClient();
 		LC.getProcessorSpec(opts.lari_id,processor_name,opts)
 			.then(function(spec) {
@@ -67,6 +68,10 @@ function get_processor_spec(processor_name,opts,callback) {
 			.catch(function(err) {
 				callback(err.message);
 			});
+		return;
+	}
+	if (opts.mp_file) {
+		step2();
 		return;
 	}
 	get_processor_mp_file_hint(processor_name,function(hint_fname) {
@@ -346,6 +351,7 @@ function config_directory() {
 
 function is_executable(fname) {
 	var stat0=stat_file(fname);
+	if (!stat0) return false;
 	var mask=1; //use 1 for executable, 2 for write, 4 for read
 	return !!(mask & parseInt ((stat0.mode & parseInt ("777", 8)).toString (8)[0]));
 }
