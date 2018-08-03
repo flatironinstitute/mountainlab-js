@@ -86,7 +86,6 @@ function cmd_prv_download(prv_fname, output_filename, opts, callback) {
       callback(null, path);
       return;
     } else {
-      console.error('Unexpected: path is empty in cmd_prv_download.');
       callback('Unexpected: path is empty in cmd_prv_download.');
       return;
     }
@@ -97,8 +96,8 @@ function prv_download(prv_fname, opts, callback) {
   let KBC=new KBClient();
   if (opts.output) {
     KBC.downloadFile(prv_fname, opts.output)
-      .then(function(path2) {
-        callback(null, path2);
+      .then(function() {
+        callback(null, opts.output);
       })
       .catch(function(err) {
         callback('Error downloading file: ' + err.message);

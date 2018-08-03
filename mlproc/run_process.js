@@ -175,7 +175,8 @@ function LariJob() {
           if (resp.console_output) {
             let lines = resp.console_output.split('\n');
             for (let i in lines) {
-              console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+              console.info(lines[i]);
+              //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
             }
             msec = 1000;
           }
@@ -183,14 +184,16 @@ function LariJob() {
           if (resp.stdout) {
             let lines = resp.stdout.split('\n');
             for (let i in lines) {
-              console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+              console.info(lines[i]);
+              //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
             }
             msec = 1000;
           }
           if (resp.stderr) {
             let lines = resp.stderr.split('\n');
             for (let i in lines) {
-              console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
+              console.info('STDERR: '+lines[i]);
+              //console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
             }
             msec = 1000;
           }
@@ -199,12 +202,15 @@ function LariJob() {
         if (resp.is_complete) {
           let result = resp.result || {};
           if (!result.success) {
+            console.error(`${m_processor_name} completed with error: ${result.error}`);
+            /*
             console.info(
               ccc.BgBlack,
               ccc.FgRed,
               `${m_processor_name} completed with error: ${result.error}`,
               ccc.Reset
             );
+            */
             process.exit(-1);
           }
           let output_keys = Object.keys(m_outputs);
@@ -254,12 +260,15 @@ function LariJob() {
               }
             },
             function() {
+              console.info(`${m_processor_name} completed successfully.`);
+              /*
               console.info(
                 ccc.BgBlack,
                 ccc.FgGreen,
                 `${m_processor_name} completed successfully.`,
                 ccc.Reset
               );
+              */
               process.exit(0);
             }
           );
