@@ -463,7 +463,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
         return;
       }
       process_signature = sig;
-      console.info(`Signature: ${process_signature}`);
+      console.info(`Process signature: ${process_signature}`);
       cb();
     });
   });
@@ -1439,7 +1439,7 @@ function compute_process_signature(spec0, inputs, parameters, callback) {
       callback(err);
       return;
     }
-    callback(null, sha1(JSON.stringify(obj)));
+    callback(null, sha1(canonical_stringify(obj)));
   });
 }
 
