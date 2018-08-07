@@ -116,9 +116,12 @@ function prv_download(prv_fname, opts, callback) {
 
 function prv_locate(prv_fname, opts, callback) {
   let KBC=new KBClient();
+  let opts2={};
+  if ('remote_only' in opts)
+    opts2.remote_only=true;
   if ('download' in opts) {
     supress_console_info();
-    KBC.realizeFile(prv_fname, {})
+    KBC.realizeFile(prv_fname, opts2)
       .then(function(url2) {
         restore_console_info();
         callback(null, url2, null);
@@ -129,7 +132,7 @@ function prv_locate(prv_fname, opts, callback) {
       });
   } else {
     supress_console_info();
-    KBC.locateFile(prv_fname, {})
+    KBC.locateFile(prv_fname, opts2)
       .then(function(url2) {
         restore_console_info();
         callback(null, url2, null);

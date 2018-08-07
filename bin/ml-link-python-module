@@ -3,9 +3,18 @@
 module_name=$1
 dest_dir=$2
 
-if [[ -z $module_name || -z $dest_dir ]]; then
+if [[ -z $module_name ]]; then
   echo 'Usage: ml-link-python-module [module_name] [dest_dir]'
   exit 1
 fi
 
-ln -s `python3 -c "import $module_name,os; path=os.path.dirname($module_name.__file__); print(path)"` $dest_dir
+location=`python3 -c "import $module_name,os; path=os.path.dirname($module_name.__file__); print(path)"`
+echo "Location: $location"
+
+if [[ -z $dest_dir ]]; then
+  echo 'Usage: ml-link-python-module [module_name] [dest_dir]'
+  exit 1
+fi
+
+
+ln -s $location $dest_dir
