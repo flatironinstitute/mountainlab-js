@@ -11,3 +11,6 @@ __pycache__
 .kbucket
 docs/_site
 package-lock.json
+output
+*.sublime-project
+*.sublime-workspace
