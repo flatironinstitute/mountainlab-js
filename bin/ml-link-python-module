@@ -1,20 +1,37 @@
 #!/bin/bash
 
+set -e
+
 module_name=$1
-dest_dir=$2
+dest=$2
 
 if [[ -z $module_name ]]; then
-  echo 'Usage: ml-link-python-module [module_name] [dest_dir]'
+  echo 'Usage: ml-link-python-module [module_name] [dest]'
   exit 1
 fi
 
 location=`python3 -c "import $module_name,os; path=os.path.dirname($module_name.__file__); print(path)"`
 echo "Location: $location"
 
-if [[ -z $dest_dir ]]; then
-  echo 'Usage: ml-link-python-module [module_name] [dest_dir]'
+if [[ -z $location ]]; then
+	exit 1
+fi
+
+if [[ -z $dest ]]; then
+  echo 'Usage: ml-link-python-module [module_name] [dest]'
   exit 1
 fi
 
+if [ -f $dest ] ; then
+	echo "File already exists: $dest"
+	exit 1
+fi
 
-ln -s $location $dest_dir
+if [ -L $dest ] ; then
+	echo "Removing link: $dest"
+  rm $dest
+fi
+
+cmd="ln -s $location $dest"
+echo $cmd
+$cmd
