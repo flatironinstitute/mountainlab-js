@@ -346,7 +346,7 @@ function config_file_path() {
 }
 
 function config_directory() {
-	return process.env.ML_CONFIG_DIRECTORY||process.env.HOME+'/.mountainlab';
+	return process.env.ML_CONFIG_DIRECTORY||process.env.ML_DEFAULT_CONFIG_DIRECTORY||process.env.HOME+'/.mountainlab';
 }
 
 function is_executable(fname) {
