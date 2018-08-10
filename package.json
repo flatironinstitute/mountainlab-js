@@ -40,5 +40,23 @@
   "devDependencies": {},
   "directories": {
     "bin": "bin"
+  },
+  "conda":{
+    "build_number":0,
+    "build_script":[
+      "tgzfile=$(npm pack)",
+      "npm install -g $tgzfile",
+      "mkdir -p \"$PREFIX\"/etc/mountainlab/{packages,database}",
+      "touch \"$PREFIX\"/etc/mountainlab/{packages,database}/.conda_keep"
+    ],
+    "test_commands":[
+      "npm list -g mountainlab",
+      "ml-config",
+      "ml-list-processors",
+      "ml-spec hello.world",
+      "ml-spec hello.world -p",
+      "ml-run-process --help",
+      "ml-prv-locate --help"
+    ]
   }
 }
