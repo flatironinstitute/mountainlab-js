@@ -146,11 +146,11 @@ program
   });
 
 program
-  .command('config')
-  .description('Display configuration information')
+  .command('config [name]')
+  .description('Display configuration information. Optionally use name=package_directory to print the main package directory.')
   .option('--format [format]','Options: text (default) or json')
-  .action(function (cmd) {
-    require(__dirname+'/display_config.js').cmd_config(cmd,function(err) {
+  .action(function (name,cmd) {
+    require(__dirname+'/display_config.js').cmd_config(name,cmd,function(err) {
       if (err) {
         console.error(err);
         process.exit(-1);

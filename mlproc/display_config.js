@@ -3,7 +3,16 @@ exports.cmd_config=cmd_config;
 var common=require(__dirname+'/common.js');
 const fs=require('fs');
 
-function cmd_config(opts,callback) {
+function cmd_config(name,opts,callback) {
+    if (name) {
+        if (name=='package_directory') {
+            console.info(common.main_package_directory());
+        }
+        else {
+            console.error(`Invalid name: ${name}`);
+        }
+        return;
+    }
     var ml_config_file=common.config_file_path();
     var txt=common.read_text_file(__dirname+'/display_config.template');
     txt = txt.split("$configuration_file$");
