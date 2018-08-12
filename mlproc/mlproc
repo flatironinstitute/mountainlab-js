@@ -159,8 +159,52 @@ program
     });
   });
 
-var argv=preprocess_argv(process.argv);
-program.parse(argv);
+if (process.argv[2]=='argv_from_file') {
+  wait_for_file_to_exist(process.argv[3],20000,function(err) {
+    if (err) {
+      console.error(err);
+      process.exit(-1);
+    }
+    let txt=common.read_text_file(process.argv[3]);
+    require('fs').unlinkSync(process.argv[3]);
+    let list=txt.trim().split(' ');
+    let new_argv=[];
+    new_argv.push(process.argv[0]);
+    new_argv.push(process.argv[1]);
+    for (let i in list) {
+      new_argv.push(list[i]);
+    }
+    handle_argv(new_argv);
+  });
+}
+else {
+  handle_argv(process.argv);
+}
+
+function wait_for_file_to_exist(fname,timeout,callback) {
+  let timer=new Date();
+  function next_check() {
+    if (require('fs').existsSync(fname)) {
+      callback(null);
+      return;
+    }
+    let elapsed=(new Date())-timer;
+    if (elapsed>timeout) {
+      callback(`Timeout while waiting for file: ${fname}`);
+      return;
+    }
+    setTimeout(function() {
+      next_check();
+    },10);
+  }
+  next_check();
+}
+
+
+function handle_argv(argv) {
+  var argv2=preprocess_argv(argv);
+  program.parse(argv2);
+}
 
 function preprocess_argv(argv) {
   if (argv.indexOf('run-process')>=0) {
