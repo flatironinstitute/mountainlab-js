@@ -363,7 +363,11 @@ function config_directory() {
 			default_config_directory=process.env.CONDA_PREFIX+'/etc/mountainlab';
 		}
 	}
-	return process.env.ML_CONFIG_DIRECTORY||default_config_directory||require('os').homedir()+'/.mountainlab';
+	let ret=process.env.ML_CONFIG_DIRECTORY||default_config_directory||require('os').homedir()+'/.mountainlab';
+	if (!require('fs').existsSync(ret)) {
+		require('fs').mkdirSync(ret);
+	}
+	return ret;
 }
 
 function is_executable(fname) {
