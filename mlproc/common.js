@@ -274,7 +274,11 @@ function get_spec_from_mp_file(fname,callback) {
 }
 
 function main_package_directory() {
-	return process.env.ML_PACKAGE_SEARCH_DIRECTORY||(config_directory()+'/packages');
+	let ret=process.env.ML_PACKAGE_SEARCH_DIRECTORY||(config_directory()+'/packages');
+	if (!require('fs').existsSync(ret)) {
+		require('fs').mkdirSync(ret);
+	}
+	return ret;
 }
 
 function package_search_directories(opts) {
