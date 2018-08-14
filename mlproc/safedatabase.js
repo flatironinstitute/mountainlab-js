@@ -1,7 +1,7 @@
 exports.SafeDatabase=SafeDatabase;
 
-const lockfile=require('proper-lockfile');
 const fs=require('fs');
+const lockfile=require('lockfile');
 
 const timeout = ms => new Promise(res => setTimeout(res, ms));
 
@@ -19,7 +19,13 @@ function SafeDatabase(db_directory) {
 	async function findDocuments(collection_name,query) {
 		let timer=new Date();
 
-		let lock=await lock_collection_file(collection_name);
+		let lock;
+		try {
+			lock=await lock_collection_file(collection_name);
+		}
+		catch(err) {
+			throw new Error(`Error locking collection ${collection_name}: `+err.message);
+		}
 		let CC;
 		try { 
 			CC=await load_collection_from_file(collection_name);
@@ -35,7 +41,13 @@ function SafeDatabase(db_directory) {
 	}
 
 	async function saveDocument(collection_name,doc) {
-		let lock=await lock_collection_file(collection_name);
+		let lock;
+		try {
+			lock=await lock_collection_file(collection_name);
+		}
+		catch(err) {
+			throw new Error(`Error locking collection ${collection_name}: `+err.message);
+		}
 		let CC;
 		try {
 			CC=await load_collection_from_file(collection_name);
@@ -51,7 +63,13 @@ function SafeDatabase(db_directory) {
 	}
 
 	async function removeDocuments(collection_name,query) {
-		let lock=await lock_collection_file(collection_name);
+		let lock;
+		try {
+			lock=await lock_collection_file(collection_name);
+		}
+		catch(err) {
+			throw new Error(`Error locking collection ${collection_name}: `+err.message);
+		}
 		let CC;
 		try {
 			CC=await load_collection_from_file(collection_name);
@@ -72,25 +90,41 @@ function SafeDatabase(db_directory) {
 
 	async function lock_collection_file(collection_name) {
 		let fname=get_collection_fname(collection_name);
+		let timer=new Date();
 		if (!fs.existsSync(fname)) {
 			fs.writeFileSync(fname,'[]');
 			await timeout(100);
 		}
-		let release=await lockfile.lock(fname,{
-			stale:50000,
-			retries:{
-			  retries: 200,
-			  factor: 3,
-			  minTimeout: 10,
-			  maxTimeout: 10,
-			  randomize: false,
-			}
-		});
-		return {
-			release:async function() {
-				await release();
-			}
+		let lock_fname=fname+'.lock';
+		let opts={
+			wait:5000,
+			pollPeriod:100,
+			stale:5000,
+			retries:2,
+			retryWait:50
 		};
+		return new Promise(function(resolve,reject) {
+			lockfile.lock(lock_fname,opts,function(err) {
+				if (err) {
+					reject(err);
+					return;
+				}
+				let ret={
+					release:async function() {
+						return new Promise(function(resolve2,reject2) {
+							lockfile.unlock(lock_fname,function(err) {
+								if (err) {
+									reject2(err);
+									return;
+								}
+								resolve2();
+							});
+						});
+					}
+				}
+				resolve(ret);
+			});
+		});
 	}
 
 	async function load_collection_from_file(collection_name) {
@@ -237,4 +271,15 @@ function SafeCollection() {
 		}
 		return true;
 	}
+}
+
+function make_random_id(len) {
+  let text = '';
+  let possible =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i < len; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
 }
