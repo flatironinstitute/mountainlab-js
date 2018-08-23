@@ -146,6 +146,20 @@ program
   });
 
 program
+  .command('read-dir [directory]')
+  .description('Read a directory, which could be a kbucket path, returning a JSON object.')
+  .option('--verbose [level]','Level of verbosity for debugging')
+  .action(function (directory, cmd) {
+    require(__dirname+'/prv_utils.js').cmd_read_dir(directory,cmd,function(err) {
+      if (err) {
+        console.error(err);
+        process.exit(-1);
+      }
+      process.exit(0);
+    });
+  });
+
+program
   .command('config [name]')
   .description('Display configuration information. Optionally use name=package_directory to print the main package directory.')
   .option('--format [format]','Options: text (default) or json')

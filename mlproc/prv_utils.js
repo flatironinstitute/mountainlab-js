@@ -1,9 +1,11 @@
 exports.cmd_prv_locate = cmd_prv_locate;
 exports.cmd_prv_create = cmd_prv_create;
 exports.cmd_prv_download = cmd_prv_download;
+exports.cmd_read_dir = cmd_read_dir;
 exports.prv_locate = prv_locate;
 exports.prv_create = prv_create;
 exports.prv_download = prv_download;
+exports.read_dir = read_dir;
 exports.compute_file_sha1 = compute_file_sha1;
 
 var common = require(__dirname + '/common.js');
@@ -92,6 +94,17 @@ function cmd_prv_download(prv_fname, output_filename, opts, callback) {
   });
 }
 
+function cmd_read_dir(directory, opts, callback) {
+  read_dir(directory, opts, function(err, result) {
+    if (err) {
+      callback(err);
+      return;
+    }
+    console.info(JSON.stringify(result,null,4));
+    callback(null);
+  });
+}
+
 function prv_download(prv_fname, opts, callback) {
   let KBC=new KBClient();
   if (opts.output) {
@@ -142,6 +155,21 @@ function prv_locate(prv_fname, opts, callback) {
         callback('Error locating file: ' + err.message);
       });
   }
+}
+
+function read_dir(directory, opts, callback) {
+  let KBC=new KBClient();
+  let opts2={};
+  supress_console_info();
+  KBC.readDir(directory,opts2)
+    .then(function(result) {
+      restore_console_info();
+      callback(null,result);
+    })
+    .catch(function(err) {
+      restore_console_info();
+      callback(err);
+    });
 }
 
 let hold_console_info = console.info;
