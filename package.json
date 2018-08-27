@@ -9,7 +9,8 @@
   "scripts": {
     "conda_build": "bash devel/conda_build.sh",
     "conda_upload": "bash devel/conda_upload.sh",
-    "test": "test/test.sh"
+    "test": "test/test.sh",
+    "lint": "eslint"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,10 @@
     "request": "^2.85.0",
     "url-exists": "^1.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^5.4.0",
+    "eslint-config-google": "^0.9.1"
+  },
   "directories": {
     "bin": "bin"
   },
