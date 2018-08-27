@@ -5,6 +5,8 @@ const KBClient = require('kbclient').v1;
 const LariClient = require('lariclient').v1;
 const async = require('async');
 
+var DEBUG = true;
+
 var tempdir_for_cleanup = '';
 var files_to_cleanup = [];
 var keep_tempdir = false;
@@ -71,12 +73,12 @@ function LariJob() {
     m_lari_out_file = outfile;
   };
   this.runProcess = function(
-    processor_name,
-    inputs,
-    outputs,
-    parameters,
-    opts
-  ) {
+      processor_name,
+      inputs,
+      outputs,
+      parameters,
+      opts
+      ) {
     m_processor_name = processor_name;
     m_outputs = JSON.parse(JSON.stringify(outputs));
     let outputs2 = {};
@@ -92,13 +94,13 @@ function LariJob() {
       opts.lari_passcode = m_lari_passcode;
       m_client
         .runProcess(
-          m_lari_id,
-          processor_name,
-          inputs2,
-          outputs2,
-          parameters,
-          opts
-        )
+            m_lari_id,
+            processor_name,
+            inputs2,
+            outputs2,
+            parameters,
+            opts
+            )
         .then(function(resp) {
           if (!resp.success) {
             console.error('Error running process: ' + resp.error);
@@ -110,10 +112,10 @@ function LariJob() {
             probe_process();
           }, 500);
         })
-        .catch(function(err) {
-          console.error(err);
-          process.exit(-1);
-        });
+      .catch(function(err) {
+        console.error(err);
+        process.exit(-1);
+      });
     });
   };
   let m_lari_id = '';
@@ -168,53 +170,53 @@ function LariJob() {
       .probeProcess(m_lari_id, m_job_id, {
         lari_passcode: m_lari_passcode
       })
-      .then(function(resp) {
-        let msec = 3000;
-        if (!('stdout' in resp)) {
-          //old system
-          if (resp.console_output) {
-            let lines = resp.console_output.split('\n');
-            for (let i in lines) {
-              console.info(lines[i]);
-              //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
-            }
-            msec = 1000;
+    .then(function(resp) {
+      let msec = 3000;
+      if (!('stdout' in resp)) {
+        //old system
+        if (resp.console_output) {
+          let lines = resp.console_output.split('\n');
+          for (let i in lines) {
+            console.info(lines[i]);
+            //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
           }
-        } else {
-          if (resp.stdout) {
-            let lines = resp.stdout.split('\n');
-            for (let i in lines) {
-              console.info(lines[i]);
-              //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
-            }
-            msec = 1000;
-          }
-          if (resp.stderr) {
-            let lines = resp.stderr.split('\n');
-            for (let i in lines) {
-              console.info('STDERR: '+lines[i]);
-              //console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
-            }
-            msec = 1000;
-          }
+          msec = 1000;
         }
-
-        if (resp.is_complete) {
-          let result = resp.result || {};
-          if (!result.success) {
-            console.error(`${m_processor_name} completed with error: ${result.error}`);
-            /*
-            console.info(
-              ccc.BgBlack,
-              ccc.FgRed,
-              `${m_processor_name} completed with error: ${result.error}`,
-              ccc.Reset
-            );
-            */
-            process.exit(-1);
+      } else {
+        if (resp.stdout) {
+          let lines = resp.stdout.split('\n');
+          for (let i in lines) {
+            console.info(lines[i]);
+            //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
           }
-          let output_keys = Object.keys(m_outputs);
-          async.eachSeries(
+          msec = 1000;
+        }
+        if (resp.stderr) {
+          let lines = resp.stderr.split('\n');
+          for (let i in lines) {
+            console.info('STDERR: '+lines[i]);
+            //console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
+          }
+          msec = 1000;
+        }
+      }
+
+      if (resp.is_complete) {
+        let result = resp.result || {};
+        if (!result.success) {
+          console.error(`${m_processor_name} completed with error: ${result.error}`);
+          /*
+             console.info(
+             ccc.BgBlack,
+             ccc.FgRed,
+             `${m_processor_name} completed with error: ${result.error}`,
+             ccc.Reset
+             );
+             */
+          process.exit(-1);
+        }
+        let output_keys = Object.keys(m_outputs);
+        async.eachSeries(
             output_keys,
             function(okey, cb) {
               let output0 = result.outputs[okey] || null;
@@ -233,8 +235,8 @@ function LariJob() {
                     require('fs').unlinkSync(fname); // there can be trouble if we don't delete fname
                   fname += '.prv';
                   console.warn(
-                    `Output ${okey} is too large to automatically download. Saving .prv file instead: ${fname}`
-                  );
+                      `Output ${okey} is too large to automatically download. Saving .prv file instead: ${fname}`
+                      );
                 }
               }
               if (common.ends_with(fname, '.prv')) {
@@ -246,83 +248,83 @@ function LariJob() {
                 KBC.downloadFile(
                     'sha1://' + output0.original_checksum,
                     fname, {}
-                  )
+                    )
                   .then(function() {
                     cb();
                   })
-                  .catch(function(err) {
-                    console.error(err);
-                    console.error(
+                .catch(function(err) {
+                  console.error(err);
+                  console.error(
                       `Error downloading output ${okey}: ${err.message}`
-                    );
-                    process.exit(-1);
-                  });
+                      );
+                  process.exit(-1);
+                });
               }
             },
             function() {
               console.info(`${m_processor_name} completed successfully.`);
               /*
-              console.info(
-                ccc.BgBlack,
-                ccc.FgGreen,
-                `${m_processor_name} completed successfully.`,
-                ccc.Reset
-              );
-              */
+                 console.info(
+                 ccc.BgBlack,
+                 ccc.FgGreen,
+                 `${m_processor_name} completed successfully.`,
+                 ccc.Reset
+                 );
+                 */
               process.exit(0);
             }
-          );
-          return;
-        }
-        setTimeout(function() {
-          probe_process();
-        }, msec);
-      })
-      .catch(function(err) {
-        console.error(err);
-        process.exit(-1);
-      });
+        );
+        return;
+      }
+      setTimeout(function() {
+        probe_process();
+      }, msec);
+    })
+    .catch(function(err) {
+      console.error(err);
+      process.exit(-1);
+    });
   }
 
   function get_prv_objects_for_inputs(inputs, callback) {
     let ret = JSON.parse(JSON.stringify(inputs));
     let ikeys = Object.keys(ret);
     async.eachSeries(
-      ikeys,
-      function(ikey, cb) {
-        var val = ret[ikey];
-        if (val instanceof Array) {
-          let indices = Object.keys(val);
-          async.eachSeries(
-            indices,
-            function(ii, cb2) {
-              get_prv_object_for_input(val[ii], function(err, obj) {
-                if (err) {
-                  callback(
-                    `Problem getting prv object for input ${ikey}[${ii}]: ${err}`
-                  );
-                  return;
-                }
-                val[ii] = obj;
-                cb2();
-              });
-            },
-            cb
-          );
-        } else {
-          get_prv_object_for_input(val, function(err, obj) {
-            if (err) {
-              callback(`Problem getting prv object for input ${ikey}: ${err}`);
-              return;
-            }
-            ret[ikey] = obj;
-            cb();
-          });
+        ikeys,
+        function(ikey, cb) {
+          var val = ret[ikey];
+          if (val instanceof Array) {
+            let indices = Object.keys(val);
+            async.eachSeries(
+                indices,
+                function(ii, cb2) {
+                  get_prv_object_for_input(val[ii], function(err, obj) {
+                    if (err) {
+                      callback(
+                          `Problem getting prv object for input ${ikey}[${ii}]: ${err}`
+                          );
+                      return;
+                    }
+                    val[ii] = obj;
+                    cb2();
+                  });
+                },
+                cb
+                );
+          } else {
+            get_prv_object_for_input(val, function(err, obj) {
+              if (err) {
+                callback(`Problem getting prv object for input ${ikey}: ${err}`);
+                return;
+              }
+              ret[ikey] = obj;
+              cb();
+            });
+          }
+        },
+        function() {
+          callback(null, ret);
         }
-      },
-      function() {
-        callback(null, ret);
-      }
     );
   }
 
@@ -343,11 +345,11 @@ function LariJob() {
       callback(null, obj);
     } else if (input.startsWith('kbucket://') || input.startsWith('sha1://')) {
       callback(null, input);
-    } else {
-      prv_utils.prv_create(input, function(err, obj) {
-        callback(err, obj);
-      });
-    }
+  } else {
+    prv_utils.prv_create(input, function(err, obj) {
+      callback(err, obj);
+    });
+  }
   }
 }
 
@@ -360,14 +362,14 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
     parameters = parse_iop(opts.parameters || '', 'parameter');
     let iops = parse_iop(opts.iops || '', 'iop');
     separate_iops(
-      inputs,
-      outputs,
-      parameters,
-      iops,
-      spec0.inputs || [],
-      spec0.outputs || [],
-      spec0.parameters || []
-    );
+        inputs,
+        outputs,
+        parameters,
+        iops,
+        spec0.inputs || [],
+        spec0.outputs || [],
+        spec0.parameters || []
+        );
     check_iop(inputs, spec0.inputs || [], 'input');
     check_iop(outputs, spec0.outputs || [], 'output');
     check_iop(parameters, spec0.parameters || [], 'parameter');
@@ -391,13 +393,13 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
 
 function remove_processor_job_from_database(job_id, callback) {
   db_utils.removeDocuments(
-    'processor_jobs', {
-      _id: job_id
-    },
-    function(err) {
-      callback(err);
-    }
-  );
+      'processor_jobs', {
+        _id: job_id
+      },
+      function(err) {
+        callback(err);
+      }
+      );
 }
 
 function run_process_2(processor_name, opts, spec0, callback) {
@@ -408,14 +410,14 @@ function run_process_2(processor_name, opts, spec0, callback) {
     parameters = parse_iop(opts.parameters || '', 'parameter');
     let iops = parse_iop(opts.iops || '', 'iop');
     separate_iops(
-      inputs,
-      outputs,
-      parameters,
-      iops,
-      spec0.inputs || [],
-      spec0.outputs || [],
-      spec0.parameters || []
-    );
+        inputs,
+        outputs,
+        parameters,
+        iops,
+        spec0.inputs || [],
+        spec0.outputs || [],
+        spec0.parameters || []
+        );
     check_iop(inputs, spec0.inputs || [], 'input');
     check_iop(outputs, spec0.outputs || [], 'output');
     check_iop(parameters, spec0.parameters || [], 'parameter');
@@ -472,9 +474,9 @@ function run_process_2(processor_name, opts, spec0, callback) {
   steps.push(function(cb) {
     console.info('[ Checking outputs... ]');
     check_outputs_and_substitute_prvs(outputs, process_signature, function(
-      err,
-      tmp
-    ) {
+          err,
+          tmp
+          ) {
       if (err) {
         finalize(err);
         return;
@@ -516,9 +518,9 @@ function run_process_2(processor_name, opts, spec0, callback) {
     }
     console.info('[ Waiting for ready to run ... ]');
     wait_for_ready_run(spec0, inputs, outputs, parameters, function(
-      err,
-      job_id
-    ) {
+          err,
+          job_id
+          ) {
       if (err) {
         finalize(err);
         return;
@@ -557,19 +559,19 @@ function run_process_2(processor_name, opts, spec0, callback) {
     }
     console.info('[ Creating links to input files... ]');
     link_inputs(
-      inputs,
-      original_inputs, {
-        tempdir_path: tempdir_path
-      },
-      function(err, tmp) {
-        if (err) {
-          finalize(err);
-          return;
+        inputs,
+        original_inputs, {
+          tempdir_path: tempdir_path
+        },
+        function(err, tmp) {
+          if (err) {
+            finalize(err);
+            return;
+          }
+          temporary_inputs = tmp.temporary_inputs;
+          cb();
         }
-        temporary_inputs = tmp.temporary_inputs;
-        cb();
-      }
-    );
+        );
   });
 
   // Make temporary outputs
@@ -580,19 +582,19 @@ function run_process_2(processor_name, opts, spec0, callback) {
     }
     console.info('[ Preparing temporary outputs... ]');
     make_temporary_outputs(
-      outputs,
-      process_signature, {
-        tempdir_path: tempdir_path
-      },
-      function(err, tmp) {
-        if (err) {
-          finalize(err);
-          return;
+        outputs,
+        process_signature, {
+          tempdir_path: tempdir_path
+        },
+        function(err, tmp) {
+          if (err) {
+            finalize(err);
+            return;
+          }
+          temporary_outputs = tmp.temporary_outputs;
+          cb();
         }
-        temporary_outputs = tmp.temporary_outputs;
-        cb();
-      }
-    );
+        );
   });
 
   // Run the process
@@ -603,44 +605,44 @@ function run_process_2(processor_name, opts, spec0, callback) {
     }
     console.info('[ Initializing process ... ]');
     do_run_process(
-      spec0,
-      temporary_inputs,
-      outputs,
-      temporary_outputs,
-      parameters, {
-        tempdir_path: tempdir_path,
-        queued_processor_job_id: queued_processor_job_id,
-        processor_command_prefix: opts.processor_command_prefix || ''
-      },
-      function(err) {
-        if (err) {
-          finalize(err);
-          return;
+        spec0,
+        temporary_inputs,
+        outputs,
+        temporary_outputs,
+        parameters, {
+          tempdir_path: tempdir_path,
+          queued_processor_job_id: queued_processor_job_id,
+          processor_command_prefix: opts.processor_command_prefix || ''
+        },
+        function(err) {
+          if (err) {
+            finalize(err);
+            return;
+          }
+          cb();
         }
-        cb();
-      }
-    );
+        );
   });
 
   // Handle pending output prvs
   steps.push(function(cb) {
     common.foreach_async(
-      pending_output_prvs,
-      function(ii, X, cb2) {
-        console.info(`[ Creating output prv for ${X.name} ... ]`);
-        prv_utils.prv_create(X.output_fname, function(err, obj) {
-          if (err) {
-            finalize(err);
-            return;
-          }
-          common.write_json_file(X.prv_fname, obj);
-          cb2();
-        });
-      },
-      function() {
-        cb();
-      }
-    );
+        pending_output_prvs,
+        function(ii, X, cb2) {
+          console.info(`[ Creating output prv for ${X.name} ... ]`);
+          prv_utils.prv_create(X.output_fname, function(err, obj) {
+            if (err) {
+              finalize(err);
+              return;
+            }
+            common.write_json_file(X.prv_fname, obj);
+            cb2();
+          });
+        },
+        function() {
+          cb();
+        }
+        );
   });
 
   // Save to process cache
@@ -655,18 +657,18 @@ function run_process_2(processor_name, opts, spec0, callback) {
     }
     console.info('[ Saving to process cache ... ]');
     save_to_process_cache(
-      process_signature,
-      spec0,
-      inputs,
-      outputs,
-      parameters,
-      function(err) {
-        if (err) {
-          finalize(err);
+        process_signature,
+        spec0,
+        inputs,
+        outputs,
+        parameters,
+        function(err) {
+          if (err) {
+            finalize(err);
+          }
+          cb();
         }
-        cb();
-      }
-    );
+        );
   });
 
   // Remove from database (if mode=queued)
@@ -685,14 +687,14 @@ function run_process_2(processor_name, opts, spec0, callback) {
   });
 
   common.foreach_async(
-    steps,
-    function(ii, step, cb) {
-      step(cb);
-    },
-    function() {
-      finalize(null);
-    }
-  );
+      steps,
+      function(ii, step, cb) {
+        step(cb);
+      },
+      function() {
+        finalize(null);
+      }
+      );
 
   function finalize(err00) {
     remove_temporary_files(files_to_cleanup, function(err) {
@@ -702,8 +704,8 @@ function run_process_2(processor_name, opts, spec0, callback) {
       remove_temporary_directory(tempdir_path, function(err) {
         if (err) {
           console.warn(
-            'Error removing temporary directory (' + tempdir_path + '): ' + err
-          );
+              'Error removing temporary directory (' + tempdir_path + '): ' + err
+              );
         }
         if (!err00) {
           console.info('[ Done. ]');
@@ -718,20 +720,20 @@ function move_file(srcpath, dstpath, callback) {
   require('fs').rename(srcpath, dstpath, function(err) {
     if (err) {
       console.warn(
-        `Warning: unable to rename file ${srcpath} -> ${dstpath} . Perhaps temporary directory is not on the same device as the output file directory.`
-      );
+          `Warning: unable to rename file ${srcpath} -> ${dstpath} . Perhaps temporary directory is not on the same device as the output file directory.`
+          );
       require('fs').copyFile(srcpath, dstpath, function(err) {
         if (err) {
           callback(
-            `Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`
-          );
+              `Error renaming file ${srcpath} -> ${dstpath}: ${err.message}`
+              );
           return;
         }
         require('fs').unlink(srcpath, function(err) {
           if (err) {
             callback(
-              `Error removing file after copy... ${srcpath}: ${err.message}`
-            );
+                `Error removing file after copy... ${srcpath}: ${err.message}`
+                );
             return;
           }
           callback(null);
@@ -743,24 +745,35 @@ function move_file(srcpath, dstpath, callback) {
   });
 }
 
-function move_outputs(src_outputs, dst_outputs, callback) {
-  let output_keys = Object.keys(src_outputs);
-  async.eachSeries(
-    output_keys,
-    function(key, cb) {
-      console.info(`Finalizing output ${key}`);
-      move_file(src_outputs[key], dst_outputs[key], function(err) {
+function move_file_or_files(srcpath, dstpath, callback) {
+  if (srcpath instanceof Array) {
+    srcpath.forEach(function (cv,i,arr) {
+      move_file(cv, dstpath[i], function (err) {
         if (err) {
           callback(err);
-          return;
         }
-        cb();
       });
-    },
-    function() {
-      callback(null);
-    }
-  );
+    });
+    callback(null);
+  } else {
+    move_file(srcpath, dstpath, callback);
+  }
+}
+
+function move_outputs(src_outputs, dst_outputs, callback) {
+  let output_keys = Object.keys(src_outputs);
+  async.eachSeries(output_keys, function(key, cb) {
+    console.info(`Finalizing output ${key}`);
+    move_file_or_files(src_outputs[key], dst_outputs[key], function(err) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      cb();
+    });
+  }, function() {
+    callback(null);
+  });
 }
 
 function cleanup(callback) {
@@ -795,11 +808,11 @@ function cleanup(callback) {
   function remove_from_database(cb) {
     if (processor_job_id_for_cleanup) {
       remove_processor_job_from_database(
-        processor_job_id_for_cleanup,
-        function() {
-          cb();
-        }
-      );
+          processor_job_id_for_cleanup,
+          function() {
+            cb();
+          }
+          );
     } else {
       cb();
     }
@@ -837,44 +850,44 @@ function remove_temporary_directory(tempdir_path, callback) {
   }
   var files = common.read_dir_safe(tempdir_path);
   common.foreach_async(
-    files,
-    function(ii, file, cb) {
-      var fname = tempdir_path + '/' + file;
-      var stat0 = common.stat_file(fname);
-      if (stat0) {
-        if (stat0.isFile()) {
-          try {
-            require('fs').unlinkSync(fname);
-          } catch (err) {
-            callback(
-              'Unable to remove file from temporary directory: ' + fname
-            );
-            return;
-          }
-          cb();
-        } else if (stat0.isDirectory()) {
-          remove_temporary_directory(fname, function(err0) {
-            if (err0) {
-              callback(err0);
+      files,
+      function(ii, file, cb) {
+        var fname = tempdir_path + '/' + file;
+        var stat0 = common.stat_file(fname);
+        if (stat0) {
+          if (stat0.isFile()) {
+            try {
+              require('fs').unlinkSync(fname);
+            } catch (err) {
+              callback(
+                  'Unable to remove file from temporary directory: ' + fname
+                  );
               return;
             }
             cb();
-          });
-        } else {
-          callback('File is not a file or directory: ' + fname);
-          return;
+          } else if (stat0.isDirectory()) {
+            remove_temporary_directory(fname, function(err0) {
+              if (err0) {
+                callback(err0);
+                return;
+              }
+              cb();
+            });
+          } else {
+            callback('File is not a file or directory: ' + fname);
+            return;
+          }
         }
+      },
+      function() {
+        require('fs').rmdir(tempdir_path, function(err) {
+          if (err) {
+            callback('Unable to remove directory: ' + tempdir_path);
+            return;
+          }
+          callback(null);
+        });
       }
-    },
-    function() {
-      require('fs').rmdir(tempdir_path, function(err) {
-        if (err) {
-          callback('Unable to remove directory: ' + tempdir_path);
-          return;
-        }
-        callback(null);
-      });
-    }
   );
 }
 
@@ -889,8 +902,8 @@ function compute_input_file_stats(inputs, callback) {
         var stat0 = common.stat_file(val[ii]);
         if (!stat0) {
           callback(
-            'Problem computing stat for input file: ' + key + '[' + ii + ']'
-          );
+              'Problem computing stat for input file: ' + key + '[' + ii + ']'
+              );
           return;
         }
         list.push(stat0);
@@ -910,10 +923,10 @@ function compute_input_file_stats(inputs, callback) {
 }
 
 function check_input_file_stats_are_consistent(
-  inputs,
-  input_file_stats,
-  callback
-) {
+    inputs,
+    input_file_stats,
+    callback
+    ) {
   compute_input_file_stats(inputs, function(err, stats2) {
     if (err) {
       callback(err);
@@ -930,12 +943,12 @@ function check_input_file_stats_are_consistent(
 }
 
 function add_processor_job_to_queue(
-  spec0,
-  inputs,
-  outputs,
-  parameters,
-  callback
-) {
+    spec0,
+    inputs,
+    outputs,
+    parameters,
+    callback
+    ) {
   var doc0 = {
     spec: spec0,
     inputs: inputs,
@@ -970,9 +983,9 @@ function check_queued_job_ready_to_run(job_id, callback) {
       var doc0 = docs[i];
       if (doc0.status == 'queued') {
         if (
-          earliest_queued_index < 0 ||
-          is_earlier_than(doc0, docs[earliest_queued_index])
-        ) {
+            earliest_queued_index < 0 ||
+            is_earlier_than(doc0, docs[earliest_queued_index])
+           ) {
           earliest_queued_index = i;
         }
         if (doc0._id == job_id) {
@@ -986,20 +999,20 @@ function check_queued_job_ready_to_run(job_id, callback) {
           new Date() - Number(doc0.checked_timestamp);
         if (elapsed_since_last_checked > 12 * 1000) {
           console.warn(
-            'Removing queued processor job that has not been checked for a while.'
-          );
+              'Removing queued processor job that has not been checked for a while.'
+              );
           db_utils.removeDocuments(
-            'processor_jobs', {
-              _id: doc0._id
-            },
-            function(err0) {
-              if (err0) {
-                console.error(
-                  'Problem removing queued processor job from database.'
-                );
+              'processor_jobs', {
+                _id: doc0._id
+              },
+              function(err0) {
+                if (err0) {
+                  console.error(
+                      'Problem removing queued processor job from database.'
+                      );
+                }
               }
-            }
-          );
+              );
         }
       }
     }
@@ -1013,13 +1026,13 @@ function check_queued_job_ready_to_run(job_id, callback) {
     if (debugging) console.info('num_running=' + num_running);
     if (debugging)
       console.info(
-        'max_num_simultaneous_processor_jobs=' +
-        max_num_simultaneous_processor_jobs
-      );
+          'max_num_simultaneous_processor_jobs=' +
+          max_num_simultaneous_processor_jobs
+          );
     if (
-      num_running < max_num_simultaneous_processor_jobs &&
-      earliest_queued_index == this_job_index
-    ) {
+        num_running < max_num_simultaneous_processor_jobs &&
+        earliest_queued_index == this_job_index
+       ) {
       //ready
       if (debugging) console.info('looks like we are ready');
       doc0 = docs[this_job_index];
@@ -1066,9 +1079,9 @@ function wait_for_ready_run(spec0, inputs, outputs, parameters, callback) {
       return;
     }
     add_processor_job_to_queue(spec0, inputs, outputs, parameters, function(
-      err,
-      job_id
-    ) {
+          err,
+          job_id
+          ) {
       if (err) {
         callback(err);
         return;
@@ -1078,26 +1091,26 @@ function wait_for_ready_run(spec0, inputs, outputs, parameters, callback) {
       function do_check() {
         if (debugging) console.info('do_check');
         check_input_file_stats_are_consistent(
-          inputs,
-          input_file_stats,
-          function(err) {
-            if (err) {
-              callback(err);
-              return;
-            }
-            if (debugging) console.info('input file stats are consistent');
-            check_queued_job_ready_to_run(job_id, function(err, ready) {
+            inputs,
+            input_file_stats,
+            function(err) {
               if (err) {
                 callback(err);
                 return;
               }
-              if (ready) {
-                callback(null, job_id);
-              } else {
-                setTimeout(do_check, 1000);
-              }
-            });
-          }
+              if (debugging) console.info('input file stats are consistent');
+              check_queued_job_ready_to_run(job_id, function(err, ready) {
+                if (err) {
+                  callback(err);
+                  return;
+                }
+                if (ready) {
+                  callback(null, job_id);
+                } else {
+                  setTimeout(do_check, 1000);
+                }
+              });
+            }
         );
       }
     });
@@ -1114,23 +1127,23 @@ function erase_output_files(outputs) {
 }
 
 function do_run_process(
-  spec0,
-  inputs,
-  outputs,
-  temporary_outputs,
-  parameters,
-  info,
-  callback
-) {
-  erase_output_files(outputs);
-  var cmd = filter_exe_command(
-    spec0.exe_command,
     spec0,
     inputs,
+    outputs,
     temporary_outputs,
+    parameters,
     info,
-    parameters
-  );
+    callback
+    ) {
+  erase_output_files(outputs);
+  var cmd = filter_exe_command(
+      spec0.exe_command,
+      spec0,
+      inputs,
+      temporary_outputs,
+      info,
+      parameters
+      );
   if (info.processor_command_prefix)
     cmd = info.processor_command_prefix + ' ' + cmd;
   console.info('[ Running ... ] ' + cmd);
@@ -1149,8 +1162,8 @@ function do_run_process(
     if (!P.error()) {
       var elapsed = new Date() - timer;
       console.info(
-        `Elapsed time for processor ${spec0.name}: ${elapsed / 1000} sec`
-      );
+          `Elapsed time for processor ${spec0.name}: ${elapsed / 1000} sec`
+          );
     }
     move_outputs(temporary_outputs, outputs, function(err) {
       if (err) {
@@ -1164,13 +1177,13 @@ function do_run_process(
 }
 
 function filter_exe_command(
-  cmd,
-  spec,
-  inputs_in,
-  outputs_in,
-  info,
-  parameters
-) {
+    cmd,
+    spec,
+    inputs_in,
+    outputs_in,
+    info,
+    parameters
+    ) {
   var inputs = JSON.parse(JSON.stringify(inputs_in));
   var outputs = JSON.parse(JSON.stringify(outputs_in));
 
@@ -1228,58 +1241,58 @@ function filter_exe_command(
 function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
   var ikeys = Object.keys(inputs);
   common.foreach_async(
-    ikeys,
-    function(ii, key, cb) {
-      if (typeof inputs[key] != 'object') {
-        var fname = inputs[key];
-        if (!fname.startsWith('kbucket://') &&
-          !fname.startsWith('sha1://') &&
-          !fname.startsWith('http://') &&
-          !fname.startsWith('https://')
-        )
-          fname = require('path').resolve(process.cwd(), fname);
-        let KBC = new KBClient();
-        let opts0 = {
-          download_if_needed: true,
-        };
-        if (!common.ends_with(fname, '.prv') &&
-          !file_exists(fname) &&
-          file_exists(fname + '.prv')
-        ) {
-          fname = fname + '.prv';
-        }
-        KBC.realizeFile(fname, opts0)
-          .then(function(path) {
-            inputs[key] = path;
-            cb();
-          })
+      ikeys,
+      function(ii, key, cb) {
+        if (typeof inputs[key] != 'object') {
+          var fname = inputs[key];
+          if (!fname.startsWith('kbucket://') &&
+              !fname.startsWith('sha1://') &&
+              !fname.startsWith('http://') &&
+              !fname.startsWith('https://')
+             )
+            fname = require('path').resolve(process.cwd(), fname);
+          let KBC = new KBClient();
+          let opts0 = {
+            download_if_needed: true,
+          };
+          if (!common.ends_with(fname, '.prv') &&
+              !file_exists(fname) &&
+              file_exists(fname + '.prv')
+             ) {
+            fname = fname + '.prv';
+          }
+          KBC.realizeFile(fname, opts0)
+            .then(function(path) {
+              inputs[key] = path;
+              cb();
+            })
           .catch(function(err) {
             callback(
-              `Error in input ${(prefix || '') + key} (${fname}): ${err}`
-            );
+                `Error in input ${(prefix || '') + key} (${fname}): ${err}`
+                );
           });
-      } else {
-        check_inputs_and_substitute_prvs(inputs[key], key + '/', opts, function(
-          err
-        ) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          cb();
-        });
+        } else {
+          check_inputs_and_substitute_prvs(inputs[key], key + '/', opts, function(
+                err
+                ) {
+            if (err) {
+              callback(err);
+              return;
+            }
+            cb();
+          });
+        }
+      },
+      function() {
+        callback(null);
       }
-    },
-    function() {
-      callback(null);
-    }
   );
 }
 
 function is_url(path_or_url) {
   return (
-    path_or_url.startsWith('http://') || path_or_url.startsWith('https://')
-  );
+      path_or_url.startsWith('http://') || path_or_url.startsWith('https://')
+      );
 }
 
 function get_file_extension_including_dot_ignoring_prv(prv_fname) {
@@ -1293,79 +1306,97 @@ function get_file_extension_including_dot_ignoring_prv(prv_fname) {
 }
 
 /*
-function get_file_extension_including_dot(fname) {
-  var list1 = fname.split('/');
-  var list2 = list1[list1.length - 1].split('.');
-  if (list2.length >= 2) {
-    //important: must have length at least 2, otherwise extension is empty
-    return '.' + list2[list2.length - 1];
-  } else {
-    return '';
-  }
+   function get_file_extension_including_dot(fname) {
+   var list1 = fname.split('/');
+   var list2 = list1[list1.length - 1].split('.');
+   if (list2.length >= 2) {
+//important: must have length at least 2, otherwise extension is empty
+return '.' + list2[list2.length - 1];
+} else {
+return '';
+}
 }
 */
 
 function check_outputs_and_substitute_prvs(
-  outputs,
-  process_signature,
-  callback
-) {
+    outputs,
+    process_signature,
+    callback
+    ) {
   var pending_output_prvs = [];
+  if (DEBUG) {
+    console.log(JSON.stringify(outputs));
+  }
   var okeys = Object.keys(outputs);
   var tmp_dir = common.temporary_directory();
-  common.foreach_async(
-    okeys,
-    function(ii, key, cb) {
-      var fname = outputs[key];
-      fname = require('path').resolve(process.cwd(), fname);
-      outputs[key] = fname;
-      if (common.ends_with(fname, '.prv')) {
-        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
-        /*get_file_extension_for_prv_file_including_dot(
-          fname
-        );*/
-        let fname2 =
-          tmp_dir +
-          `/output_${process_signature}_${key}${file_extension_including_dot}`;
-        pending_output_prvs.push({
-          name: key,
-          prv_fname: fname,
-          output_fname: fname2
-        });
-        outputs[key] = fname2;
-      }
-      cb();
-    },
-    function() {
-      callback(null, {
-        pending_output_prvs: pending_output_prvs
-      });
+  common.foreach_async(okeys, function(ii, key, cb) {
+    var fname = outputs[key];
+    if (DEBUG) {
+      console.log("Processing ouput - "+fname);
+      console.log(fname instanceof Array);
     }
-  );
+    if (fname instanceof Array) {
+      console.log("Trying Recursive Resolve");
+      outputs[key] = fname.map(function c(fnm, i) {
+        var tmp = resolve_file(fnm, pending_output_prvs, tmp_dir, key, process_signature);
+        console.log(tmp);
+        return tmp
+      });
+    } else { // Process File
+      outputs[key] = resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature)
+    }
+    console.log(JSON.stringify(outputs));
+    cb();
+  }, function() {
+    callback(null, {
+      pending_output_prvs: pending_output_prvs
+    });
+  });
+}
+
+function resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature) {
+  fname = require('path').resolve(process.cwd(), fname);
+  if (common.ends_with(fname, '.prv')) {
+    let file_extension_including_dot = get_file_extension_for_prv_file_including_dot(fname);
+    let fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
+    pending_output_prvs.push({
+      name: key,
+      prv_fname: fname,
+      output_fname: fname2
+    });
+    return fname2
+  }
+  return fname
 }
 
 function make_temporary_outputs(outputs, process_signature, info, callback) {
   var temporary_outputs = {};
   var okeys = Object.keys(outputs);
   var tmp_dir = common.temporary_directory();
-  common.foreach_async(
-    okeys,
-    function(ii, key, cb) {
-      var fname = outputs[key];
-      fname = require('path').resolve(process.cwd(), fname);
-      let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
-      /*get_file_extension_including_dot(
-        fname
-      );*/
-      temporary_outputs[key] =
-        info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
-      cb();
-    },
-    function() {
-      callback(null, {
-        temporary_outputs: temporary_outputs
+  common.foreach_async(okeys, function(ii, key, cb) {
+    var fname = outputs[key];
+    if (DEBUG) {
+      console.log("Processing ouput - "+fname);
+      console.log(fname instanceof Array);
+    }
+    if (fname instanceof Array) {
+      temporary_outputs[key] = fname.map(function (fnm,i,arr) {
+        fnm = require('path').resolve(process.cwd(), fnm);
+        let file_extension_including_dot = get_file_extension_including_dot(fnm);
+        return info.tempdir_path + `/output_${key}_${i}${file_extension_including_dot}`
       });
     }
+    else {
+      fname = require('path').resolve(process.cwd(), fname);
+      let file_extension_including_dot = get_file_extension_including_dot(fname);
+      temporary_outputs[key] = info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
+    }
+    cb();
+  }, function() {
+    callback(null, {
+      temporary_outputs: temporary_outputs
+    });
+  }
   );
 }
 
@@ -1376,47 +1407,47 @@ function link_inputs(inputs, original_inputs, info, callback) {
   info.key_prefix = info.key_prefix || '';
   var ikeys = Object.keys(inputs);
   common.foreach_async(
-    ikeys,
-    function(ii, key, cb) {
-      var fname = inputs[key];
-      if (typeof fname != 'object') {
-        var original_fname = original_inputs[key];
-        fname = require('path').resolve(process.cwd(), fname);
-        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
-        let desired_file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(original_fname);
-        if (file_extension_including_dot == desired_file_extension_including_dot) {
-          cb();
-          return;
+      ikeys,
+      function(ii, key, cb) {
+        var fname = inputs[key];
+        if (typeof fname != 'object') {
+          var original_fname = original_inputs[key];
+          fname = require('path').resolve(process.cwd(), fname);
+          let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
+          let desired_file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(original_fname);
+          if (file_extension_including_dot == desired_file_extension_including_dot) {
+            cb();
+            return;
+          }
+          /*get_file_extension_including_dot(
+            original_fname
+            );*/
+          let new_fname = `${fname}.tmplink.${common.make_random_id(8)}${desired_file_extension_including_dot}`;
+          make_hard_link(fname, new_fname, function(err) {
+            if (err) {
+              callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: ` + err);
+              return;
+            }
+            ret.temporary_inputs[key] = new_fname;
+            files_to_cleanup.push(new_fname);
+            cb();
+          });
+        } else {
+          let info2 = JSON.parse(JSON.stringify(info));
+          info2.key_prefix = key + '-';
+          link_inputs(inputs[key], original_inputs[key], info2, function(err, tmp) {
+            if (err) {
+              callback(err);
+              return;
+            }
+            ret.temporary_inputs[key] = tmp.temporary_inputs;
+            cb();
+          });
         }
-        /*get_file_extension_including_dot(
-          original_fname
-        );*/
-        let new_fname = `${fname}.tmplink.${common.make_random_id(8)}${desired_file_extension_including_dot}`;
-        make_hard_link(fname, new_fname, function(err) {
-          if (err) {
-            callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: ` + err);
-            return;
-          }
-          ret.temporary_inputs[key] = new_fname;
-          files_to_cleanup.push(new_fname);
-          cb();
-        });
-      } else {
-        let info2 = JSON.parse(JSON.stringify(info));
-        info2.key_prefix = key + '-';
-        link_inputs(inputs[key], original_inputs[key], info2, function(err, tmp) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          ret.temporary_inputs[key] = tmp.temporary_inputs;
-          cb();
-        });
+      },
+      function() {
+        callback(null, ret);
       }
-    },
-    function() {
-      callback(null, ret);
-    }
   );
 }
 
@@ -1432,9 +1463,9 @@ function make_hard_link(src_fname, dst_fname, callback) {
 
 function compute_process_signature(spec0, inputs, parameters, callback) {
   compute_process_signature_object(spec0, inputs, parameters, function(
-    err,
-    obj
-  ) {
+        err,
+        obj
+        ) {
     if (err) {
       callback(err);
       return;
@@ -1462,58 +1493,58 @@ function compute_process_signature_object(spec0, inputs, parameters, callback) {
 function compute_process_signature_object_inputs(inputs, callback) {
   // See the warning for the outputs and file extensions elsewhere in this file
   get_checksums_for_files(
-    inputs, {
-      mode: 'process_signature'
-    },
-    callback
-  );
+      inputs, {
+        mode: 'process_signature'
+      },
+      callback
+      );
 }
 
 function find_in_process_cache(process_signature, outputs, callback) {
   db_utils.findDocuments(
-    'process_cache', {
-      process_signature: process_signature
-    },
-    function(err, docs) {
-      if (err) {
-        callback(err);
-        return;
-      }
-      if (docs.length == 0) {
-        callback(null, null);
-        return;
-      }
-      async.eachSeries(docs, function(doc, cb) {
-        check_outputs_consistent_with_process_cache(outputs, doc, function(
-          err,
-          consistent,
-          msg
-        ) {
-          if (consistent) {
-            callback(null, doc);
-          } else {
-            cb();
-          }
+      'process_cache', {
+        process_signature: process_signature
+      },
+      function(err, docs) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        if (docs.length == 0) {
+          callback(null, null);
+          return;
+        }
+        async.eachSeries(docs, function(doc, cb) {
+          check_outputs_consistent_with_process_cache(outputs, doc, function(
+                err,
+                consistent,
+                msg
+                ) {
+            if (consistent) {
+              callback(null, doc);
+            } else {
+              cb();
+            }
+          });
+        }, function() {
+          callback(null, null);
         });
-      }, function() {
-        callback(null, null);
-      });
-    }
+      }
   );
 }
 
 function check_outputs_consistent_with_process_cache(outputs, doc0, callback) {
   /*
-    Warning: if we ever decide to allow copying of outputs with different
-    file paths, we need to make sure we respect the file extension, 
-    because processor behavior may be different depending on the
-    output file extension.
-    Note that we don't have to worry about such things for input files,
-    because the sha-1 hash is computed for those. Persumably if the 
-    extension is different, and it matters for functionality, then
-    the sha-1 will be different as well. (I suppose there could be
-    an exception to this, but I'd be surprised)
-  */
+     Warning: if we ever decide to allow copying of outputs with different
+     file paths, we need to make sure we respect the file extension, 
+     because processor behavior may be different depending on the
+     output file extension.
+     Note that we don't have to worry about such things for input files,
+     because the sha-1 hash is computed for those. Persumably if the 
+     extension is different, and it matters for functionality, then
+     the sha-1 will be different as well. (I suppose there could be
+     an exception to this, but I'd be surprised)
+     */
   for (var key in outputs) {
     var fname = outputs[key];
     var stat0 = common.stat_file(fname);
@@ -1527,11 +1558,11 @@ function check_outputs_consistent_with_process_cache(outputs, doc0, callback) {
       return;
     }
     if (
-      output0.size != stat0.size ||
-      output0.mtime != stat0.mtime.toISOString() ||
-      //output0.ctime != stat0.ctime.toISOString() || //not sure why the ctime is having trouble
-      output0.ino != stat0.ino
-    ) {
+        output0.size != stat0.size ||
+        output0.mtime != stat0.mtime.toISOString() ||
+        //output0.ctime != stat0.ctime.toISOString() || //not sure why the ctime is having trouble
+        output0.ino != stat0.ino
+       ) {
       callback(null, false, `Stats do not match: ${output0.size} ${stat0.size} ${output0.mtime} ${stat0.mtime.toISOString()} ${output0.ctime} ${stat0.ctime.toISOString()} ${output0.ino} ${stat0.ino} ${fname}`);
       return;
     }
@@ -1540,55 +1571,55 @@ function check_outputs_consistent_with_process_cache(outputs, doc0, callback) {
 }
 
 function save_to_process_cache(
-  process_signature,
-  spec0,
-  inputs,
-  outputs,
-  parameters,
-  callback
-) {
+    process_signature,
+    spec0,
+    inputs,
+    outputs,
+    parameters,
+    callback
+    ) {
   db_utils.removeDocuments(
-    'process_cache', {
-      process_signature: process_signature
-    },
-    function(err) {
-      if (err) {
-        callback(err);
-        return;
-      }
-      get_checksums_for_files(
-        inputs, {
-          mode: 'process_cache'
-        },
-        function(err, inputs_with_checksums) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          get_checksums_for_files(
-            outputs, {
+      'process_cache', {
+        process_signature: process_signature
+      },
+      function(err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        get_checksums_for_files(
+            inputs, {
               mode: 'process_cache'
             },
-            function(err, outputs_with_checksums) {
+            function(err, inputs_with_checksums) {
               if (err) {
                 callback(err);
                 return;
               }
-              var doc0 = {
-                process_signature: process_signature,
-                spec: spec0,
-                inputs: inputs_with_checksums,
-                outputs: outputs_with_checksums,
-                parameters: parameters
-              };
-              db_utils.saveDocument('process_cache', doc0, function(err) {
-                callback(err);
-              });
+              get_checksums_for_files(
+                  outputs, {
+                    mode: 'process_cache'
+                  },
+                  function(err, outputs_with_checksums) {
+                    if (err) {
+                      callback(err);
+                      return;
+                    }
+                    var doc0 = {
+                      process_signature: process_signature,
+                      spec: spec0,
+                      inputs: inputs_with_checksums,
+                      outputs: outputs_with_checksums,
+                      parameters: parameters
+                    };
+                    db_utils.saveDocument('process_cache', doc0, function(err) {
+                      callback(err);
+                    });
+                  }
+                  );
             }
-          );
-        }
-      );
-    }
+        );
+      }
   );
 }
 
@@ -1596,65 +1627,65 @@ function get_checksums_for_files(inputs, opts, callback) {
   var ret = {};
   var keys = Object.keys(inputs);
   common.foreach_async(
-    keys,
-    function(ii, key, cb) {
-      var val = inputs[key];
-      if (typeof val != 'object') {
-        var stat0 = common.stat_file(val);
-        if (!stat0) {
-          callback(`Unable to stat file (${key}): ${val}`);
-          return;
+      keys,
+      function(ii, key, cb) {
+        var val = inputs[key];
+        if (typeof val != 'object') {
+          var stat0 = common.stat_file(val);
+          if (!stat0) {
+            callback(`Unable to stat file (${key}): ${val}`);
+            return;
+          }
+          prv_utils.compute_file_sha1(val, function(err, sha1) {
+            if (err) {
+              callback(err);
+              return;
+            }
+            if (opts.mode == 'process_cache') {
+              ret[key] = {
+                path: val,
+                sha1: sha1,
+                mtime: stat0.mtime.toISOString(),
+                //ctime: stat0.ctime.toISOString(), //not sure why the ctime is having trouble
+                size: stat0.size,
+                ino: stat0.ino
+              };
+            } else if (opts.mode == 'process_signature') {
+              ret[key] = sha1;
+            } else {
+              callback(
+                  'Unexpected mode in get_checksums_for_files: ' + opts.mode
+                  );
+              return;
+            }
+            cb();
+          });
+        } else {
+          get_checksums_for_files(inputs[key], opts, function(err, tmp) {
+            if (err) {
+              callback(err);
+              return;
+            }
+            ret[key] = tmp;
+            cb();
+          });
         }
-        prv_utils.compute_file_sha1(val, function(err, sha1) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          if (opts.mode == 'process_cache') {
-            ret[key] = {
-              path: val,
-              sha1: sha1,
-              mtime: stat0.mtime.toISOString(),
-              //ctime: stat0.ctime.toISOString(), //not sure why the ctime is having trouble
-              size: stat0.size,
-              ino: stat0.ino
-            };
-          } else if (opts.mode == 'process_signature') {
-            ret[key] = sha1;
-          } else {
-            callback(
-              'Unexpected mode in get_checksums_for_files: ' + opts.mode
-            );
-            return;
-          }
-          cb();
-        });
-      } else {
-        get_checksums_for_files(inputs[key], opts, function(err, tmp) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          ret[key] = tmp;
-          cb();
-        });
+      },
+      function() {
+        callback(null, ret);
       }
-    },
-    function() {
-      callback(null, ret);
-    }
   );
 }
 
 function separate_iops(
-  inputs,
-  outputs,
-  parameters,
-  iops,
-  spec_inputs,
-  spec_outputs,
-  spec_parameters
-) {
+    inputs,
+    outputs,
+    parameters,
+    iops,
+    spec_inputs,
+    spec_outputs,
+    spec_parameters
+    ) {
   var B_inputs = {};
   for (var i in spec_inputs) {
     var key0 = spec_inputs[i].name;
