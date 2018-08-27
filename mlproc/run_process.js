@@ -1357,7 +1357,7 @@ function check_outputs_and_substitute_prvs(
 function resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature) {
   fname = require('path').resolve(process.cwd(), fname);
   if (common.ends_with(fname, '.prv')) {
-    let file_extension_including_dot = get_file_extension_for_prv_file_including_dot(fname);
+    let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
     let fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
     pending_output_prvs.push({
       name: key,
@@ -1382,13 +1382,13 @@ function make_temporary_outputs(outputs, process_signature, info, callback) {
     if (fname instanceof Array) {
       temporary_outputs[key] = fname.map(function (fnm,i,arr) {
         fnm = require('path').resolve(process.cwd(), fnm);
-        let file_extension_including_dot = get_file_extension_including_dot(fnm);
+        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fnm);
         return info.tempdir_path + `/output_${key}_${i}${file_extension_including_dot}`
       });
     }
     else {
       fname = require('path').resolve(process.cwd(), fname);
-      let file_extension_including_dot = get_file_extension_including_dot(fname);
+      let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
       temporary_outputs[key] = info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
     }
     cb();
