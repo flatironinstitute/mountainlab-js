@@ -1,23 +1,25 @@
 exports.cmd_run_process = cmd_run_process;
-exports.cleanup = cleanup; //in case process terminated prematurely
+exports.cleanup = cleanup; // in case process terminated prematurely
 
 const KBClient = require('kbclient').v1;
 const LariClient = require('lariclient').v1;
 const async = require('async');
 
-var tempdir_for_cleanup = '';
-var files_to_cleanup = [];
-var keep_tempdir = false;
-var processor_job_id_for_cleanup = '';
+let DEBUG = true;
 
-var common = require(__dirname + '/common.js');
-var prv_utils = require(__dirname + '/prv_utils.js');
-var db_utils = require(__dirname + '/db_utils.js');
-var SystemProcess = new require(__dirname + '/systemprocess.js').SystemProcess;
-var sha1 = require('node-sha1');
-var max_num_simultaneous_processor_jobs = 2;
+let tempdir_for_cleanup = '';
+let files_to_cleanup = [];
+let keep_tempdir = false;
+let processor_job_id_for_cleanup = '';
 
-var canonical_stringify = require('canonical-json');
+let common = require(__dirname + '/common.js');
+let prv_utils = require(__dirname + '/prv_utils.js');
+let db_utils = require(__dirname + '/db_utils.js');
+let SystemProcess = new require(__dirname + '/systemprocess.js').SystemProcess;
+let sha1 = require('node-sha1');
+let max_num_simultaneous_processor_jobs = 2;
+
+let canonical_stringify = require('canonical-json');
 
 function cmd_run_process(processor_name, opts, callback) {
   if (opts.verbose == 'minimal' || opts.verbose == 'jupyter') {
@@ -38,7 +40,7 @@ function cmd_run_process(processor_name, opts, callback) {
   let spec_opts = {
     lari_id: opts.lari_id,
     lari_passcode: opts.lari_passcode,
-    mp_file:opts.mp_file||undefined
+    mp_file: opts.mp_file||undefined,
   };
   common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {
     if (err) {
@@ -56,7 +58,7 @@ function cmd_run_process(processor_name, opts, callback) {
     spec0.outputs = spec0.outputs || [];
     spec0.outputs.push({
       name: 'console_out',
-      optional: true
+      optional: true,
     });
     run_process_2(processor_name, opts, spec0, callback);
   });
@@ -81,7 +83,7 @@ function LariJob() {
     m_outputs = JSON.parse(JSON.stringify(outputs));
     let outputs2 = {};
     for (let okey in m_outputs) {
-      let fname = m_outputs[okey];
+      // let fname = m_outputs[okey];
       outputs2[okey] = true;
     }
     get_prv_objects_for_inputs(inputs, function(err, inputs2) {
@@ -125,7 +127,7 @@ function LariJob() {
   let m_outputs = {};
 
   // terminal color codes
-  let ccc = {
+  /* let ccc = {
     Reset: '\x1b[0m',
     Bright: '\x1b[1m',
     Dim: '\x1b[2m',
@@ -148,14 +150,14 @@ function LariJob() {
     BgBlue: '\x1b[44m',
     BgMagenta: '\x1b[45m',
     BgCyan: '\x1b[46m',
-    BgWhite: '\x1b[47m'
-  };
+    BgWhite: '\x1b[47m',
+  };*/
 
   function write_lari_out_file() {
     if (!m_lari_out_file) return;
     let obj = {
       lari_id: m_lari_id,
-      lari_job_id: m_job_id
+      lari_job_id: m_job_id,
     };
     if (!common.write_json_file(m_lari_out_file, obj)) {
       console.error('Unable to write lari out file: ' + m_lari_out_file + '. Aborting.');
@@ -166,17 +168,17 @@ function LariJob() {
   function probe_process() {
     m_client
       .probeProcess(m_lari_id, m_job_id, {
-        lari_passcode: m_lari_passcode
+        lari_passcode: m_lari_passcode,
       })
       .then(function(resp) {
         let msec = 3000;
         if (!('stdout' in resp)) {
-          //old system
+          // old system
           if (resp.console_output) {
             let lines = resp.console_output.split('\n');
             for (let i in lines) {
               console.info(lines[i]);
-              //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+              // console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
             }
             msec = 1000;
           }
@@ -185,7 +187,7 @@ function LariJob() {
             let lines = resp.stdout.split('\n');
             for (let i in lines) {
               console.info(lines[i]);
-              //console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
+              // console.info(ccc.BgBlack, ccc.FgCyan, lines[i], ccc.Reset);
             }
             msec = 1000;
           }
@@ -193,7 +195,7 @@ function LariJob() {
             let lines = resp.stderr.split('\n');
             for (let i in lines) {
               console.info('STDERR: '+lines[i]);
-              //console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
+              // console.info(ccc.BgRed, ccc.FgCyan, lines[i], ccc.Reset);
             }
             msec = 1000;
           }
@@ -204,13 +206,13 @@ function LariJob() {
           if (!result.success) {
             console.error(`${m_processor_name} completed with error: ${result.error}`);
             /*
-            console.info(
-              ccc.BgBlack,
-              ccc.FgRed,
-              `${m_processor_name} completed with error: ${result.error}`,
-              ccc.Reset
-            );
-            */
+             console.info(
+             ccc.BgBlack,
+             ccc.FgRed,
+             `${m_processor_name} completed with error: ${result.error}`,
+             ccc.Reset
+             );
+             */
             process.exit(-1);
           }
           let output_keys = Object.keys(m_outputs);
@@ -229,8 +231,9 @@ function LariJob() {
               let fname = m_outputs[okey];
               if (!common.ends_with(fname, '.prv')) {
                 if (output0.original_size > 1024 * 1024) {
-                  if (require('fs').existsSync(fname))
-                    require('fs').unlinkSync(fname); // there can be trouble if we don't delete fname
+                  if (require('fs').existsSync(fname)) {
+require('fs').unlinkSync(fname);
+} // there can be trouble if we don't delete fname
                   fname += '.prv';
                   console.warn(
                     `Output ${okey} is too large to automatically download. Saving .prv file instead: ${fname}`
@@ -244,9 +247,9 @@ function LariJob() {
               } else {
                 let KBC = new KBClient();
                 KBC.downloadFile(
-                    'sha1://' + output0.original_checksum,
-                    fname, {}
-                  )
+                  'sha1://' + output0.original_checksum,
+                  fname, {}
+                )
                   .then(function() {
                     cb();
                   })
@@ -262,13 +265,13 @@ function LariJob() {
             function() {
               console.info(`${m_processor_name} completed successfully.`);
               /*
-              console.info(
-                ccc.BgBlack,
-                ccc.FgGreen,
-                `${m_processor_name} completed successfully.`,
-                ccc.Reset
-              );
-              */
+                 console.info(
+                 ccc.BgBlack,
+                 ccc.FgGreen,
+                 `${m_processor_name} completed successfully.`,
+                 ccc.Reset
+                 );
+                 */
               process.exit(0);
             }
           );
@@ -290,7 +293,7 @@ function LariJob() {
     async.eachSeries(
       ikeys,
       function(ikey, cb) {
-        var val = ret[ikey];
+        let val = ret[ikey];
         if (val instanceof Array) {
           let indices = Object.keys(val);
           async.eachSeries(
@@ -353,7 +356,7 @@ function LariJob() {
 
 function cmd_run_process_lari(processor_name, spec0, opts, callback) {
   // todo: this functionality is duplicated below, try to combine code
-  var inputs, outputs, parameters;
+  let inputs; let outputs; let parameters;
   try {
     inputs = parse_iop(opts.inputs || '', 'input');
     outputs = parse_iop(opts.outputs || '', 'output');
@@ -376,9 +379,10 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
     callback(err.message);
     return;
   }
-  ////////////////////////////////////////////////////////////////
+  // //////////////////////////////////////////////////////////////
 
-  let LC = new LariClient();
+  // let LC =  // Not Used
+  new LariClient();
   let p_opts = {};
   if ('force_run' in opts) p_opts.force_run = opts.force_run;
   // important -- do not pass through the opts here, because there would be security concerns. Keep the interface minimal. For example, processor_command_prefix should be configured on the server side.
@@ -392,7 +396,7 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
 function remove_processor_job_from_database(job_id, callback) {
   db_utils.removeDocuments(
     'processor_jobs', {
-      _id: job_id
+      _id: job_id,
     },
     function(err) {
       callback(err);
@@ -401,7 +405,7 @@ function remove_processor_job_from_database(job_id, callback) {
 }
 
 function run_process_2(processor_name, opts, spec0, callback) {
-  var inputs, outputs, parameters;
+  let inputs; let outputs; let parameters;
   try {
     inputs = parse_iop(opts.inputs || '', 'input');
     outputs = parse_iop(opts.outputs || '', 'output');
@@ -425,18 +429,18 @@ function run_process_2(processor_name, opts, spec0, callback) {
     return;
   }
 
-  var process_signature = '';
-  var pending_output_prvs = [];
-  var mode = opts.mode || 'run';
-  var already_completed = false;
-  var tempdir_path = '';
-  var queued_processor_job_id = '';
+  let process_signature = '';
+  let pending_output_prvs = [];
+  let mode = opts.mode || 'run';
+  let already_completed = false;
+  let tempdir_path = '';
+  let queued_processor_job_id = '';
 
   let original_inputs = JSON.parse(JSON.stringify(inputs));
   let temporary_outputs = null;
   let temporary_inputs = null;
 
-  var steps = [];
+  let steps = [];
 
   // Check inputs, set default parameters and substitute prvs
   steps.push(function(cb) {
@@ -452,10 +456,10 @@ function run_process_2(processor_name, opts, spec0, callback) {
 
   // Compute process signature
   steps.push(function(cb) {
-    //if (mode=='exec') {
+    // if (mode=='exec') {
     //  cb();
     //  return;
-    //}
+    // }
     console.info('[ Computing process signature ... ]');
     compute_process_signature(spec0, inputs, parameters, function(err, sig) {
       if (err) {
@@ -536,14 +540,14 @@ function run_process_2(processor_name, opts, spec0, callback) {
       return;
     }
     console.info('[ Creating temporary directory ... ]');
-    var tmp_dir = common.temporary_directory();
+    let tmp_dir = common.temporary_directory();
     tempdir_path =
       tmp_dir +
       '/tempdir_' +
       process_signature.slice(0, 10) +
       '_' +
       common.make_random_id(6);
-    tempdir_for_cleanup = tempdir_path; //in case process is terminated prematurely
+    tempdir_for_cleanup = tempdir_path; // in case process is terminated prematurely
     if (opts.keep_tempdir) keep_tempdir = true;
     common.mkdir_if_needed(tempdir_path);
     cb();
@@ -559,7 +563,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
     link_inputs(
       inputs,
       original_inputs, {
-        tempdir_path: tempdir_path
+        tempdir_path: tempdir_path,
       },
       function(err, tmp) {
         if (err) {
@@ -582,7 +586,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
     make_temporary_outputs(
       outputs,
       process_signature, {
-        tempdir_path: tempdir_path
+        tempdir_path: tempdir_path,
       },
       function(err, tmp) {
         if (err) {
@@ -610,7 +614,7 @@ function run_process_2(processor_name, opts, spec0, callback) {
       parameters, {
         tempdir_path: tempdir_path,
         queued_processor_job_id: queued_processor_job_id,
-        processor_command_prefix: opts.processor_command_prefix || ''
+        processor_command_prefix: opts.processor_command_prefix || '',
       },
       function(err) {
         if (err) {
@@ -743,24 +747,35 @@ function move_file(srcpath, dstpath, callback) {
   });
 }
 
-function move_outputs(src_outputs, dst_outputs, callback) {
-  let output_keys = Object.keys(src_outputs);
-  async.eachSeries(
-    output_keys,
-    function(key, cb) {
-      console.info(`Finalizing output ${key}`);
-      move_file(src_outputs[key], dst_outputs[key], function(err) {
+function move_file_or_files(srcpath, dstpath, callback) {
+  if (srcpath instanceof Array) {
+    srcpath.forEach(function(cv, i, arr) {
+      move_file(cv, dstpath[i], function(err) {
         if (err) {
           callback(err);
-          return;
         }
-        cb();
       });
-    },
-    function() {
-      callback(null);
-    }
-  );
+    });
+    callback(null);
+  } else {
+    move_file(srcpath, dstpath, callback);
+  }
+}
+
+function move_outputs(src_outputs, dst_outputs, callback) {
+  let output_keys = Object.keys(src_outputs);
+  async.eachSeries(output_keys, function(key, cb) {
+    console.info(`Finalizing output ${key}`);
+    move_file_or_files(src_outputs[key], dst_outputs[key], function(err) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      cb();
+    });
+  }, function() {
+    callback(null);
+  });
 }
 
 function cleanup(callback) {
@@ -809,8 +824,9 @@ function cleanup(callback) {
 function remove_temporary_files(tmp_files, callback) {
   async.eachSeries(tmp_files, function(fname, cb) {
     try {
-      if (require('fs').existsSync(fname))
-        require('fs').unlinkSync(fname);
+      if (require('fs').existsSync(fname)) {
+require('fs').unlinkSync(fname);
+}
     } catch (err) {
       console.warn('Problem removing temporary file: ' + fname);
     }
@@ -831,16 +847,16 @@ function remove_temporary_directory(tempdir_path, callback) {
   }
   console.info('[ Removing temporary directory ... ]');
   if (!common.starts_with(tempdir_path, common.temporary_directory() + '/')) {
-    //for safety
+    // for safety
     callback('Invalid (unsafe) path for temporary directory: ' + tempdir_path);
     return;
   }
-  var files = common.read_dir_safe(tempdir_path);
+  let files = common.read_dir_safe(tempdir_path);
   common.foreach_async(
     files,
     function(ii, file, cb) {
-      var fname = tempdir_path + '/' + file;
-      var stat0 = common.stat_file(fname);
+      let fname = tempdir_path + '/' + file;
+      let stat0 = common.stat_file(fname);
       if (stat0) {
         if (stat0.isFile()) {
           try {
@@ -879,14 +895,14 @@ function remove_temporary_directory(tempdir_path, callback) {
 }
 
 function compute_input_file_stats(inputs, callback) {
-  var ret = {};
-  for (var key in inputs) {
-    var val = inputs[key];
+  let ret = {};
+  for (let key in inputs) {
+    let val = inputs[key];
     if (val instanceof Array) {
-      var list = [];
-      for (var ii in val) {
-        //var stat0=compute_input_file_stat(val[ii]);
-        var stat0 = common.stat_file(val[ii]);
+      let list = [];
+      for (let ii in val) {
+        // var stat0=compute_input_file_stat(val[ii]);
+        let stat0 = common.stat_file(val[ii]);
         if (!stat0) {
           callback(
             'Problem computing stat for input file: ' + key + '[' + ii + ']'
@@ -897,8 +913,8 @@ function compute_input_file_stats(inputs, callback) {
       }
       ret[key] = list;
     } else {
-      //var stat0=compute_input_file_stat(val);
-      var stat0 = common.stat_file(val);
+      // var stat0=compute_input_file_stat(val);
+      let stat0 = common.stat_file(val);
       if (!stat0) {
         callback('Problem computing stat for input file: ' + key);
         return;
@@ -919,7 +935,7 @@ function check_input_file_stats_are_consistent(
       callback(err);
       return;
     }
-    var same =
+    let same =
       canonical_stringify(input_file_stats) == canonical_stringify(stats2);
     if (!same) {
       callback('Detected a change in input files.');
@@ -936,16 +952,16 @@ function add_processor_job_to_queue(
   parameters,
   callback
 ) {
-  var doc0 = {
+  let doc0 = {
     spec: spec0,
     inputs: inputs,
     outputs: outputs,
     parameters: parameters,
     status: 'queued',
     queued_timestamp: new Date() - 0,
-    checked_timestamp: new Date() - 0
+    checked_timestamp: new Date() - 0,
   };
-  var job_id = common.make_random_id(10);
+  let job_id = common.make_random_id(10);
   doc0._id = job_id;
   db_utils.saveDocument('processor_jobs', doc0, function(err) {
     if (err) {
@@ -963,11 +979,11 @@ function check_queued_job_ready_to_run(job_id, callback) {
       callback(err);
       return;
     }
-    var earliest_queued_index = -1;
-    var this_job_index = -1;
-    var num_running = 0;
-    for (var i = 0; i < docs.length; i++) {
-      var doc0 = docs[i];
+    let earliest_queued_index = -1;
+    let this_job_index = -1;
+    let num_running = 0;
+    for (let i = 0; i < docs.length; i++) {
+      let doc0 = docs[i];
       if (doc0.status == 'queued') {
         if (
           earliest_queued_index < 0 ||
@@ -982,7 +998,7 @@ function check_queued_job_ready_to_run(job_id, callback) {
         num_running++;
       }
       if (doc0.status == 'queued') {
-        var elapsed_since_last_checked =
+        let elapsed_since_last_checked =
           new Date() - Number(doc0.checked_timestamp);
         if (elapsed_since_last_checked > 12 * 1000) {
           console.warn(
@@ -990,7 +1006,7 @@ function check_queued_job_ready_to_run(job_id, callback) {
           );
           db_utils.removeDocuments(
             'processor_jobs', {
-              _id: doc0._id
+              _id: doc0._id,
             },
             function(err0) {
               if (err0) {
@@ -1007,22 +1023,24 @@ function check_queued_job_ready_to_run(job_id, callback) {
       callback('Unable to find queued job in database.');
       return;
     }
-    if (debugging)
-      console.info('earliest_queued_index=' + earliest_queued_index);
+    if (debugging) {
+console.info('earliest_queued_index=' + earliest_queued_index);
+}
     if (debugging) console.info('this_job_index=' + this_job_index);
     if (debugging) console.info('num_running=' + num_running);
-    if (debugging)
-      console.info(
+    if (debugging) {
+console.info(
         'max_num_simultaneous_processor_jobs=' +
         max_num_simultaneous_processor_jobs
       );
+}
     if (
       num_running < max_num_simultaneous_processor_jobs &&
       earliest_queued_index == this_job_index
     ) {
-      //ready
+      // ready
       if (debugging) console.info('looks like we are ready');
-      doc0 = docs[this_job_index];
+      let doc0 = docs[this_job_index];
       doc0.status = 'running';
       db_utils.saveDocument('processor_jobs', doc0, function(err) {
         if (err) {
@@ -1032,9 +1050,9 @@ function check_queued_job_ready_to_run(job_id, callback) {
         callback(null, true);
       });
     } else {
-      //not ready
+      // not ready
       if (debugging) console.info('not ready yet');
-      doc0 = docs[this_job_index];
+      let doc0 = docs[this_job_index];
       doc0.checked_timestamp = new Date() - 0;
       db_utils.saveDocument('processor_jobs', doc0, function(err) {
         if (err) {
@@ -1047,15 +1065,16 @@ function check_queued_job_ready_to_run(job_id, callback) {
   });
 
   function is_earlier_than(doc0, doc1) {
-    if (Number(doc0.queued_timestamp) < Number(doc1.queued_timestamp))
-      return true;
-    else if (Number(doc0.queued_timestamp) == Number(doc1.queued_timestamp))
-      if (doc0._id < doc1._id) return true;
+    if (Number(doc0.queued_timestamp) < Number(doc1.queued_timestamp)) {
+return true;
+} else if (Number(doc0.queued_timestamp) == Number(doc1.queued_timestamp)) {
+if (doc0._id < doc1._id) return true;
+}
     return false;
   }
 }
 
-var debugging = false;
+const debugging = false;
 
 function wait_for_ready_run(spec0, inputs, outputs, parameters, callback) {
   // TODO: finish this
@@ -1105,8 +1124,8 @@ function wait_for_ready_run(spec0, inputs, outputs, parameters, callback) {
 }
 
 function erase_output_files(outputs) {
-  for (key in outputs) {
-    var fname = outputs[key];
+  for (let key in outputs) {
+    let fname = outputs[key];
     if (require('fs').existsSync(fname)) {
       require('fs').unlinkSync(fname);
     }
@@ -1123,7 +1142,7 @@ function do_run_process(
   callback
 ) {
   erase_output_files(outputs);
-  var cmd = filter_exe_command(
+  let cmd = filter_exe_command(
     spec0.exe_command,
     spec0,
     inputs,
@@ -1131,11 +1150,12 @@ function do_run_process(
     info,
     parameters
   );
-  if (info.processor_command_prefix)
-    cmd = info.processor_command_prefix + ' ' + cmd;
+  if (info.processor_command_prefix) {
+cmd = info.processor_command_prefix + ' ' + cmd;
+}
   console.info('[ Running ... ] ' + cmd);
-  var timer = new Date();
-  var P = new SystemProcess();
+  let timer = new Date();
+  let P = new SystemProcess();
   P.setCommand(cmd);
   P.setTempdirPath(info.tempdir_path || '');
   if ('console_out' in outputs) {
@@ -1147,7 +1167,7 @@ function do_run_process(
       return;
     }
     if (!P.error()) {
-      var elapsed = new Date() - timer;
+      let elapsed = new Date() - timer;
       console.info(
         `Elapsed time for processor ${spec0.name}: ${elapsed / 1000} sec`
       );
@@ -1171,28 +1191,27 @@ function filter_exe_command(
   info,
   parameters
 ) {
-  var inputs = JSON.parse(JSON.stringify(inputs_in));
-  var outputs = JSON.parse(JSON.stringify(outputs_in));
+  let inputs = JSON.parse(JSON.stringify(inputs_in));
+  let outputs = JSON.parse(JSON.stringify(outputs_in));
 
-  for (var i in spec.inputs || []) {
-    var ikey = spec.inputs[i].name;
+  for (let i in spec.inputs || []) {
+    let ikey = spec.inputs[i].name;
     if (!(ikey in inputs)) inputs[ikey] = '';
   }
-  for (var i in spec.outputs || []) {
-    var okey = spec.outputs[i].name;
+  for (let i in spec.outputs || []) {
+    let okey = spec.outputs[i].name;
     if (!(okey in outputs)) outputs[okey] = '';
   }
 
-  var iop = {};
-  for (var key in inputs) iop[key] = inputs[key];
-  for (var key in outputs) iop[key] = outputs[key];
-  for (var key in parameters) iop[key] = parameters[key];
+  let iop = {};
+  for (let key in inputs) iop[key] = inputs[key];
+  for (let key in outputs) iop[key] = outputs[key];
+  for (let key in parameters) iop[key] = parameters[key];
 
-  var arguments = [];
-  var argfile_lines = [];
-  var console_out_file = '';
-  for (var key in iop) {
-    var val = iop[key];
+  let arguments = [];
+  let argfile_lines = [];
+  for (let key in iop) {
+    let val = iop[key];
     if (val !== undefined) {
       if (typeof val != 'object') {
         if (key != 'console_out') {
@@ -1201,7 +1220,7 @@ function filter_exe_command(
         }
         cmd = cmd.split('$' + key + '$').join(val);
       } else {
-        for (var i in val) {
+        for (let i in val) {
           arguments.push(`--${key}=${val[i]}`);
         }
       }
@@ -1215,9 +1234,9 @@ function filter_exe_command(
   cmd = cmd.split('$(arguments)').join(arguments.join(' '));
 
   if (cmd.indexOf('$(argfile)') >= 0) {
-    var argfile_fname = info.tempdir_path + '/argfile.txt';
+    let argfile_fname = info.tempdir_path + '/argfile.txt';
     if (!common.write_text_file(argfile_fname, argfile_lines.join('\n'))) {
-      console.warn('Unable to write argfile: ' + argfile_fname); //but we don't have ability to return an error. :(
+      console.warn('Unable to write argfile: ' + argfile_fname); // but we don't have ability to return an error. :(
     }
     cmd = cmd.split('$(argfile)').join(argfile_fname);
   }
@@ -1226,18 +1245,19 @@ function filter_exe_command(
 }
 
 function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
-  var ikeys = Object.keys(inputs);
+  let ikeys = Object.keys(inputs);
   common.foreach_async(
     ikeys,
     function(ii, key, cb) {
       if (typeof inputs[key] != 'object') {
-        var fname = inputs[key];
+        let fname = inputs[key];
         if (!fname.startsWith('kbucket://') &&
           !fname.startsWith('sha1://') &&
           !fname.startsWith('http://') &&
           !fname.startsWith('https://')
-        )
-          fname = require('path').resolve(process.cwd(), fname);
+        ) {
+fname = require('path').resolve(process.cwd(), fname);
+}
         let KBC = new KBClient();
         let opts0 = {
           download_if_needed: true,
@@ -1276,12 +1296,6 @@ function check_inputs_and_substitute_prvs(inputs, prefix, opts, callback) {
   );
 }
 
-function is_url(path_or_url) {
-  return (
-    path_or_url.startsWith('http://') || path_or_url.startsWith('https://')
-  );
-}
-
 function get_file_extension_including_dot_ignoring_prv(prv_fname) {
   let fname = require('path').basename(prv_fname);
   if (common.ends_with(fname, '.prv')) {
@@ -1293,15 +1307,15 @@ function get_file_extension_including_dot_ignoring_prv(prv_fname) {
 }
 
 /*
-function get_file_extension_including_dot(fname) {
-  var list1 = fname.split('/');
-  var list2 = list1[list1.length - 1].split('.');
-  if (list2.length >= 2) {
-    //important: must have length at least 2, otherwise extension is empty
-    return '.' + list2[list2.length - 1];
-  } else {
-    return '';
-  }
+   function get_file_extension_including_dot(fname) {
+   var list1 = fname.split('/');
+   var list2 = list1[list1.length - 1].split('.');
+   if (list2.length >= 2) {
+//important: must have length at least 2, otherwise extension is empty
+return '.' + list2[list2.length - 1];
+} else {
+return '';
+}
 }
 */
 
@@ -1310,77 +1324,93 @@ function check_outputs_and_substitute_prvs(
   process_signature,
   callback
 ) {
-  var pending_output_prvs = [];
-  var okeys = Object.keys(outputs);
-  var tmp_dir = common.temporary_directory();
-  common.foreach_async(
-    okeys,
-    function(ii, key, cb) {
-      var fname = outputs[key];
-      fname = require('path').resolve(process.cwd(), fname);
-      outputs[key] = fname;
-      if (common.ends_with(fname, '.prv')) {
-        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
-        /*get_file_extension_for_prv_file_including_dot(
-          fname
-        );*/
-        let fname2 =
-          tmp_dir +
-          `/output_${process_signature}_${key}${file_extension_including_dot}`;
-        pending_output_prvs.push({
-          name: key,
-          prv_fname: fname,
-          output_fname: fname2
-        });
-        outputs[key] = fname2;
-      }
-      cb();
-    },
-    function() {
-      callback(null, {
-        pending_output_prvs: pending_output_prvs
-      });
+  let pending_output_prvs = [];
+  if (DEBUG) {
+    console.log(JSON.stringify(outputs));
+  }
+  let okeys = Object.keys(outputs);
+  let tmp_dir = common.temporary_directory();
+  common.foreach_async(okeys, function(ii, key, cb) {
+    let fname = outputs[key];
+    if (DEBUG) {
+      console.log('Processing ouput - '+fname);
+      console.log(fname instanceof Array);
     }
-  );
+    if (fname instanceof Array) {
+      console.log('Trying Recursive Resolve');
+      outputs[key] = fname.map(function c(fnm, i) {
+        let tmp = resolve_file(fnm, pending_output_prvs, tmp_dir, key, process_signature);
+        console.log(tmp);
+        return tmp;
+      });
+    } else { // Process File
+      outputs[key] = resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature);
+    }
+    console.log(JSON.stringify(outputs));
+    cb();
+  }, function() {
+    callback(null, {
+      pending_output_prvs: pending_output_prvs,
+    });
+  });
+}
+
+function resolve_file(fname, pending_output_prvs, tmp_dir, key, process_signature) {
+  fname = require('path').resolve(process.cwd(), fname);
+  if (common.ends_with(fname, '.prv')) {
+    let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
+    let fname2 = tmp_dir + `/output_${process_signature}_${key}${file_extension_including_dot}`;
+    pending_output_prvs.push({
+      name: key,
+      prv_fname: fname,
+      output_fname: fname2,
+    });
+    return fname2;
+  }
+  return fname;
 }
 
 function make_temporary_outputs(outputs, process_signature, info, callback) {
-  var temporary_outputs = {};
-  var okeys = Object.keys(outputs);
-  var tmp_dir = common.temporary_directory();
-  common.foreach_async(
-    okeys,
-    function(ii, key, cb) {
-      var fname = outputs[key];
+  let temporary_outputs = {};
+  let okeys = Object.keys(outputs);
+  common.foreach_async(okeys, function(ii, key, cb) {
+    let fname = outputs[key];
+    if (DEBUG) {
+      console.log('Processing ouput - '+fname);
+      console.log(fname instanceof Array);
+    }
+    if (fname instanceof Array) {
+      temporary_outputs[key] = fname.map(function(fnm, i, arr) {
+        fnm = require('path').resolve(process.cwd(), fnm);
+        let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fnm);
+        return info.tempdir_path + `/output_${key}_${i}${file_extension_including_dot}`;
+      });
+    } else {
       fname = require('path').resolve(process.cwd(), fname);
       let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
-      /*get_file_extension_including_dot(
-        fname
-      );*/
-      temporary_outputs[key] =
-        info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
-      cb();
-    },
-    function() {
-      callback(null, {
-        temporary_outputs: temporary_outputs
-      });
+      temporary_outputs[key] = info.tempdir_path + `/output_${key}${file_extension_including_dot}`;
     }
+    cb();
+  }, function() {
+    callback(null, {
+      temporary_outputs: temporary_outputs,
+    });
+  }
   );
 }
 
 function link_inputs(inputs, original_inputs, info, callback) {
   let ret = {
-    temporary_inputs: JSON.parse(JSON.stringify(inputs))
+    temporary_inputs: JSON.parse(JSON.stringify(inputs)),
   };
   info.key_prefix = info.key_prefix || '';
-  var ikeys = Object.keys(inputs);
+  let ikeys = Object.keys(inputs);
   common.foreach_async(
     ikeys,
     function(ii, key, cb) {
-      var fname = inputs[key];
+      let fname = inputs[key];
       if (typeof fname != 'object') {
-        var original_fname = original_inputs[key];
+        let original_fname = original_inputs[key];
         fname = require('path').resolve(process.cwd(), fname);
         let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
         let desired_file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(original_fname);
@@ -1388,9 +1418,9 @@ function link_inputs(inputs, original_inputs, info, callback) {
           cb();
           return;
         }
-        /*get_file_extension_including_dot(
-          original_fname
-        );*/
+        /* get_file_extension_including_dot(
+            original_fname
+            );*/
         let new_fname = `${fname}.tmplink.${common.make_random_id(8)}${desired_file_extension_including_dot}`;
         make_hard_link(fname, new_fname, function(err) {
           if (err) {
@@ -1444,7 +1474,7 @@ function compute_process_signature(spec0, inputs, parameters, callback) {
 }
 
 function compute_process_signature_object(spec0, inputs, parameters, callback) {
-  var signature_object = {};
+  let signature_object = {};
   signature_object.version = '0.1';
   signature_object.processor_name = spec0.name;
   signature_object.processor_version = spec0.version;
@@ -1463,7 +1493,7 @@ function compute_process_signature_object_inputs(inputs, callback) {
   // See the warning for the outputs and file extensions elsewhere in this file
   get_checksums_for_files(
     inputs, {
-      mode: 'process_signature'
+      mode: 'process_signature',
     },
     callback
   );
@@ -1472,7 +1502,7 @@ function compute_process_signature_object_inputs(inputs, callback) {
 function find_in_process_cache(process_signature, outputs, callback) {
   db_utils.findDocuments(
     'process_cache', {
-      process_signature: process_signature
+      process_signature: process_signature,
     },
     function(err, docs) {
       if (err) {
@@ -1504,24 +1534,24 @@ function find_in_process_cache(process_signature, outputs, callback) {
 
 function check_outputs_consistent_with_process_cache(outputs, doc0, callback) {
   /*
-    Warning: if we ever decide to allow copying of outputs with different
-    file paths, we need to make sure we respect the file extension, 
-    because processor behavior may be different depending on the
-    output file extension.
-    Note that we don't have to worry about such things for input files,
-    because the sha-1 hash is computed for those. Persumably if the 
-    extension is different, and it matters for functionality, then
-    the sha-1 will be different as well. (I suppose there could be
-    an exception to this, but I'd be surprised)
-  */
-  for (var key in outputs) {
-    var fname = outputs[key];
-    var stat0 = common.stat_file(fname);
+     Warning: if we ever decide to allow copying of outputs with different
+     file paths, we need to make sure we respect the file extension,
+     because processor behavior may be different depending on the
+     output file extension.
+     Note that we don't have to worry about such things for input files,
+     because the sha-1 hash is computed for those. Persumably if the
+     extension is different, and it matters for functionality, then
+     the sha-1 will be different as well. (I suppose there could be
+     an exception to this, but I'd be surprised)
+     */
+  for (let key in outputs) {
+    let fname = outputs[key];
+    let stat0 = common.stat_file(fname);
     if (!stat0) {
       callback(`Unable to stat output file (${key}): ${fname}`);
       return;
     }
-    var output0 = doc0.outputs[key] || {};
+    let output0 = doc0.outputs[key] || {};
     if (output0.path != fname) {
       callback(null, false, `${output0.path} <> ${fname}`);
       return;
@@ -1529,7 +1559,7 @@ function check_outputs_consistent_with_process_cache(outputs, doc0, callback) {
     if (
       output0.size != stat0.size ||
       output0.mtime != stat0.mtime.toISOString() ||
-      //output0.ctime != stat0.ctime.toISOString() || //not sure why the ctime is having trouble
+      // output0.ctime != stat0.ctime.toISOString() || //not sure why the ctime is having trouble
       output0.ino != stat0.ino
     ) {
       callback(null, false, `Stats do not match: ${output0.size} ${stat0.size} ${output0.mtime} ${stat0.mtime.toISOString()} ${output0.ctime} ${stat0.ctime.toISOString()} ${output0.ino} ${stat0.ino} ${fname}`);
@@ -1549,7 +1579,7 @@ function save_to_process_cache(
 ) {
   db_utils.removeDocuments(
     'process_cache', {
-      process_signature: process_signature
+      process_signature: process_signature,
     },
     function(err) {
       if (err) {
@@ -1558,7 +1588,7 @@ function save_to_process_cache(
       }
       get_checksums_for_files(
         inputs, {
-          mode: 'process_cache'
+          mode: 'process_cache',
         },
         function(err, inputs_with_checksums) {
           if (err) {
@@ -1567,19 +1597,19 @@ function save_to_process_cache(
           }
           get_checksums_for_files(
             outputs, {
-              mode: 'process_cache'
+              mode: 'process_cache',
             },
             function(err, outputs_with_checksums) {
               if (err) {
                 callback(err);
                 return;
               }
-              var doc0 = {
+              let doc0 = {
                 process_signature: process_signature,
                 spec: spec0,
                 inputs: inputs_with_checksums,
                 outputs: outputs_with_checksums,
-                parameters: parameters
+                parameters: parameters,
               };
               db_utils.saveDocument('process_cache', doc0, function(err) {
                 callback(err);
@@ -1593,14 +1623,14 @@ function save_to_process_cache(
 }
 
 function get_checksums_for_files(inputs, opts, callback) {
-  var ret = {};
-  var keys = Object.keys(inputs);
+  let ret = {};
+  let keys = Object.keys(inputs);
   common.foreach_async(
     keys,
     function(ii, key, cb) {
-      var val = inputs[key];
+      let val = inputs[key];
       if (typeof val != 'object') {
-        var stat0 = common.stat_file(val);
+        let stat0 = common.stat_file(val);
         if (!stat0) {
           callback(`Unable to stat file (${key}): ${val}`);
           return;
@@ -1615,9 +1645,9 @@ function get_checksums_for_files(inputs, opts, callback) {
               path: val,
               sha1: sha1,
               mtime: stat0.mtime.toISOString(),
-              //ctime: stat0.ctime.toISOString(), //not sure why the ctime is having trouble
+              // ctime: stat0.ctime.toISOString(), //not sure why the ctime is having trouble
               size: stat0.size,
-              ino: stat0.ino
+              ino: stat0.ino,
             };
           } else if (opts.mode == 'process_signature') {
             ret[key] = sha1;
@@ -1655,28 +1685,28 @@ function separate_iops(
   spec_outputs,
   spec_parameters
 ) {
-  var B_inputs = {};
-  for (var i in spec_inputs) {
-    var key0 = spec_inputs[i].name;
+  let B_inputs = {};
+  for (let i in spec_inputs) {
+    let key0 = spec_inputs[i].name;
     if (key0) {
       B_inputs[key0] = spec_inputs[i];
     }
   }
-  var B_outputs = {};
-  for (var i in spec_outputs) {
-    var key0 = spec_outputs[i].name;
+  let B_outputs = {};
+  for (let i in spec_outputs) {
+    let key0 = spec_outputs[i].name;
     if (key0) {
       B_outputs[key0] = spec_outputs[i];
     }
   }
-  var B_parameters = {};
-  for (var i in spec_parameters) {
-    var key0 = spec_parameters[i].name;
+  let B_parameters = {};
+  for (let i in spec_parameters) {
+    let key0 = spec_parameters[i].name;
     if (key0) {
       B_parameters[key0] = spec_parameters[i];
     }
   }
-  for (var key in iops) {
+  for (let key in iops) {
     if (key in B_inputs) {
       inputs[key] = iops[key];
     } else if (key in B_outputs) {
@@ -1691,19 +1721,19 @@ function separate_iops(
 
 function check_iop(A, Bspec, iop_name, opts) {
   if (!opts) opts = {};
-  var B = {};
-  for (var i in Bspec) {
-    var key0 = Bspec[i].name;
+  let B = {};
+  for (let i in Bspec) {
+    let key0 = Bspec[i].name;
     if (key0) {
       B[key0] = Bspec[i];
     }
   }
-  for (var key in A) {
+  for (let key in A) {
     if (!(key in B)) {
       throw new Error(`Unexpected ${iop_name}: ${key}`);
     }
   }
-  for (var key in B) {
+  for (let key in B) {
     if (!(key in A)) {
       if (B[key].optional) {
         if (opts.substitute_defaults) {
@@ -1718,17 +1748,17 @@ function check_iop(A, Bspec, iop_name, opts) {
 }
 
 function parse_iop(str, iop_name) {
-  var ret = {};
-  var list = str.split('[---]');
-  for (var i in list) {
-    var str0 = list[i];
+  let ret = {};
+  let list = str.split('[---]');
+  for (let i in list) {
+    let str0 = list[i];
     if (str0) {
-      var ind0 = str0.indexOf(':');
+      let ind0 = str0.indexOf(':');
       if (ind0 < 0) {
         throw new Error(`Error in ${iop_name}: ${str0}`);
       }
-      var key0 = str0.slice(0, ind0);
-      var val0 = str0.slice(ind0 + 1);
+      let key0 = str0.slice(0, ind0);
+      let val0 = str0.slice(ind0 + 1);
       if (!(key0 in ret)) {
         ret[key0] = val0;
       } else {
