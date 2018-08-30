@@ -41,6 +41,7 @@ function cmd_run_process(processor_name, opts, callback) {
     lari_id: opts.lari_id,
     lari_passcode: opts.lari_passcode,
     mp_file: opts.mp_file||undefined,
+    mp_file_args: opts.mp_file_args||undefined
   };
   common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {
     if (err) {

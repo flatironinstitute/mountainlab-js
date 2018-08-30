@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const sha1 = require('node-sha1');
+
 var common=require(__dirname+'/common.js');
 
 // Set environment variables from mountainlab.env
@@ -27,7 +29,8 @@ function cleanup_and_exit() {
 program
   .command('list-processors [pattern]')
   .description('List MountainLab processors installed on this machine. Optionally specify a wildcard pattern for filtering the results.')
-  .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
+  .option('--mp_file [file.mp]', 'Specify explicitly a .mp file containing processors')
+  .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
   .action(function (pattern, cmd) {
     cmd.pattern=pattern;
     require(__dirname+'/list_processors.js').cmd_list_processors(cmd,function(err) {
@@ -40,10 +43,11 @@ program
   });
 
 program
-  .command('spec <processor-name>')
-  .description('Show the spec for a specific processor.')
+  .command('spec [processor-name]')
+  .description('Show the spec for a specific processor, or all processors.')
   .option('-p, --print', 'Format output in human-readable syntax')
   .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
+  .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
   .action(function (processor_name, cmd) {
     require(__dirname+'/spec.js').cmd_spec(processor_name,cmd,function(err) {
       if (err) {
@@ -69,6 +73,7 @@ program
   .option('--lari_out [outfile.json]','Save lari info to output JSON file. In particular, saves the lari_job_id.')
   .option('--processor_command_prefix [prefix]','For example, srun.')
   .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
+  .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
   .option('-v, --verbose [level]','Level of verbosity / console output (normal, minimal, none)')
   .action(function (processor_name, cmd) {
     require(__dirname+'/run_process.js').cmd_run_process(processor_name,cmd,function(err) {
@@ -173,10 +178,13 @@ program
     });
   });
 
-var argv=preprocess_argv(process.argv);
-program.parse(argv);
+async function main() {
+  var argv=await preprocess_argv(process.argv);
+  program.parse(argv);
+}
+main();
 
-function preprocess_argv(argv) {
+async function preprocess_argv(argv) {
   if (argv.indexOf('run-process')>=0) {
     return preprocess_run_process_argv(argv);
   }
@@ -184,6 +192,36 @@ function preprocess_argv(argv) {
     return argv;
   }
 }
+
+/*
+function CLParams(argv) {
+  this.unnamedParameters=[];
+  this.namedParameters={};
+
+  var args=argv.slice(2);
+  for (var i=0; i<args.length; i++) {
+    var arg0=args[i];
+    if (arg0.indexOf('--')===0) {
+      arg0=arg0.slice(2);
+      var ind=arg0.indexOf('=');
+      if (ind>=0) {
+        this.namedParameters[arg0.slice(0,ind)]=arg0.slice(ind+1);
+      }
+      else {
+        this.namedParameters[arg0]=args[i+1]||'';
+        i++;
+      }
+    }
+    else if (arg0.indexOf('-')===0) {
+      arg0=arg0.slice(1);
+      this.namedParameters[arg0]='';
+    }
+    else {
+      this.unnamedParameters.push(arg0);
+    }
+  }
+}
+*/
 
 function preprocess_run_process_argv(argv) {
   var ret=[];

@@ -35,7 +35,7 @@ function get_processor_specs(opts,callback) {
 		}
 		var list=[];
 		async.each(mp_file_names,function(fname,cb) {
-			get_spec_from_mp_file(fname,function(err,spec0) {
+			get_spec_from_mp_file(fname,opts,function(err,spec0) {
 				if (err) {
 					console.warn(err);
 					console.warn(`Error extracting processor information from ${fname}. Skipping...`)
@@ -82,7 +82,7 @@ function get_processor_spec(processor_name,opts,callback) {
 			step2();
 			return;
 		}
-		get_spec_from_mp_file(hint_fname,function(err,spec0) {
+		get_spec_from_mp_file(hint_fname,opts,function(err,opts,spec0) {
 			if (err) {
 				step2();
 				return;
@@ -218,7 +218,7 @@ function get_processor_mp_file_hint(processor_name,callback) {
 	});
 }
 
-function get_spec_from_mp_file(fname,callback) {
+function get_spec_from_mp_file(fname,opts,callback) {
 	if (is_executable(fname)) {
 		db_utils.findDocuments('processor_specs',{mp_file_path:fname},function(err,docs) {
 			if (err) {
@@ -237,7 +237,10 @@ function get_spec_from_mp_file(fname,callback) {
 			}
 			db_utils.removeDocuments('processor_specs',{mp_file_path:fname},function(err0) {
 			});
-			require('child_process').exec(fname+' spec', function(error, stdout, stderr) { 
+			let additional_args='';
+			if (opts.mp_file_args)
+				additional_args=' '+opts.mp_file_args;
+			require('child_process').exec(fname+' spec'+additional_args, function(error, stdout, stderr) { 
 				if (error) {
 					callback('Error running .mp file: '+error);
 					return;
