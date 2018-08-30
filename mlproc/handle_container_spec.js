@@ -38,7 +38,7 @@ async function main() {
     for (let i in processors) {
       let P=processors[i];
       // TODO: bind the temporary directory
-      P.exe_command='singularity exec --contain '+image_fname+' '+P.exe_command;
+      P.exe_command='singularity exec --contain $(singularity_bind) '+image_fname+' '+P.exe_command;
     }
     console.info(JSON.stringify(spec,null,4));
   }
@@ -73,7 +73,6 @@ async function run_process(exe,args,opts) {
     }
     P.stdout.on('data',function(chunk) {
       chunk=chunk.toString();
-      console.info(chunk);
       ret.stdout+=chunk;
     });
     P.stderr.on('data',function(chunk) {

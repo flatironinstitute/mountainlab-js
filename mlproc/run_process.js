@@ -723,7 +723,7 @@ function move_file(srcpath, dstpath, callback) {
   require('fs').rename(srcpath, dstpath, function(err) {
     if (err) {
       console.warn(
-        `Warning: unable to rename file ${srcpath} -> ${dstpath} . Perhaps temporary directory is not on the same device as the output file directory.`
+        `This is only a warning: Unable to rename file ${srcpath} -> ${dstpath}. Perhaps temporary directory is not on the same device as the output file directory. Copying instead.`
       );
       require('fs').copyFile(srcpath, dstpath, function(err) {
         if (err) {
@@ -1135,7 +1135,7 @@ function erase_output_files(outputs) {
 
 function do_run_process(
   spec0,
-  inputs,
+  temporary_inputs,
   outputs,
   temporary_outputs,
   parameters,
@@ -1146,7 +1146,7 @@ function do_run_process(
   let cmd = filter_exe_command(
     spec0.exe_command,
     spec0,
-    inputs,
+    temporary_inputs,
     temporary_outputs,
     info,
     parameters
@@ -1209,29 +1209,62 @@ function filter_exe_command(
   for (let key in outputs) iop[key] = outputs[key];
   for (let key in parameters) iop[key] = parameters[key];
 
+  let singularity_bind_string='';
+  let singularity_bind_mode=(cmd.indexOf('$(singularity_bind)')>=0);
+  let singularity_bind_index=0
+
+  function handle_singularity_bind(key,val,tempdir) {
+    if (!val) return val;
+    if (!singularity_bind_mode) {
+      return val;
+    }
+    if ((key in inputs)||(key in outputs)) {
+      if (!val.startsWith(tempdir+'/')) {
+        console.error(`Problem with ${key}: `+val);
+        console.error('When using singularity bind, all input and output files must be in the temporary directory for this job.');
+        process.exit(-1);
+      }
+      return '/tmp/'+val.slice((tempdir+'/').length);
+    }
+    else {
+      return val;
+    }
+    
+  }
+
   let arguments = [];
+  {
+    let tempdir=info.tempdir_path;
+    if (singularity_bind_mode) {
+      singularity_bind_string+=`-B ${tempdir}:/tmp `;
+      tempdir='/tmp';
+    }
+    arguments.push(`--_tempdir=${tempdir}`);
+    cmd = cmd.split('$(tempdir)').join(tempdir);
+  }
+
   let argfile_lines = [];
   for (let key in iop) {
     let val = iop[key];
     if (val !== undefined) {
       if (typeof val != 'object') {
+        let val2=handle_singularity_bind(key,val,info.tempdir_path);
         if (key != 'console_out') {
-          arguments.push(`--${key}=${val}`);
-          argfile_lines.push(`${key}=${val}`);
+          arguments.push(`--${key}=${val2}`);
+          argfile_lines.push(`${key}=${val2}`);
         }
-        cmd = cmd.split('$' + key + '$').join(val);
+        cmd = cmd.split('$' + key + '$').join(val2);
       } else {
         for (let i in val) {
-          arguments.push(`--${key}=${val[i]}`);
+          let val2=handle_singularity_bind(key,val[i],info.tempdir_path);
+          arguments.push(`--${key}=${val2}`);
         }
       }
     } else {
       cmd = cmd.split('$' + key + '$').join('');
     }
-  } {
-    arguments.push(`--_tempdir=${info.tempdir_path}`);
-    cmd = cmd.split('$(tempdir)').join(info.tempdir_path);
-  }
+  } 
+  
   cmd = cmd.split('$(arguments)').join(arguments.join(' '));
 
   if (cmd.indexOf('$(argfile)') >= 0) {
@@ -1239,7 +1272,14 @@ function filter_exe_command(
     if (!common.write_text_file(argfile_fname, argfile_lines.join('\n'))) {
       console.warn('Unable to write argfile: ' + argfile_fname); // but we don't have ability to return an error. :(
     }
+    if (singularity_bind_mode) {
+      argfile_fname='/tmp/argfile.txt';
+    }
     cmd = cmd.split('$(argfile)').join(argfile_fname);
+  }
+
+  if (singularity_bind_mode) {
+    cmd = cmd.split('$(singularity_bind)').join(singularity_bind_string);  
   }
 
   return cmd;
@@ -1415,21 +1455,23 @@ function link_inputs(inputs, original_inputs, info, callback) {
         fname = require('path').resolve(process.cwd(), fname);
         let file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(fname);
         let desired_file_extension_including_dot = get_file_extension_including_dot_ignoring_prv(original_fname);
-        if (file_extension_including_dot == desired_file_extension_including_dot) {
-          cb();
-          return;
-        }
+
+        //if (file_extension_including_dot == desired_file_extension_including_dot) {
+        //  cb();
+        //  return;
+        //}
         /* get_file_extension_including_dot(
             original_fname
             );*/
-        let new_fname = `${fname}.tmplink.${common.make_random_id(8)}${desired_file_extension_including_dot}`;
-        make_hard_link(fname, new_fname, function(err) {
+        let new_fname = info.tempdir_path+`/input_${info.key_prefix}${key}_${common.make_random_id(8)}${desired_file_extension_including_dot}`;
+        //let new_fname = `${fname}.tmplink.${common.make_random_id(8)}${desired_file_extension_including_dot}`;
+        make_hard_link_or_copy(fname, new_fname, function(err) {
           if (err) {
-            callback(`Error creating hard link to satisfy file extension: ${fname} -> ${new_fname}: ` + err);
+            callback(`Error creating hard link for input: ${fname} -> ${new_fname}: ` + err);
             return;
           }
           ret.temporary_inputs[key] = new_fname;
-          files_to_cleanup.push(new_fname);
+          //files_to_cleanup.push(new_fname);
           cb();
         });
       } else {
@@ -1451,10 +1493,21 @@ function link_inputs(inputs, original_inputs, info, callback) {
   );
 }
 
-function make_hard_link(src_fname, dst_fname, callback) {
+function make_hard_link_or_copy(src_fname, dst_fname, callback) {
   require('fs').link(src_fname, dst_fname, function(err) {
     if (err) {
-      callback(err.message);
+      console.warn(
+        `This is only a warning: Unable to hard link file ${src_fname} -> ${dst_fname}. Perhaps temporary directory is not on the same device as the output file directory. Copying instead.`
+      );
+      require('fs').copyFile(src_fname, dst_fname, function(err) {
+        if (err) {
+          callback(
+            `Error hard linking or copying file ${src_fname} -> ${dst_fname}: ${err.message}`
+          );
+          return;
+        }
+        callback(null);
+      });
       return;
     }
     callback(null);

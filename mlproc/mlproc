@@ -31,7 +31,9 @@ program
   .description('List MountainLab processors installed on this machine. Optionally specify a wildcard pattern for filtering the results.')
   .option('--mp_file [file.mp]', 'Specify explicitly a .mp file containing processors')
   .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
+  .option('--container [path_or_url]', 'Use processors in a container')
   .action(function (pattern, cmd) {
+    handle_container(cmd);
     cmd.pattern=pattern;
     require(__dirname+'/list_processors.js').cmd_list_processors(cmd,function(err) {
       if (err) {
@@ -48,7 +50,9 @@ program
   .option('-p, --print', 'Format output in human-readable syntax')
   .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
   .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
+  .option('--container [path_or_url]', 'Use processors in a container')
   .action(function (processor_name, cmd) {
+    handle_container(cmd);
     require(__dirname+'/spec.js').cmd_spec(processor_name,cmd,function(err) {
       if (err) {
         process.exit(-1);
@@ -74,8 +78,10 @@ program
   .option('--processor_command_prefix [prefix]','For example, srun.')
   .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
   .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
+  .option('--container [path_or_url]', 'Use processors in a container')
   .option('-v, --verbose [level]','Level of verbosity / console output (normal, minimal, none)')
   .action(function (processor_name, cmd) {
+    handle_container(cmd);
     require(__dirname+'/run_process.js').cmd_run_process(processor_name,cmd,function(err) {
       if (err) {
         console.error(err);
@@ -190,6 +196,15 @@ async function preprocess_argv(argv) {
   }
   else {
     return argv;
+  }
+}
+
+function handle_container(opts) {
+  if (opts.container) {
+    let container=opts.container;
+    delete opts.container;
+    opts.mp_file=__dirname+'/handle_container_spec.js';
+    opts.mp_file_args=container;
   }
 }
 

@@ -246,7 +246,7 @@ function get_spec_from_mp_file(fname,opts,callback) {
 					return;
 				}
 				var output=stdout;
-				var spec0=parse_json(output);
+				var spec0=parse_json(output.trim());
 				var doc0={
 					_id:fname,
 					mp_file_path:fname,
