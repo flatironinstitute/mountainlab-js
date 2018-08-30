@@ -41,7 +41,8 @@ function cmd_run_process(processor_name, opts, callback) {
     lari_id: opts.lari_id,
     lari_passcode: opts.lari_passcode,
     mp_file: opts.mp_file||undefined,
-    mp_file_args: opts.mp_file_args||undefined
+    mp_file_args: opts.mp_file_args||undefined,
+    container: opts.container||undefined
   };
   common.get_processor_spec(processor_name, spec_opts, function(err, spec0) {
     if (err) {
@@ -386,6 +387,7 @@ function cmd_run_process_lari(processor_name, spec0, opts, callback) {
   new LariClient();
   let p_opts = {};
   if ('force_run' in opts) p_opts.force_run = opts.force_run;
+  if ('container' in opts) p_opts.container = opts.container;
   // important -- do not pass through the opts here, because there would be security concerns. Keep the interface minimal. For example, processor_command_prefix should be configured on the server side.
 
   let LJ = new LariJob();

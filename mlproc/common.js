@@ -20,6 +20,7 @@ exports.package_search_directories=package_search_directories;
 exports.config_file_path=config_file_path;
 exports.config_directory=config_directory;
 exports.main_package_directory=main_package_directory;
+exports.shub_cache_directory=shub_cache_directory;
 
 const LariClient=require('lariclient').v1;
 
@@ -220,7 +221,7 @@ function get_processor_mp_file_hint(processor_name,callback) {
 
 function get_spec_from_mp_file(fname,opts,callback) {
 	if (is_executable(fname)) {
-		db_utils.findDocuments('processor_specs',{mp_file_path:fname},function(err,docs) {
+		db_utils.findDocuments('processor_specs',{mp_file_path:fname,mp_file_args:opts.mp_file_args},function(err,docs) {
 			if (err) {
 				callback(err);
 				return;
@@ -235,13 +236,15 @@ function get_spec_from_mp_file(fname,opts,callback) {
 					}
 				}
 			}
-			db_utils.removeDocuments('processor_specs',{mp_file_path:fname},function(err0) {
+			db_utils.removeDocuments('processor_specs',{mp_file_path:fname,mp_file_args:opts.mp_file_args},function(err0) {
 			});
 			let additional_args='';
 			if (opts.mp_file_args)
 				additional_args=' '+opts.mp_file_args;
-			require('child_process').exec(fname+' spec'+additional_args, function(error, stdout, stderr) { 
+			let cmd0=fname+' spec'+additional_args;
+			require('child_process').exec(cmd0, function(error, stdout, stderr) { 
 				if (error) {
+					console.error('Error running: '+cmd0);
 					callback('Error running .mp file: '+error);
 					return;
 				}
@@ -250,6 +253,7 @@ function get_spec_from_mp_file(fname,opts,callback) {
 				var doc0={
 					_id:fname,
 					mp_file_path:fname,
+					mp_file_args:opts.mp_file_args,
 					spec:spec0,
 					timestamp:((new Date())-0)
 				}
@@ -278,6 +282,14 @@ function get_spec_from_mp_file(fname,opts,callback) {
 
 function main_package_directory() {
 	let ret=process.env.ML_PACKAGE_SEARCH_DIRECTORY||(config_directory()+'/packages');
+	if (!require('fs').existsSync(ret)) {
+		require('fs').mkdirSync(ret);
+	}
+	return ret;
+}
+
+function shub_cache_directory() {
+	let ret=process.env.ML_SHUB_CACHE_DIRECTORY||(config_directory()+'/shub_cache');
 	if (!require('fs').existsSync(ret)) {
 		require('fs').mkdirSync(ret);
 	}

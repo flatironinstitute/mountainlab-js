@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const sha1=require('node-sha1');
+const common=require(__dirname+'/common.js');
 
 function print_usage() {
   console.info('test_spec.js spec [container path]');
@@ -19,11 +20,12 @@ async function main() {
   if (arg1=='spec') {
     let image_fname=await download_container_if_needed(container_path);
 
-    let exe='singularity';
-    let args=['exec','--contain',image_fname,'ml-spec'];
-    let result=await run_process(exe,args);
+    //let cmd=`singularity exec --contain ${image_fname} env | grep ML`;
+    let cmd=`singularity exec --contain ${image_fname} ml-spec`;
+    //let args=['exec','--contain',image_fname,'ml-spec'];
+    let result=await run_process(cmd,{});
     if (result.exit_code!=0) {
-      console.error(`Non-zero exit code (${result.exit_code}) when calling: `+exe+' '+args.join(' '));
+      console.error(`Non-zero exit code (${result.exit_code}) when calling: `+cmd);
       process.exit(result.exit_code);  
     }
     let spec;
@@ -31,6 +33,7 @@ async function main() {
       spec=JSON.parse(result.stdout.trim());
     }
     catch(err) {
+      console.error(result.stdout.trim());
       console.error('Error parsing spec.');
       process.exit(-1);
     }
@@ -50,7 +53,7 @@ async function main() {
 main();
 
 
-async function run_process(exe,args,opts) {
+async function run_process(cmd,opts) {
   let ret={
     exit_code:null,
     stdout:'',
@@ -58,17 +61,31 @@ async function run_process(exe,args,opts) {
   }
   if (!opts) opts={};
   return new Promise(function(resolve,reject) {
-    let P_opts={};
+    let P_opts={shell:true};
     if (opts.cwd) {
       P_opts.cwd=opts.cwd;
     }
+    P_opts.env={};
+
+    /////////////////////////////////////////////
+    // It is really unfortunate that I need to strip the environment
+    // variables that begin with ML_ -- what a terrible hack
+    // This is because those environment variables seem to survive
+    // in the Singularity container. Terrible!
+    for (let key in process.env) {
+      if (!key.startsWith('ML_')) {
+        P_opts.env[key]=process.env[key];
+      }
+    }
+    /////////////////////////////////////////////
+
     let P;
     try {
-      P=require('child_process').spawn(exe,args,P_opts);
+      P=require('child_process').spawn(cmd,P_opts);
     }
     catch(err) {
       console.error(err.message);
-      reject('Error running: '+exe+' '+args.join(' '));
+      reject('Error running: '+cmd);
       return;
     }
     P.stdout.on('data',function(chunk) {
@@ -87,27 +104,20 @@ async function run_process(exe,args,opts) {
   });  
 }
 
-function shub_cache_directory() {
-	let ret=process.env.ML_SHUB_CACHE_DIRECTORY||'/tmp/shub_cache_directory';
-	if (!require('fs').existsSync(ret)) {
-		require('fs').mkdirSync(ret);
-	}
-	return ret;
-}
-
 function ends_with(str,str2) {
     return (str.slice(str.length-str2.length)==str2);
 }
 
 async function download_container_if_needed(path) {
   if (path.startsWith('shub://')) {
-    let workdir=shub_cache_directory();
+    let workdir=common.shub_cache_directory();
     let fname=sha1(path)+'.simg';
     if (require('fs').existsSync(workdir+'/'+fname)) {
       return workdir+'/'+fname;
     }
-    let exit_code=await run_process('singularity',['pull','--name',fname,path],{cwd:workdir});
-    if (exit_code!=0) {
+    let result=await run_process(`singularity pull --name ${fname} ${path}`,{cwd:workdir});
+    if (result.exit_code!=0) {
+      console.error(result.stderr);
       console.error('Error downloading container.');
       process.exit(-1);
     }

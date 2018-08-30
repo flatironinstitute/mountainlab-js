@@ -6,6 +6,7 @@ var common=require(__dirname+'/common.js');
 
 // Set environment variables from mountainlab.env
 // Note: existing environment variables will NOT be overriden
+
 var ml_config_file=common.config_file_path();
 require('dotenv').config({path:ml_config_file});
 
@@ -200,7 +201,7 @@ async function preprocess_argv(argv) {
 }
 
 function handle_container(opts) {
-  if (opts.container) {
+  if ((opts.container)&&(!opts.lari_id)&&(!process.env.LARI_ID)) {
     let container=opts.container;
     delete opts.container;
     opts.mp_file=__dirname+'/handle_container_spec.js';

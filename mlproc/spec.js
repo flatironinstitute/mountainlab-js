@@ -9,7 +9,8 @@ function cmd_spec(processor_name, opts, callback) {
   	lari_id:opts.lari_id || process.env.LARI_ID,
   	lari_passcode:opts.lari_passcode || process.env.LARI_PASSCODE,
     mp_file:opts.mp_file||undefined,
-    mp_file_args:opts.mp_file_args||undefined
+    mp_file_args:opts.mp_file_args||undefined,
+    container:opts.container||undefined
   };
 
   if (!processor_name) {
