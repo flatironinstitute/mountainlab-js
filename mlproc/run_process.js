@@ -1145,6 +1145,7 @@ function do_run_process(
   callback
 ) {
   erase_output_files(outputs);
+  let singularity_bind_mode=(spec0.exe_command.indexOf('$(singularity_bind)')>=0);
   let cmd = filter_exe_command(
     spec0.exe_command,
     spec0,
@@ -1154,13 +1155,17 @@ function do_run_process(
     parameters
   );
   if (info.processor_command_prefix) {
-cmd = info.processor_command_prefix + ' ' + cmd;
-}
+    cmd = info.processor_command_prefix + ' ' + cmd;
+  }
   console.info('[ Running ... ] ' + cmd);
   let timer = new Date();
   let P = new SystemProcess();
   P.setCommand(cmd);
-  P.setTempdirPath(info.tempdir_path || '');
+  let tempdir_path=info.tempdir_path||'';
+  if (singularity_bind_mode) {
+    tempdir_path='/tmp';
+  }
+  P.setTempdirPath(tempdir_path);
   if ('console_out' in outputs) {
     P.setConsoleOutFile(outputs['console_out']);
   }
