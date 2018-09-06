@@ -6,7 +6,7 @@ MountainLab is data processing, sharing and visualization software for scientist
 
 ## Spike Sorting
 
-If you are trying to use MountainSort spike sorting software, then please [follow this link](https://github.com/flatironinstitute/mountainsort_examples/blob/master/README.md) for installation and usage instructions.
+This page documents MountainLab only. If you would like to use MountainSort spike sorting software, then please [follow this link](https://github.com/flatironinstitute/mountainsort_examples/blob/master/README.md) for installation and usage instructions.
 
 ## Installation
 
