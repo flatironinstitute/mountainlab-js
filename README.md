@@ -210,6 +210,10 @@ ml-prv-locate raw_synth.mda.prv
 /tmp/mountainlab-tmp/output_184a04c2877517f8996fd992b6f923bee8c6bbd2_timeseries_out
 ```
 
+## Creating custom python processors
+
+While MountainLab processor packages can be created in any language, the easiest way to contribute to code is to use our [mlprocessors framework](https://github.com/flatironinstitute/mlprocessors/blob/master/README.md). There you will find a step-by-step guide and links to several examples. 
+
 ## Custom processor libraries
 
 Here is a list of user-contributed processor packages that we know of.
