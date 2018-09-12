@@ -9,11 +9,3 @@ env:
 - GLOBAL_INSTALL_FLAG=
 install:
 - npm install $GLOBAL_INSTALL_FLAG
-#deploy:
-#  provider: npm
-#  email: jmagland@flatironinstitute.org
-#  api_key:
-#    secure: Ebl7aygIkMwMSNDOvN6UxOkF+D4pm/DRTjDYoGH/+Td4XCjzmKQ718kI6DkyD2RdNAupv/kwBmozfvmFtskR669nWO6rk7F+QRRUopPM7BSUQUOXCNfB5FyM/mTJ/FQBQE3up13P2gxuh7Yll/5IVEecgudqqJU61Z1Fr2QWH6+6ty+KGd7Yo+bwHbyNKEa4cf26yQhabQSXeUIURw7J/AXMswdjKpnmFoMSr0RwWnqa6Gv03pqyjlF6bPeUC9jmfakP424wJFoIfcLE76PX2ZxchuS2BDAydUE+NClCQt9If7GwGZIwfyn1zaOtsXeg7dg2Z2l+oLBfFzzQkEnjxdWFS8XEd99XHpayf4rJjoyi49SCPW5EkJN+VTlmxsov/oDbdDhg4MpR6UTR77W81ies1v2T/yRoMRenMOCnOvbNZO1qXoFGZaUrAFm7HB7kzs4HxFU5WgHMPj24/oNdWI60j67yDeVhr3GtymzFkpF5Kil1A2aJeQwgxsemJvakMO/LHUGTxiuZWhKV2BSwvVWvZ4aRosAZG4TBX0CC8rz4ts3Xwpc0mQcSiNYGKvEgcnK8afnchMNjHjMYnJdn/h1CTobN4F7yr0okGxESuiVSzMfkaoDYtIf+ZKACRSr+XKZIw8Rj2L8D8+BMf4m8XpX8+Bq+Ps6EkBjFAZv2iNc=
-#  on:
-#    tags: true
-#    repo: flatironinstitute/mountainlab-js
