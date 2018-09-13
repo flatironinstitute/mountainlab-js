@@ -1,7 +1,8 @@
 language: node_js
+services:
+- docker
 os:
 - linux
-- osx
 node_js:
 - node
 env:
@@ -9,3 +10,12 @@ env:
 - GLOBAL_INSTALL_FLAG=
 install:
 - npm install $GLOBAL_INSTALL_FLAG
+deploy:
+  - provider: script
+    script:
+      - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+      - docker pull magland/mldevel_publish
+      - docker run -v $PWD/.npmrc:/root/.npmrc -v $PWD:/source magland/mldevel_publish npm
+    on:
+      tags: true
+    skip_cleanup: true
