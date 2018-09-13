@@ -5,12 +5,11 @@ os:
 - linux
 node_js:
 - node
-env:
-- GLOBAL_INSTALL_FLAG=--global
-- GLOBAL_INSTALL_FLAG=
 install:
-- npm install $GLOBAL_INSTALL_FLAG
+- npm install
 deploy:
   - provider: script
     script: ./devel/travis_deploy.sh
+    on:
+      tags: true
     skip_cleanup: true
