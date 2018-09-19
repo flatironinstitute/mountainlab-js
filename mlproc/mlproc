@@ -52,6 +52,8 @@ program
   .option('--mp_file [file.mp]', 'Specify explicitly an .mp file containing processors')
   .option('--mp_file_args [arguments]', 'Pass additional arguments to the mp files')
   .option('--container [path_or_url]', 'Use processors in a container')
+  .option('--lock','Lock the spec for rapid future lookup. But changes in processor packages will not take effect.')
+  .option('--unlock','Unlock the spec after it has been locked')
   .action(function (processor_name, cmd) {
     handle_container(cmd);
     require(__dirname+'/spec.js').cmd_spec(processor_name,cmd,function(err) {
@@ -146,6 +148,7 @@ program
   .option('--sha1 [sha1]','If prv file is not provided, specify the sha1.')
   .option('--size [size]','If prv file is not provided, specify the size.')
   .option('--fcs [fcs]','If prv file is not provided, specify the fcs.')
+  .option('--bytes [range-of-bytes]','Range of bytes to download')
   .option('--verbose [level]','Level of verbosity for debugging')
   .action(function (prv_file_name, output_file_name,cmd) {
     require(__dirname+'/prv_utils.js').cmd_prv_download(prv_file_name,output_file_name,cmd,function(err) {

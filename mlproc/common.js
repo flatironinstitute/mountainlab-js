@@ -29,6 +29,22 @@ var db_utils=require(__dirname+'/db_utils.js');
 const async=require('async');
 
 function get_processor_specs(opts,callback) {
+	let spec_lock_fname=config_directory()+'/processor_specs.lock.json';
+	if (opts.unlock) {
+		if (require('fs').existsSync(spec_lock_fname)) {
+			require('fs').unlinkSync(spec_lock_fname);
+		}
+	}
+	if ((require('fs').existsSync(spec_lock_fname))&&(!opts.lock)) {
+		let obj=read_json_file(spec_lock_fname);
+		if ((obj)&&(obj.processors)) {
+			callback(null,obj.processors);
+			return;
+		}
+		else {
+			require('fs').unlinkSync(spec_lock_fname);
+		}
+	}
 	find_candidate_mp_files(opts,function(err,mp_file_names) {
 		if (err) {
 			callback(err);
@@ -57,12 +73,19 @@ function get_processor_specs(opts,callback) {
 				cb();
 			});
 		},function() {
+			if (opts.lock) {
+				write_json_file(spec_lock_fname,{processors:list});
+			}
 			callback(null,list);
 		});
 	});
 }
 
 function get_processor_spec(processor_name,opts,callback) {
+	if ((opts.lock)||(opts.unlock)) {
+      callback('Cannot use lock or unlock options in this context.');
+      return;
+    }
 	if ((opts.lari_id)&&(!opts.mp_file)) {
 		let LC=new LariClient();
 		LC.getProcessorSpec(opts.lari_id,processor_name,opts)

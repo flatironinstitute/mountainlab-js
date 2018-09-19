@@ -10,7 +10,9 @@ function cmd_spec(processor_name, opts, callback) {
   	lari_passcode:opts.lari_passcode || process.env.LARI_PASSCODE,
     mp_file:opts.mp_file||undefined,
     mp_file_args:opts.mp_file_args||undefined,
-    container:opts.container||undefined
+    container:opts.container||undefined,
+    lock:opts.lock||undefined,
+    unlock:opts.unlock||undefined
   };
 
   if (!processor_name) {
