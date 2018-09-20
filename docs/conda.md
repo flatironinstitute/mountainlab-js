@@ -18,7 +18,7 @@ Now install Conda
 bash miniconda3.sh -bp ~/conda
 
 # Set up conda shell scripts on login (* see CONDA ACTIVATION note below)
-echo ". /home/tjd/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+echo ". ~/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 ```
 
 Close and reopen your terminal. You should now be able to run the `conda` command to activate the base environment:
