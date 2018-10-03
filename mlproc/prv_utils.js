@@ -69,7 +69,7 @@ function cmd_prv_create(fname, prv_fname_out, opts, callback) {
       return;
     } else {
       var err = 'Unable to create prv object.';
-      console.err(err);
+      console.error(err);
       callback(err);
       return;
     }
