@@ -15,6 +15,8 @@ MountainLab and associated plugins and helper code are available for Linux and M
 The easiest way to install MountainLab is using conda:
 
 ```
+conda create -n mountainlab
+conda activate mountainlab
 conda install -c flatiron -c conda-forge mountainlab mountainlab_pytools
 ```
 
