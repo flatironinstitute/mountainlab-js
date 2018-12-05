@@ -1501,7 +1501,7 @@ function link_inputs(inputs, original_inputs, info, callback) {
 }
 
 function make_hard_link_or_copy(src_fname, dst_fname, callback) {
-  require('fs').link(src_fname, dst_fname, function(err) {
+  require('fs').symlink(src_fname, dst_fname, function(err) {
     if (err) {
       console.warn(
         `This is only a warning: Unable to hard link file ${src_fname} -> ${dst_fname}. Perhaps temporary directory is not on the same device as the output file directory. Copying instead.`
