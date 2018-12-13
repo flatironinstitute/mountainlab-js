@@ -10,17 +10,19 @@ environment variable.
 The following environment variables are being used.
 They can be set in the configuration file (see above),
 although existing environment variables will not be
-overriden by these values.
+overriden by configuration file entries.
 
 ML_TEMPORARY_DIRECTORY: $ML_TEMPORARY_DIRECTORY$
 ML_PACKAGE_SEARCH_DIRECTORY: $ML_PACKAGE_SEARCH_DIRECTORY$
 ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES: $ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES$
 ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES: $ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES$
+ML_DATABASE_DIRECTORY: $ML_DATABASE_DIRECTORY$
 
 The following are the values actually being used:
 
 Temporary directory: $temporary_directory$
-Package search_directories: $package_search_directories$
+Package search directories: $package_search_directories$
 PRV search directories: $prv_search_directories$
+Database directory: $database_directory$
 
 -----------------------------------------------------------

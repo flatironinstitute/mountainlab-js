@@ -21,6 +21,7 @@ exports.config_file_path=config_file_path;
 exports.config_directory=config_directory;
 exports.main_package_directory=main_package_directory;
 exports.shub_cache_directory=shub_cache_directory;
+exports.database_directory=database_directory;
 
 const LariClient=require('lariclient').v1;
 
@@ -511,4 +512,12 @@ function make_random_id(len) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
 
     return text;
+}
+
+function database_directory() {
+	let ret=process.env.ML_DATABASE_DIRECTORY||(config_directory()+'/database');
+	if (!require('fs').existsSync(ret)) {
+		require('fs').mkdirSync(ret);
+	}
+	return ret;
 }

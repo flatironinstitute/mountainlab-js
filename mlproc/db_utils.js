@@ -1,16 +1,10 @@
 const SafeDatabase=require(__dirname+'/safedatabase.js').SafeDatabase;
+let common=require(__dirname+'/common.js');
 
 let TheSafeDatabase=null;
 function load_database() {
 	if (!TheSafeDatabase) {
-		var dirpath=process.env.ML_DATABASE_DIRECTORY;
-		if (!dirpath) {
-			mkdir_if_needed(config_directory());
-			dirpath=config_directory()+'/database';
-		}
-		mkdir_if_needed(dirpath);
-
-		TheSafeDatabase=new SafeDatabase(dirpath);
+	        TheSafeDatabase=new SafeDatabase(common.database_directory());
 	}
 	return TheSafeDatabase;
 }
@@ -111,13 +105,7 @@ function connect_to_database_if_needed(callback) {
 	var hold_console_log=console.log;
 	console.log=function() {};
 	try {
-		var dirpath=process.env.ML_DATABASE_DIRECTORY;
-		if (!dirpath) {
-			mkdir_if_needed(config_directory());
-			dirpath=config_directory()+'/database';
-		}
-		mkdir_if_needed(dirpath);
-		DATABASE=Client.connect(dirpath,['sumit']);
+	        DATABASE=Client.connect(common.database_directory(),['sumit']);
 	}
 	catch(err) {
 		console.log=hold_console_log;
@@ -192,16 +180,4 @@ function removeDocuments_old(collection,query,callback) {
 		});
 		*/
 	});
-}
-
-function mkdir_if_needed(path) {
-  try {
-    require('fs').mkdirSync(path);
-  }
-  catch(err) {
-  }
-}
-
-function config_directory() {
-	return process.env.ML_CONFIG_DIRECTORY||process.env.HOME+'/.mountainlab';
 }
