@@ -26,7 +26,8 @@ function cmd_config(name,opts,callback) {
         'ML_TEMPORARY_DIRECTORY',
         'ML_PACKAGE_SEARCH_DIRECTORY',
         'ML_ADDITIONAL_PACKAGE_SEARCH_DIRECTORIES',
-        'ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES'
+        'ML_ADDITIONAL_PRV_SEARCH_DIRECTORIES',
+	'ML_DATABASE_DIRECTORY'
     ];
     for (var i in env_names) {
         txt=txt.split(`$${env_names[i]}$`).join((process.env[env_names[i]]||'[default]'));
@@ -35,12 +36,14 @@ function cmd_config(name,opts,callback) {
     txt=txt.split('$temporary_directory$').join(common.temporary_directory());
     txt=txt.split('$package_search_directories$').join(common.package_search_directories().join(':'));
     txt=txt.split('$prv_search_directories$').join(common.prv_search_directories().join(':'));
+    txt=txt.split('$database_directory$').join(common.database_directory());
 
 	if (opts['format']=='json') {
 		var obj={
 			temporary_directory:common.temporary_directory(),
 			package_search_directories:common.package_search_directories(),
-			prv_search_directories:common.prv_search_directories()
+		        prv_search_directories:common.prv_search_directories(),
+		        database_directory:common.database_directory()
 		};
 		console.log (JSON.stringify(obj,null,4));
 	}
