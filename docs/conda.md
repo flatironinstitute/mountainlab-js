@@ -10,7 +10,7 @@ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O mi
 ```
 On Mac:
 ```
-curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOS-x86_64.sh -o miniconda3.sh
+curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o miniconda3.sh
 ```
 Now install Conda
 ```
