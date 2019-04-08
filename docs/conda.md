@@ -18,7 +18,7 @@ Now install Conda
 bash miniconda3.sh -bp ~/conda
 
 # Set up conda shell scripts on login (* see CONDA ACTIVATION note below)
-echo ". ~/conda/etc/profile.d/conda.sh" >> ~/.bashrc # or ~/.bash_profile if you're on a Mac
+conda init
 ```
 
 Close and reopen your terminal. You should now be able to run the `conda` command to activate the base environment:
@@ -30,9 +30,6 @@ conda activate base
 # have conda update itself
 conda update conda
 
-# Prevent conda from 'stacking' environments; allow only one active env at a time:
-# [Later in 2018 (conda 4.6) this will be the default, and this command will no longer work or be needed]
-conda config --set max_shlvl 1
 ```
 
 To create and activate a new conda environment:
